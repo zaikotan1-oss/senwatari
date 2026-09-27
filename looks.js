@@ -386,7 +386,7 @@ const TALK={bridge:["……","ふんっ！！","腰、無事！","腰がぁぁ�
   cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","潜航〜！","浮上成功","浸水〜！"],rover:["ピピ","小さな一歩！","人類の大きな一歩","ヒューストン…"],
   ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","正義は勝つ","マントが…"],futon:["zzz","むにゃ…","あと5分…","（まだ寝てる）"]};
 // 失敗の擬音
-function failWord(msg){return msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
+function failWord(msg){return msg.includes("起きなかった")?"ぐぅ…":msg.includes("飛んでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
   msg.includes("動けなく")||msg.includes("時間")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":TH.subway?"プァーン！":"ドボーン！";}
 function drawFailWord(f){if(!f.word)return;const k=Math.min(1,(time-f.t)*5),s=k<1?k*1.3:1;
   ctx.save();ctx.translate(f.x,Math.max(70,f.y-90));ctx.rotate(-.12);ctx.scale(s,s);ctx.font="900 64px 'Hiragino Maru Gothic ProN','Arial Black',sans-serif";ctx.textAlign="center";

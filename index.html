@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=18"></script>
-<script src="gen.js?v=18"></script>
-<script src="gen_table.js?v=18"></script><script src="looks.js?v=18"></script>
+<script src="matter.min.js?v=33"></script>
+<script src="gen.js?v=33"></script>
+<script src="gen_table.js?v=33"></script><script src="looks.js?v=33"></script><script src="modes.js?v=33"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -224,8 +224,8 @@ const HAND_IDEA=["span","span","ramp","ramp","span","ramp","span","wedge","ramp"
   "ramp","ramp","span","rotate","wedge","span","ramp","drop","drop","rotate"];
 HAND_IDEA.forEach((d,i)=>{if(LEVELS[i])LEVELS[i].idea=d;});
 const HAND=LEVELS.splice(0,LEVELS.length);
-for(const i of [0,10,2,15,27,7,16,14,24,19])LEVELS.push(HAND[i]);  // 橋→はね橋→坂→山→落とす→壁→谷→大はね橋→かべ2枚→逆はね橋
-for(let k=10;k<100;k++){const o=GEN.genLevel(k);if(o)LEVELS.push(o);}
+// 100 面の並びは gen_table.js。"hand" は上の手作り面（穴越え）、それ以外は gen.js の自動生成
+for(let k=0;k<100;k++){const e=GEN_TABLE[k];if(e&&e.t==="hand")LEVELS.push(HAND[e.s]);else{const o=GEN.genLevel(k);if(o)LEVELS.push(o);}}
 
 /* ---------- 絵柄（THEMES は looks.js。5 面ごとに変わる） ---------- */
 const themeOf=i=>THEMES[Math.min(THEMES.length-1,Math.floor(i/5))];  // 5 面ごとに絵柄が変わる
@@ -327,6 +327,7 @@ function loadLevel(i){
     Composite.add(world,[mill,Constraint.create({pointA:{x:mx,y:my},bodyB:mill,pointB:{x:0,y:0},length:0,stiffness:.9})]);
     mill.plugin.speed=L.mill[3]||.05;}
   Events.on(engine,"collisionStart",onHit);
+  MODE.load();
   state="draw";showHint=0;failAt=null;winFx=[];boomFx=[];shakeT=0;blown=false;
   document.getElementById("retryBig").classList.remove("show","pulse");
   document.getElementById("toast").style.opacity=0;
@@ -341,6 +342,7 @@ function banner(s){const t=$("toast");t.textContent=s;t.style.opacity=1;t.style.
 function onHit(ev){
   for(const pr of ev.pairs){
     for(const [a,b] of [[pr.bodyA,pr.bodyB],[pr.bodyB,pr.bodyA]]){
+      if(strokes.some(s=>s.body===a.parent))MODE.onHit(a,b.parent);
       const r=a.parent;if(!r.plugin.rock||r.plugin.dead)continue;
       const o=b.parent;
       if(cars.some(c=>!c.waiting&&(o===c.chassis||o===c.wA||o===c.wB))||(cargo&&o===cargo)){
@@ -400,6 +402,7 @@ function endDraw(){
   // 端とつなぎ目は丸くする（段差に車輪が乗り上げやすくなる）
   for(const p of pts)parts.push(Bodies.circle(p.x,p.y,T/2,{density:.008}));
   const body=Body.create({parts,friction:.9,frictionStatic:2,restitution:0});
+  for(const q of body.parts)q.collisionFilter.category=0x0002;body.collisionFilter.category=0x0002; // 線（飛んでいるおっさんはすり抜ける）
   // Matter は合体物の回りにくさ（慣性）を各部品の中心で足すだけなので、長い線が軽々と回ってしまう。重心からの距離を足して直す
   let I=0;for(const q of body.parts.slice(1))I+=q.inertia+q.mass*((q.position.x-body.position.x)**2+(q.position.y-body.position.y)**2);
   Body.setInertia(body,I);
@@ -437,7 +440,7 @@ addEventListener("keydown",e=>{
 const $=id=>document.getElementById(id);
 function go(){if(state!=="draw")return;state="go";goT=0;cars.forEach(c=>c.drive=0);
   if(L.air)for(const c of cars)for(const b of [c.chassis,c.wA,c.wB])Body.setStatic(b,false);
-  if(boulder){Body.setStatic(boulder,false);Body.setVelocity(boulder,{x:-6*DIR,y:3});}sfx.go();$("retryBig").classList.add("show");}
+  if(boulder){Body.setStatic(boulder,false);Body.setVelocity(boulder,{x:-6*DIR,y:3});}MODE.go();sfx.go();$("retryBig").classList.add("show");}
 let toastT=0;function toast(s){const t=$("toast");t.textContent=s;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity=0,1400);}
 $("retryBtn").onclick=()=>loadLevel(li);
 $("hintBtn").onclick=()=>{showHint=(showHint+1)%3;};  // 1回目: 始点と終点だけ／2回目: 線ぜんぶ／3回目: 消す
@@ -474,8 +477,8 @@ function finish(win,msg){
     for(let k=0;k<90;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%6]});}
   else{sfx.fail();toast(msg);$("retryBig").classList.add("show","pulse");
     const icon=msg.includes("落石")?"🪨":msg.includes("荷物")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("動けなく")||msg.includes("時間")?"⛔":"💦";
-    explode();
-    const c=car.chassis.position;failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
+    if(!MODE.noCar())explode();
+    const c=MODE.focus();failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
   setTimeout(()=>{
     $("resTitle").textContent=win?"クリア！":"しっぱい…";
     $("resTitle").style.color=win?"#ff5a4e":"#557";
@@ -504,7 +507,7 @@ function step(){
         if(!prev.waiting&&(prev.chassis.position.x-c.x0)*DIR>160*c.sz){c.waiting=false;c.startT=goT;
           Composite.add(world,[c.chassis,c.wA,c.wB,...c.cons]);sfx.go();}
         continue;}
-      if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
+      if(MODE.driveOff())c.drive=0;else if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
       motor(c.wA,c.drive*DIR);motor(c.wB,c.drive*DIR);
       // ジャンプ台: 上を通ると前へ強く押し出される
       for(const [x0,x1,py] of (L.pads||[])){const p=c.chassis.position;
@@ -515,7 +518,7 @@ function step(){
   if(mill){const d=Math.max(-.004,Math.min(.004,(mill.plugin.speed-mill.angularVelocity)*.3));mill.torque+=d*mill.inertia/(DT*DT);}
   if(boulder&&boulder.position.y>H+200){Composite.remove(world,boulder);boulder=null;}
   // 落石 L.rocks=[x0,x1,間隔(秒)]
-  if(L.rocks&&(state==="draw"||state==="go")){
+  if(L.rocks&&(state==="draw"&&L.mode!=="guard"||state==="go")){
     rockT-=DT/1000;
     if(rockT<=0){rockT=L.rocks[2];const [x0,x1]=L.rocks,rad=13+rockRng()*9;
       const b=Bodies.circle(x0+(x1-x0)*rockRng(),-30,rad,{density:.004,restitution:.2,friction:.5});
@@ -529,6 +532,7 @@ function step(){
   stepBoom();
   for(const p of winFx){p.x+=p.vx;p.y+=p.vy;p.vy+=.25;p.vx*=.99;p.r+=.2;}
   Engine.update(engine,DT);
+  if(state==="draw"||state==="go")MODE.step();
   // 落ちた線は捨てる
   for(let i=strokes.length-1;i>=0;i--)if(strokes[i].body.position.y>H+600){
     Composite.remove(world,strokes[i].body);strokes[i].cons.forEach(c=>Composite.remove(world,c));strokes.splice(i,1);}
@@ -541,7 +545,7 @@ function step(){
     if(flipT>1.2){finish(false,"ひっくり返っちゃった…");return;}
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
       if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
-    if(state==="go"){
+    if(state==="go"&&(!L.mode||L.mode==="switch")){
       const done=cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]);
       if(done)winT+=DT/1000;else winT=0;
       if(winT>.25)finish(true);
@@ -614,13 +618,14 @@ function render(){
     if(TH.glow){ctx.shadowColor=TH.glow;ctx.shadowBlur=14;}
     ctx.strokeStyle=TH.edge;ctx.lineWidth=TH.edgeW||3;ctx.stroke();ctx.shadowBlur=0;
     if(TH.rough){ctx.save();ctx.translate(2,-1.5);ctx.globalAlpha=.5;ctx.lineWidth=1.5;ctx.stroke();ctx.restore();}}
+  MODE.draw();
   // ゴールの旗
-  const [gx,gy]=L.goal;
+  const [gx,gy]=L.goal;if(MODE.flag()){
   ctx.fillStyle="#555";ctx.fillRect(gx-3,gy-110,6,110);
   ctx.save();ctx.translate(gx+3,gy-108);
   for(let r=0;r<3;r++)for(let c=0;c<5;c++){ctx.fillStyle=(r+c)%2?"#222":"#fff";
     const w=Math.sin(time*5+c*.8)*3;ctx.fillRect(c*12,r*12+w,12,12);}
-  ctx.restore();
+  ctx.restore();}
   // 線
   ctx.lineCap="round";ctx.lineJoin="round";
   for(const s of strokes){const b=s.body,{pts,c0}=b.plugin;
@@ -664,7 +669,7 @@ function render(){
   if(boulder){ctx.save();ctx.translate(boulder.position.x,boulder.position.y);ctx.rotate(boulder.angle);const r=boulder.circleRadius;
     ctx.fillStyle="#7a6a5a";ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.strokeStyle="#3a2e24";ctx.lineWidth=4;ctx.stroke();
     ctx.strokeStyle="#5a4a3a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-r*.5,-r*.2);ctx.lineTo(r*.1,r*.3);ctx.lineTo(r*.5,-r*.1);ctx.stroke();ctx.restore();}
-  if(!blown)for(const c of cars)if(!c.waiting)drawCar(c);
+  if(!blown&&!MODE.noCar())for(const c of cars)if(!c.waiting)drawCar(c);
   if(cargo){ctx.save();ctx.translate(cargo.position.x,cargo.position.y);ctx.rotate(cargo.angle);
     ctx.fillStyle="#d9a066";ctx.fillRect(-17,-13,34,26);ctx.strokeStyle="#8a5a2a";ctx.lineWidth=3;ctx.strokeRect(-17,-13,34,26);
     ctx.beginPath();ctx.moveTo(-17,-2);ctx.lineTo(17,-2);ctx.stroke();ctx.restore();}

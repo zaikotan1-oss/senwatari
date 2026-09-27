@@ -1,6 +1,6 @@
 // オフラインで遊べるようにする。版を上げると古い写しを捨てて取り直す。
-const VER="senwatari-v7";
-const FILES=["./","index.html","matter.min.js","gen.js","gen_table.js","looks.js","manifest.webmanifest",
+const VER="senwatari-v8";
+const FILES=["./","index.html","matter.min.js","gen.js","gen_table.js","looks.js","modes.js","manifest.webmanifest",
   "icons/icon-180.png","icons/icon-192.png","icons/icon-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(VER).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VER).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

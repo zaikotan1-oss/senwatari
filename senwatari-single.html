@@ -115,6 +115,19 @@ function rng(seed){let a=seed>>>0;return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.i
   t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
 const lerp=(a,b,t)=>a+(b-a)*t, rd=v=>Math.round(v);
 
+// 飛ばす面: 飛ぶ距離は線の長さで決まる（modes.js の fire と同じ式）。y=x·tanθ − x²/(3.73·len·cos²θ)
+function launchTpl(r,d,kind){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(470,500)),px=rd(R(260,320)),plen=280,py=Y-30,fx=px-(plen/2-26),sy=py-30;
+  let D=rd(lerp(380,700,d)+R(-30,30));if(kind==="wall")D=Math.max(D,560);const bw=rd(lerp(180,140,d)),bx=fx+D;
+  let by=Y,ground=[rect(-60,px+180,Y)],name="布団へ",hint="シーソーの反対側に線を落とすと、おっさんが飛ぶ。線が長いほど遠くへ！";
+  if(kind==="water"){ground.push(rect(bx-bw/2-20,W+60,Y));}
+  if(kind==="tower"){by=Y-rd(Math.min(R(80,170),D*.45));ground.push(rect(bx-bw/2-20,bx+bw/2+20,by));name="塔の上の布団";hint="布団は塔の上。高く遠くへ。";}
+  if(kind==="wall"){ground.push(rect(bx-bw/2-20,W+60,Y));const wx=rd(fx+D*R(.45,.6));ground.push(rect(wx-18,wx+18,Y-rd(R(120,180)),Y));name="壁ごえ";hint="あいだに壁。越えて布団へ。";}
+  const th=55*Math.PI/180,dx=bx-fx,up=sy-(by-30),len=Math.max(60,dx*dx/(3.73*Math.cos(th)**2*(dx*Math.tan(th)-up)));
+  const x0=px+plen/2-30,a=90*Math.PI/180; // 板の端に、立てた線を落とす
+  return {name,hint,mode:"launch",ground,car:[-400,300],goal:[bx,by],saw:[px,py,plen],bed:[bx-bw/2,bx+bw/2,by],
+    noDraw:[[bx-bw/2-10,0,bw+20,by-70]],
+    sol:[[x0,py-40],[rd(x0+len*Math.cos(a)),rd(py-40-len*Math.sin(a))]]};}
 const TPL={
  bridge(r,d){const R=(a,b)=>a+(b-a)*r();
   const Y=rd(R(380,480)),g=rd(lerp(220,600,d)+R(-40,40)),L=rd(R(330,Math.max(340,W-g-300))),X=L+g;
@@ -224,6 +237,73 @@ const TPL={
   const Y=480,mx=rd(R(560,760)),mr=100,my=Y-mr-14;
   return {name:"風車",hint:"風車がじゃま！ 線をはさんで止めよう。",ground:[rect(-60,W+60,Y)],car:[150,Y],goal:[1150,Y],
     mill:[mx,my,mr,+lerp(.05,.08,d).toFixed(3)],sol:[[mx-150,Y-8],[mx-20,Y-60]]};},
+ /* ---------- スイッチを押せ（L.mode="switch"） ---------- */
+ swShelf(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,490)),gx=rd(R(640,900));let sx=rd(R(260,1060));if(Math.abs(sx-gx)<130)sx=gx>700?rd(R(260,480)):rd(R(960,1080));
+  const sy=rd(R(200,Math.max(210,Y-170)));
+  const o={name:"スイッチ",hint:"遮断機が道をふさいでいる。線を落としてボタンを押そう。",mode:"switch",
+    ground:[rect(-60,W+60,Y),rect(sx-60,sx+60,sy,sy+26)],car:[150,Y],goal:[Math.min(gx+300,1180),Y],gate:[gx,0,Y],btns:[[sx,sy]],
+    sol:[[sx-45,sy-40],[sx+45,sy-40]]};
+  if(d>.5){o.noDraw=[[sx-80,0,160,sy-110]];o.hint="ボタンの真上は描けない。";}
+  return o;},
+ swCup(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,490)),gx=rd(R(620,760)),cx=rd(R(900,1080)),cy=rd(R(260,Y-140)),op=rd(lerp(120,70,d)),hw=op/2;
+  return {name:"カップの底",hint:"ボタンはカップの底。すき間に落とそう。",mode:"switch",
+    ground:[rect(-60,W+60,Y),rect(cx-hw-60,cx+hw+60,cy,cy+24),rect(cx-hw-24,cx-hw,cy-90,cy),rect(cx+hw,cx+hw+24,cy-90,cy)],
+    car:[150,Y],goal:[Math.min(gx+260,1180),Y],gate:[gx,0,Y],btns:[[cx,cy,op-14]],
+    sol:[[cx,cy-170],[cx,cy-120]]};},
+ swPillar(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(420,480)),g=rd(lerp(300,440,d)+R(-20,20)),L=rd(R(330,Math.max(340,W-g-300))),X=L+g,pm=rd(L+g*R(.35,.65)),pY=Y+rd(R(30,90));
+  return {name:"柱のボタン",hint:"ボタンを押すと橋が出る。柱の上の細いすき間から。",mode:"switch",
+    ground:[cliffL(L,Y),cliffR(X,Y),rect(pm-20,pm+20,pY)],car:[Math.max(90,L-250),Y],goal:[Math.min(X+220,1180),Y],
+    btns:[[pm,pY,34]],bridge:[L,X,Y],noDraw:[[L,0,pm-26-L,600],[pm+26,0,X-pm-26,600]],
+    sol:[[pm,pY-150],[pm,pY-100]]};},
+ swTwo(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,490)),gx=rd(R(900,1000)),a=rd(R(260,420)),sp=rd(lerp(180,340,d)),b=a+sp,ya=rd(R(220,330)),yb=d>.4?ya+rd(R(-60,60)):ya;
+  return {name:"ボタン2つ",hint:"ボタンは2つ。いっぺんに押そう。",mode:"switch",
+    ground:[rect(-60,W+60,Y),rect(a-40,a+40,ya,ya+24),rect(b-40,b+40,yb,yb+24)],car:[150,Y],goal:[Math.min(gx+220,1180),Y],gate:[gx,0,Y],
+    btns:[[a,ya,56],[b,yb,56]],sol:[[a-50,ya-36],[b+50,yb-36]]};},
+ /* ---------- 守れ（L.mode="guard"。車は止まったまま） ---------- */
+ gdRain(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,500)),cx=rd(R(420,860)),sp=rd(lerp(80,130,d));
+  return {name:"岩の雨",hint:"岩がふってくる！ 線で屋根を作って守ろう。",mode:"guard",guard:rd(lerp(4,6,d)),
+    ground:[rect(-60,W+60,Y)],car:[cx,Y],goal:[cx,Y-40],rocks:[cx-sp,cx+sp,+lerp(.32,.2,d).toFixed(2)],
+    sol:[[cx-120,Y-4],[cx,Y-200],[cx+120,Y-4]]};},
+ gdCannon(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,500)),cx=rd(R(700,960)),kx=rd(R(90,180)),ky=Y-rd(R(40,lerp(60,200,d))),wx=cx-rd(R(110,160));
+  return {name:"大砲",hint:"大砲が撃ってくる！ くぎ2本に線を通して盾に。",mode:"guard",guard:rd(lerp(4,6,d)),
+    ground:[rect(-60,W+60,Y)],car:[cx,Y],goal:[cx,Y-40],cannon:[kx,ky,rd(lerp(11,15,d)),null,+lerp(1.2,.8,d).toFixed(2),.7],
+    pins:[[wx,Y-40],[wx,Y-170]],sol:[[wx,Y-14],[wx,Y-250]]};},
+ gdMeteor(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,500)),cx=rd(R(760,980));
+  return {name:"隕石",hint:"ななめ上から飛んでくる！ 車を守ろう。",mode:"guard",guard:rd(lerp(4,6,d)),
+    ground:[rect(-60,W+60,Y)],car:[cx,Y],goal:[cx,Y-40],cannon:[80,120,rd(R(8,10)),null,+lerp(1,.7,d).toFixed(2),.6],
+    rocks:d>.5?[cx-60,cx+60,.45]:undefined,
+    sol:[[cx-130,Y-4],[cx-10,Y-210],[cx+110,Y-4]]};},
+ /* ---------- おっさんを起こせ（L.mode="wake"。車は出ない） ---------- */
+ wkOpen(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,500)),ox=rd(R(420,1000));
+  return {name:"おきて！",hint:"おっさんが寝ている。線を落として起こそう。",mode:"wake",ground:[rect(-60,W+60,Y)],car:[-400,300],goal:[ox,Y],oji:[ox,Y],
+    sol:[[ox-50,Y-200],[ox+60,Y-200]]};},
+ wkPit(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(380,440)),w=rd(R(200,240)),L=rd(R(360,800)),X=L+w,op=rd(lerp(100,60,d)),lip=(w-op)/2,fy=Y+rd(R(90,150));
+  return {name:"穴の底",hint:"おっさんは穴の底。すき間から落とそう。",mode:"wake",
+    ground:[rect(-60,L,Y),rect(X,W+60,Y),rect(L,X,fy),rect(L,L+lip,Y,Y+20),rect(X-lip,X,Y,Y+20)],car:[-400,300],goal:[L+w/2,fy],oji:[L+w/2,fy],
+    sol:[[L+w/2,Y-120],[L+w/2,Y-70]]};},
+ wkSwing(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(460,500)),ox=rd(R(640,960)),px=ox-rd(R(30,50)),py=Y-rd(R(220,250)),ln=Y-12-py;
+  return {name:"振り子",hint:"真上からは描けない。くぎに線を留めて、振り子で起こそう。",mode:"wake",
+    ground:[rect(-60,W+60,Y)],car:[-400,300],goal:[ox,Y],oji:[ox,Y],
+    pins:[[px,py]],noDraw:[[px+22,0,W-px-22,Y-60]],sol:[[px+4,py],[px-ln,py-4]]};},
+ wkTopple(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(460,500)),wx=rd(R(480,760)),wh=rd(R(140,180)),ox=wx+rd(R(110,150));
+  return {name:"壁の向こう",hint:"壁の向こうで寝ている。壁の上のくぎから線を立てて、倒そう。",mode:"wake",
+    ground:[rect(-60,W+60,Y),rect(wx-15,wx+15,Y-wh,Y)],car:[-400,300],goal:[ox,Y],oji:[ox,Y],
+    pins:[[wx+32,Y-wh-12]],noDraw:[[wx+64,0,W-wx-64,600]],sol:[[wx+32,Y-wh-8],[wx+44,Y-wh-80],[wx+46,Y-wh-262]]};},
+ /* ---------- おっさんを飛ばせ（L.mode="launch"。線が長いほど遠くへ） ---------- */
+ lnWater(r,d){return launchTpl(r,d,"water");},
+ lnTower(r,d){return launchTpl(r,d,"tower");},
+ lnWall(r,d){return launchTpl(r,d,"wall");},
  gapstep(r,d){const R=(a,b)=>a+(b-a)*r();
   const Y=rd(R(440,480)),L=rd(R(340,400)),g=rd(lerp(240,320,d)),X=L+g,sx=X+rd(R(200,260)),sh=rd(lerp(40,60,d));
   return {name:"谷と段",hint:"谷をわたった先に段差。一本で両方なんとかしよう。",
@@ -233,7 +313,9 @@ const TPL={
 // 発想（遊んだ時に何を考えるか）: 同じ発想が続かないように並べる
 const IDEA={bridge:"span",long:"span",needle:"span",pit:"span",tunnel:"span",slope:"ramp",high:"ramp",stairs:"ramp",gapstep:"ramp",
   tent:"shape",valley:"shape",wall:"wedge",walls2:"wedge",drawbridge:"rotate",revbridge:"rotate",drop:"drop",rockfall:"roof",
-  skycar:"slide",jumppad:"catch",boulder:"fence",mill:"jam"};
+  skycar:"slide",jumppad:"catch",boulder:"fence",mill:"jam",
+  swShelf:"switch",swCup:"switch",swPillar:"switch",swTwo:"switch",gdRain:"guard",gdCannon:"guard",gdMeteor:"guard",
+  wkOpen:"wake",wkPit:"wake",wkSwing:"wake",wkTopple:"wake",lnWater:"launch",lnTower:"launch",lnWall:"launch"};
 const ORDER=Object.keys(IDEA);
 // 世界ごとに新しく出る物（1 面目で教える）
 const WORLD_NEW=[null,["drop"],["skycar","rev"],["jumppad"],["rockfall"],["boulder"],["revbridge"],["cars"],["cargo","size"],[]];
@@ -246,6 +328,13 @@ function mirror(o){ // 左右反転（車が右から左へ走る）
   if(o.pads)o.pads=o.pads.map(([a,b,y])=>[fx(b),fx(a),y]);
   if(o.boulder)o.boulder=[fx(o.boulder[0]),o.boulder[1],o.boulder[2]];
   if(o.mill)o.mill=[fx(o.mill[0]),o.mill[1],o.mill[2],-o.mill[3]];
+  if(o.btns)o.btns=o.btns.map(([x,y,w])=>[fx(x),y,w]);
+  if(o.gate)o.gate=[fx(o.gate[0]),o.gate[1],o.gate[2]];
+  if(o.bridge)o.bridge=[fx(o.bridge[1]),fx(o.bridge[0]),o.bridge[2]];
+  if(o.cannon)o.cannon=[fx(o.cannon[0]),o.cannon[1],-o.cannon[2],...o.cannon.slice(3)];
+  if(o.oji)o.oji=[fx(o.oji[0]),o.oji[1]];
+  if(o.saw){o.saw=[fx(o.saw[0]),o.saw[1],o.saw[2]];o.sawDir=-1;}
+  if(o.bed)o.bed=[fx(o.bed[1]),fx(o.bed[0]),o.bed[2]];
   o.sol=o.sol.map(([x,y])=>[fx(x),y]);o.dir=-1;o.name+="（ぎゃく）";return o;
 }
 function gimmick(o,g,intro){
@@ -264,108 +353,117 @@ function build(e,idx){const d=diff(idx);const o=TPL[e.t](rng(e.s*7919+idx*31),d)
   if(e.m&&e.n&&!e.g)o.hint="あたらしい！ 車が右から左へ走る。"+o.hint.replace("あたらしい！ ","");
   if(e.g)gimmick(o,e.g,e.n);
   return o;}
-function genLevel(idx){const e=window.GEN_TABLE[idx];if(!e)return null;return build(e,idx);}
+function genLevel(idx){const e=window.GEN_TABLE[idx];if(!e||e.t==="hand")return null;return build(e,idx);}
 window.GEN={TPL,ORDER,IDEA,WORLD_NEW,rng,diff,build,genLevel,mirror};
 window.GEN_TABLE=window.GEN_TABLE||[];
 })();
 
 </script>
 <script>
-// 11〜100 面: [型, 種, 左右反転, 仕掛け(cars/cargo/size), 教える面]。_test.js の PLAN100→SEARCH100 で合格した物だけ（2026-09-27）
-// 合格 = 模範解答で勝つ・ずらしても勝つ・線なしでは負ける・（橋/坂の組と落石以外は）横一本の線では勝てない
-// 並べ方 = 隣と同じ発想にしない・1 世界で同じ発想は 2 回まで（その世界の新しい物は 3 回まで）・横一本で解ける面は 1 世界 3 面まで
-window.GEN_TABLE=[null,null,null,null,null,null,null,null,null,null,
-["drop", 3, 0, "", 1],
-["tent", 1, 0, "", 0],
-["bridge", 1, 0, "", 0],
-["drop", 2, 0, "", 0],
-["drawbridge", 1, 0, "", 0],
-["high", 1, 0, "", 0],
-["drop", 1, 0, "", 0],
-["tent", 1, 0, "", 0],
-["gapstep", 1, 0, "", 0],
-["drawbridge", 1, 0, "", 0],
-["skycar", 1, 0, "", 1],
-["drawbridge", 1, 1, "", 1],
-["high", 1, 0, "", 0],
-["drawbridge", 1, 1, "", 0],
-["skycar", 1, 0, "", 0],
-["slope", 1, 0, "", 0],
-["skycar", 1, 1, "", 0],
-["drawbridge", 1, 1, "", 0],
-["long", 1, 1, "", 0],
-["drop", 2, 1, "", 0],
-["jumppad", 1, 0, "", 1],
-["drawbridge", 1, 1, "", 0],
-["wall", 1, 0, "", 0],
-["skycar", 1, 1, "", 0],
-["jumppad", 1, 0, "", 0],
-["needle", 1, 0, "", 0],
-["jumppad", 1, 0, "", 0],
-["walls2", 2, 0, "", 0],
-["pit", 1, 1, "", 0],
-["tent", 1, 0, "", 0],
-["rockfall", 2, 0, "", 1],
-["drawbridge", 1, 1, "", 0],
-["bridge", 1, 0, "", 0],
-["drawbridge", 1, 0, "", 0],
-["drop", 3, 0, "", 0],
-["tunnel", 1, 0, "", 0],
-["rockfall", 1, 0, "", 0],
-["walls2", 1, 1, "", 0],
-["slope", 1, 0, "", 0],
-["walls2", 1, 1, "", 0],
-["boulder", 1, 0, "", 1],
-["skycar", 1, 0, "", 0],
-["bridge", 1, 0, "", 0],
-["boulder", 2, 0, "", 0],
-["jumppad", 1, 0, "", 0],
-["long", 1, 1, "", 0],
-["boulder", 1, 0, "", 0],
-["skycar", 1, 0, "", 0],
-["high", 1, 0, "", 0],
-["drop", 1, 0, "", 0],
-["revbridge", 1, 0, "", 1],
-["boulder", 1, 0, "", 0],
-["pit", 1, 1, "", 0],
-["skycar", 1, 0, "", 0],
-["rockfall", 3, 0, "", 0],
-["tunnel", 1, 0, "", 0],
-["revbridge", 8, 0, "", 0],
-["rockfall", 1, 0, "", 0],
-["gapstep", 1, 0, "", 0],
-["skycar", 1, 0, "", 0],
-["drop", 3, 0, "cars", 1],
-["drawbridge", 3, 1, "cars", 0],
-["long", 1, 0, "", 0],
-["tent", 1, 0, "", 0],
-["drawbridge", 1, 0, "cars", 0],
-["long", 1, 0, "", 0],
-["jumppad", 1, 0, "", 0],
-["tent", 1, 0, "", 0],
-["slope", 2, 0, "cars", 0],
-["boulder", 1, 0, "", 0],
-["skycar", 1, 0, "cargo", 1],
-["tent", 1, 0, "size", 1],
-["needle", 1, 0, "", 0],
-["drawbridge", 2, 0, "cars", 0],
-["skycar", 1, 0, "size", 0],
-["gapstep", 1, 0, "", 0],
-["rockfall", 1, 0, "cargo", 0],
-["drawbridge", 4, 1, "cars", 0],
-["stairs", 4, 0, "cars", 0],
-["drop", 1, 0, "", 0],
-["walls2", 2, 0, "", 0],
-["tent", 1, 0, "", 0],
-["skycar", 1, 1, "", 0],
-["bridge", 1, 1, "", 0],
-["rockfall", 1, 0, "", 0],
-["drawbridge", 1, 0, "", 0],
-["gapstep", 1, 0, "", 0],
-["drop", 4, 0, "cars", 0],
-["tent", 1, 0, "", 0],
-["high", 1, 0, "", 0]
-].map(e=>e&&{t:e[0],s:e[1],m:e[2],g:e[3],n:e[4]});
+// 1〜100 面: [型, 種, 左右反転, 仕掛け(cars/cargo/size), 教える面]。"hand" は index.html の手作り面の番号。
+// 穴越え 3 割＋スイッチ・守れ・起こす・飛ばす 7 割。_test.js の PLAN3→SEARCH3 で合格した物だけ（2026-09-27）
+window.GEN_TABLE=[
+ ["hand",0],
+ ["swShelf",1,0,"",1],
+ ["hand",2],
+ ["wkOpen",1,0,"",1],
+ ["gdRain",1,0,"",1],
+ ["hand",10],
+ ["lnWater",1,0,"",1],
+ ["swCup",1,0,"",0],
+ ["wkPit",1,0,"",0],
+ ["hand",15],
+ ["gdCannon",1,0,"",1],
+ ["drop",2,0,"",1],
+ ["swShelf",1,0,"",0],
+ ["wkPit",1,1,"",0],
+ ["drawbridge",1,0,"",0],
+ ["wkOpen",1,0,"",0],
+ ["gdRain",1,0,"",0],
+ ["tent",1,0,"",0],
+ ["lnWater",1,1,"",0],
+ ["wkPit",1,0,"",0],
+ ["swPillar",1,0,"",1],
+ ["gdRain",1,0,"",0],
+ ["lnWater",1,0,"",0],
+ ["wkOpen",1,0,"",0],
+ ["skycar",1,0,"",1],
+ ["lnWater",1,0,"",0],
+ ["drop",1,0,"",0],
+ ["wkPit",1,0,"",0],
+ ["drawbridge",1,1,"",0],
+ ["gdCannon",1,0,"",0],
+ ["wkSwing",1,0,"",1],
+ ["lnWater",1,0,"",0],
+ ["jumppad",1,0,"",1],
+ ["wkOpen",1,0,"",0],
+ ["gdCannon",1,0,"",0],
+ ["drop",1,1,"",0],
+ ["swShelf",1,0,"",0],
+ ["gdRain",1,1,"",0],
+ ["drawbridge",1,1,"",0],
+ ["gdCannon",1,0,"",0],
+ ["lnTower",1,0,"",1],
+ ["swCup",1,1,"",0],
+ ["rockfall",1,0,"",1],
+ ["lnWater",1,1,"",0],
+ ["wkPit",1,0,"",0],
+ ["lnTower",1,0,"",0],
+ ["tent",1,0,"",0],
+ ["wkSwing",1,0,"",0],
+ ["drawbridge",1,1,"",0],
+ ["gdRain",1,0,"",0],
+ ["swTwo",1,0,"",1],
+ ["gdRain",1,0,"",0],
+ ["boulder",1,0,"",1],
+ ["swShelf",1,1,"",0],
+ ["wkSwing",1,1,"",0],
+ ["tent",1,0,"",0],
+ ["lnWater",1,1,"",0],
+ ["swCup",1,0,"",0],
+ ["skycar",1,0,"",0],
+ ["gdCannon",1,0,"",0],
+ ["wkTopple",1,0,"",1],
+ ["lnWater",1,0,"",0],
+ ["swPillar",1,1,"",0],
+ ["revbridge",4,0,"",1],
+ ["gdRain",1,1,"",0],
+ ["wkPit",1,0,"",0],
+ ["drawbridge",1,0,"",0],
+ ["wkSwing",1,0,"",0],
+ ["lnTower",1,0,"",0],
+ ["skycar",1,0,"",0],
+ ["gdMeteor",1,0,"",1],
+ ["swShelf",1,0,"",0],
+ ["wkTopple",1,0,"",0],
+ ["swCup",1,0,"",0],
+ ["drawbridge",1,0,"cars",1],
+ ["swPillar",1,0,"",0],
+ ["drop",1,1,"",0],
+ ["lnWater",1,1,"",0],
+ ["drawbridge",3,0,"cars",0],
+ ["wkPit",1,1,"",0],
+ ["lnWall",1,0,"",1],
+ ["skycar",1,0,"cargo",1],
+ ["gdCannon",1,0,"",0],
+ ["tent",1,0,"size",1],
+ ["gdRain",1,1,"",0],
+ ["wkPit",1,0,"",0],
+ ["swTwo",1,0,"",0],
+ ["drop",3,0,"",0],
+ ["gdMeteor",1,0,"",0],
+ ["lnTower",3,1,"",0],
+ ["swPillar",1,0,"",0],
+ ["gdCannon",1,0,"",0],
+ ["tent",1,0,"",0],
+ ["lnWall",1,0,"",0],
+ ["swShelf",1,1,"",0],
+ ["lnTower",1,1,"",0],
+ ["rockfall",1,0,"",0],
+ ["lnWater",1,0,"",0],
+ ["wkTopple",1,0,"",0],
+ ["walls2",1,1,"",0]
+].map(e=>e&&(e[0]==="hand"?{t:"hand",s:e[1]}:{t:e[0],s:e[1],m:e[2],g:e[3],n:e[4]}));
 
 </script><script>
 /* 絵柄 20 種（5 面ごとにガラッと変わる）と、走る物の見た目
@@ -756,7 +854,7 @@ const TALK={bridge:["……","ふんっ！！","腰、無事！","腰がぁぁ�
   cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","潜航〜！","浮上成功","浸水〜！"],rover:["ピピ","小さな一歩！","人類の大きな一歩","ヒューストン…"],
   ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","正義は勝つ","マントが…"],futon:["zzz","むにゃ…","あと5分…","（まだ寝てる）"]};
 // 失敗の擬音
-function failWord(msg){return msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
+function failWord(msg){return msg.includes("起きなかった")?"ぐぅ…":msg.includes("飛んでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
   msg.includes("動けなく")||msg.includes("時間")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":TH.subway?"プァーン！":"ドボーン！";}
 function drawFailWord(f){if(!f.word)return;const k=Math.min(1,(time-f.t)*5),s=k<1?k*1.3:1;
   ctx.save();ctx.translate(f.x,Math.max(70,f.y-90));ctx.rotate(-.12);ctx.scale(s,s);ctx.font="900 64px 'Hiragino Maru Gothic ProN','Arial Black',sans-serif";ctx.textAlign="center";
@@ -852,6 +950,132 @@ function drawBoom(){
         ctx.strokeStyle="#666";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(9,0);ctx.stroke();}
       else if(f.k==="head"){ojiHead(0,0,1.2,0);ctx.rotate(-f.r);ctx.font="bold 22px sans-serif";ctx.fillStyle="#fff";ctx.strokeStyle="#000";ctx.lineWidth=4;ctx.strokeText("ぬわーっ",-40,-30);ctx.fillText("ぬわーっ",-40,-30);}
       ctx.restore();}}}
+
+</script><script>
+/* 旗まで走る以外のクリアのしかた（L.mode）
+   switch: 線でボタンを押す → 遮断機が上がる（L.gate）／橋が出る（L.bridge）→ あとは車が旗へ
+   guard : 車は止まったまま。岩の雨（L.rocks）や大砲（L.cannon）から L.guard 秒しのげばクリア
+   wake  : 寝ているおっさん（L.oji）に線を当てて起こす（車は出ない）
+   launch: シーソー（L.saw）の端のおっさんを、反対側に線を落として飛ばし、布団のカゴ（L.bed）へ（車は出ない） */
+const MODE=(()=>{
+  const M={};let btns=[],gate=null,bridge=null,opened=false,openT=0,oji=null,woke=0,saw=null,rider=null,bed=[],landT=0,cannonT=0,flashT=0,shots=0;
+  const noCar=()=>L.mode==="wake"||L.mode==="launch";
+  M.noCar=noCar;
+  M.load=()=>{
+    btns=[];gate=null;bridge=null;opened=false;openT=0;oji=null;woke=0;saw=null;rider=null;bed=[];landT=0;cannonT=0;flashT=0;shots=0;
+    if(!L.mode)return;
+    if(noCar())for(const c of cars)for(const b of [c.chassis,c.wA,c.wB])Body.setStatic(b,true);
+    if(L.mode==="switch"){
+      btns=(L.btns||[]).map(([x,y,w=64])=>({x,y,w,down:false}));
+      if(L.gate){const [x,top,bot]=L.gate;gate=Bodies.rectangle(x,(top+bot)/2,30,bot-top,{isStatic:true,friction:.5});gate.plugin.y0=gate.position.y;Composite.add(world,gate);}
+      if(L.bridge){const [x0,x1,y]=L.bridge;bridge={x0,x1,y,k:0,body:null};}
+    }
+    if(L.mode==="wake"){const [x,y]=L.oji;
+      oji=Bodies.rectangle(x,y-15,120,30,{isStatic:true,friction:.8});oji.plugin.oji=true;Composite.add(world,oji);}
+    if(L.mode==="launch"){const [px,py,len]=L.saw,sd=L.sawDir||1; // ばね仕掛けのシーソー: 板は動かない物。線が乗ったら跳ねる
+      const plank=Bodies.rectangle(px,py,len,14,{isStatic:true,friction:1,frictionStatic:3,collisionFilter:{category:0x0004}});plank.plugin.saw=true;
+      const fx=px-sd*(len/2-26);
+      rider=Body.create({parts:[Bodies.rectangle(fx,py-24,30,34),Bodies.circle(fx,py-52,14)],density:.0012,friction:1,frictionStatic:4,restitution:.05});
+      Composite.add(world,[plank,rider]);Body.setStatic(rider,true);
+      saw={plank,px,py,len,sd,fired:0,a:0};
+      for(const [x0,x1,y] of [L.bed]){const wall=(x)=>Bodies.rectangle(x,y-22,14,44,{isStatic:true});
+        const floor=Bodies.rectangle((x0+x1)/2,y+6,x1-x0,12,{isStatic:true,friction:1});bed=[floor,wall(x0),wall(x1)];Composite.add(world,bed);}}
+  };
+  M.go=()=>{if(!L.mode)return;
+    if(L.cannon)cannonT=L.cannon[5]||.6;};
+  // 線がボタンに乗っているか
+  function pressed(b){const bd={min:{x:b.x-b.w/2,y:b.y-20},max:{x:b.x+b.w/2,y:b.y+2}};
+    for(const s of strokes)if(Query.region(s.body.parts.slice(1),bd).length)return true;return false;}
+  M.step=()=>{if(!L.mode)return;const dt=DT/1000;
+    if(flashT>0)flashT-=dt;
+    if(L.mode==="switch"){
+      for(const b of btns)if(!b.down&&pressed(b)){b.down=true;tone(660,.1,"square",.08);tone(990,.15,"square",.08,0,.1);}
+      if(!opened&&btns.length&&btns.every(b=>b.down)){opened=true;openT=0;tone(300,.5,"sawtooth",.06,600);}
+      if(opened){openT+=dt;
+        if(gate){const lift=Math.min(1,openT/.6)*(L.gate[2]-L.gate[1]+20);Body.setPosition(gate,{x:gate.position.x,y:gate.plugin.y0-lift});}
+        if(bridge&&bridge.k<1){bridge.k=Math.min(1,openT/.5);const len=bridge.x1-bridge.x0,cx=bridge.x0+len/2;
+          if(!bridge.body){bridge.body=Bodies.rectangle(cx,bridge.y+10,len,20,{isStatic:true,friction:.9,frictionStatic:2});Composite.add(world,bridge.body);}
+          Body.setPosition(bridge.body,{x:cx-(1-bridge.k)*len*(DIR),y:bridge.y+10});}}
+    }
+    if(L.mode==="guard"&&state==="go"){
+      if(L.cannon){cannonT-=dt;if(cannonT<=0){const [x,y,vx,vy,iv]=L.cannon;cannonT=iv;shots++;flashT=.15;
+        const b=Bodies.circle(x,y,15,{density:.006,restitution:.2,friction:.3,frictionAir:0});b.plugin.rock=true;b.plugin.ball=true;
+        Composite.add(world,b);let v2=vy;
+        if(vy===null){const tgt=car.chassis.position,t=Math.max(8,Math.abs((tgt.x-x)/vx)),g=engine.gravity.y*.001*DT*DT; // 車めがけて撃つ
+          v2=(tgt.y-10-y-.5*g*t*t)/t;}
+        Body.setVelocity(b,{x:vx,y:v2});rocks.push(b);tone(120,.2,"square",.12,50);}}
+      if(goT>=L.guard)finish(true);
+    }
+    if(L.mode==="wake"&&state==="go"){
+      if(woke){woke+=dt;if(woke>.7)finish(true);}
+      else if(goT>7)finish(false,"起きなかった… ぐっすり");}
+    if(saw&&saw.fired){saw.a=Math.min(1,(time-saw.fired)/.12)*.35*saw.sd;Body.setAngle(saw.plank,saw.a);}
+    if(L.mode==="launch"&&state==="go"&&rider){const p=rider.position,[x0,x1,y]=L.bed;
+      const inBed=p.x>x0&&p.x<x1&&p.y<y&&p.y>y-90;
+      landT=inBed?landT+dt:0;if(landT>.35)finish(true);
+      else if(p.y>WATER_Y+40||p.x<-80||p.x>W+80)finish(false,"おっさんが飛んでいっちゃった…");
+      else{const still=Math.hypot(rider.velocity.x,rider.velocity.y)<.25;saw.still=saw.fired&&still&&!inBed?(saw.still||0)+dt:0;
+        if(saw.still>.7||(!saw.fired&&goT>6))finish(false,"とどかなかった…");}}
+  };
+  function fire(stroke){if(saw.fired)return;saw.fired=time;const pts=stroke.plugin.pts;let len=0;for(let i=1;i<pts.length;i++)len+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);
+    const v=(L.sawK||.72)*Math.sqrt(len*(TH.gravity||1)),an=(L.sawAng||55)*Math.PI/180; // 飛ぶ距離は線の長さに比例（月でも同じ）
+    for(const q of rider.parts)q.collisionFilter.mask=~(0x0004|0x0002);rider.collisionFilter.mask=~(0x0004|0x0002);rider.frictionAir=0;
+    Body.setStatic(rider,false);Body.setVelocity(rider,{x:saw.sd*v*Math.cos(an),y:-v*Math.sin(an)});Body.setAngularVelocity(rider,saw.sd*.12);
+    tone(180,.25,"square",.12,700);}
+  M.onHit=(a,b)=>{ // a は線の部品
+    if(L.mode==="launch"&&saw&&b===saw.plank&&state==="go"&&(a.parent.position.x-saw.px)*saw.sd>0)fire(a.parent);
+    if(L.mode==="wake"&&!woke&&b.plugin&&b.plugin.oji&&state==="go"){woke=.001;tone(880,.15,"square",.1);tone(1320,.2,"square",.1,0,.12);}};
+  M.focus=()=>{if(L.mode==="wake")return {x:L.oji[0],y:L.oji[1]-20};if(L.mode==="launch"&&rider)return rider.position;return car.chassis.position;};
+  M.flag=()=>!L.mode||L.mode==="switch";
+  M.driveOff=()=>L.mode==="guard"||noCar();
+  // ---------- 描画 ----------
+  M.draw=()=>{if(!L.mode)return;
+    for(const b of btns){const h=b.down?5:14;
+      ctx.fillStyle="#555";rr(b.x-b.w/2-6,b.y-8,b.w+12,8,3);ctx.fill();
+      ctx.fillStyle=b.down?"#3ac060":"#ff3b3b";ctx.beginPath();ctx.ellipse(b.x,b.y-8,b.w/2-4,h,0,Math.PI,0);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.stroke();
+      if(!b.down&&state==="draw"){const bob=Math.sin(time*5)*5;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";
+        ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText("おして ▼",b.x,b.y-34+bob);ctx.fillText("おして ▼",b.x,b.y-34+bob);ctx.textAlign="left";}}
+    if(gate){const p=gate.position,h=L.gate[2]-L.gate[1];ctx.save();ctx.translate(p.x,p.y);ctx.beginPath();ctx.rect(-15,-h/2,30,h);ctx.clip();
+      for(let y=-h/2-30;y<h/2;y+=30){ctx.fillStyle=(Math.round(y/30)%2)?"#222":"#ffd23f";ctx.beginPath();ctx.moveTo(-15,y);ctx.lineTo(15,y+15);ctx.lineTo(15,y+45);ctx.lineTo(-15,y+30);ctx.fill();}
+      ctx.restore();ctx.strokeStyle="#222";ctx.lineWidth=3;ctx.strokeRect(p.x-15,p.y-h/2,30,h);
+      ctx.fillStyle=opened?"#3ac060":"#ff3b3b";ctx.beginPath();ctx.arc(p.x,p.y+h/2-20,7,0,7);ctx.fill();}
+    if(bridge){if(bridge.body){const p=bridge.body.position,len=bridge.x1-bridge.x0;ctx.fillStyle="#8a6a4a";ctx.fillRect(p.x-len/2,p.y-10,len,20);
+        ctx.strokeStyle="#4a3420";ctx.lineWidth=3;ctx.strokeRect(p.x-len/2,p.y-10,len,20);ctx.fillStyle="#ccc";for(let x=p.x-len/2+14;x<p.x+len/2;x+=40){ctx.beginPath();ctx.arc(x,p.y,3,0,7);ctx.fill();}}
+      else{ctx.save();ctx.setLineDash([10,8]);ctx.strokeStyle="#ffffffaa";ctx.lineWidth=3;ctx.strokeRect(bridge.x0,bridge.y,bridge.x1-bridge.x0,20);ctx.restore();}}
+    if(L.cannon){const [x,y,vx,vy]=L.cannon,a=Math.atan2(vy,vx);ctx.save();ctx.translate(x,y);ctx.rotate(a);
+      ctx.fillStyle="#2a2a30";rr(-40,-16,64,32,8);ctx.fill();ctx.fillStyle="#44444c";ctx.fillRect(18,-19,10,38);
+      if(flashT>0){ctx.fillStyle="#ffd040";ctx.beginPath();ctx.arc(40,0,22,0,7);ctx.fill();}ctx.restore();
+      ctx.fillStyle="#5a3a1a";ctx.beginPath();ctx.arc(x,y+12,16,0,7);ctx.fill();}
+    if(L.mode==="guard"&&(state==="draw"||state==="go")){const left=Math.max(0,L.guard-(state==="go"?goT:0));
+      ctx.font="bold 40px sans-serif";ctx.textAlign="center";ctx.lineWidth=8;ctx.strokeStyle="#fff";ctx.fillStyle=left<1.5?"#ff3b3b":"#222";
+      const s=`あと ${left.toFixed(1)} びょう まもれ！`;ctx.strokeText(s,W/2,60);ctx.fillText(s,W/2,60);ctx.textAlign="left";}
+    if(L.mode==="wake"){const [x,y]=L.oji;
+      ctx.fillStyle="#fff";rr(x+36,y-26,34,16,6);ctx.fill();
+      ctx.fillStyle="#6a8ad0";rr(x-62,y-28,104,28,8);ctx.fill();ctx.strokeStyle="#223";ctx.lineWidth=2.5;ctx.stroke();
+      ctx.fillStyle="#fff";for(let k=0;k<6;k++){ctx.beginPath();ctx.arc(x-52+k*17,y-14,3,0,7);ctx.fill();}
+      if(woke){const j=Math.min(1,woke*6)*26;ojiHead(x+50,y-30-j,1,0);talk(x+50,y-110,"はっ！！");}
+      else{ojiHead(x+52,y-26,.95,-.4,true);ctx.fillStyle="#223";ctx.font="bold 22px sans-serif";
+        for(let k=0;k<3;k++){const t=(time*.6+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",x+64+k*8+t*24,y-56-t*50);}ctx.globalAlpha=1;
+        if(state==="draw")talk(x+(x<W-300?200:-200),y-110,"ぐぅ…（起こして）");}}
+    if(L.mode==="launch"&&saw){const pl=saw.plank;
+      ctx.fillStyle="#6a5a4a";ctx.beginPath();ctx.moveTo(saw.px,saw.py);ctx.lineTo(saw.px-26,saw.py+46);ctx.lineTo(saw.px+26,saw.py+46);ctx.fill();
+      ctx.save();ctx.translate(pl.position.x,pl.position.y);ctx.rotate(pl.angle);ctx.fillStyle="#c8904a";ctx.fillRect(-saw.len/2,-7,saw.len,14);ctx.strokeStyle="#5a3a1a";ctx.lineWidth=3;ctx.strokeRect(-saw.len/2,-7,saw.len,14);ctx.restore();
+      const [x0,x1,y]=L.bed;ctx.fillStyle="#6a8ad0";rr(x0+6,y-16,x1-x0-12,20,6);ctx.fill();ctx.fillStyle="#fff";rr(x1-44,y-26,34,14,6);ctx.fill();
+      ctx.fillStyle="#8a6a4a";ctx.fillRect(x0-7,y-44,14,50);ctx.fillRect(x1-7,y-44,14,50);ctx.fillRect(x0,y,x1-x0,12);
+      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";ctx.fillText("ここに着地",(x0+x1)/2,y-58);ctx.textAlign="left";}
+      if(rider){const p=rider.position;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(rider.angle);
+        ctx.fillStyle="#fff";rr(-16,-16,32,24,6);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle="#e0d4b0";ctx.fillRect(-16,4,32,12);
+        const r=rider.parts[2]?rider.parts[2].position:null;ctx.restore();
+        if(r)ojiHead(r.x,r.y,1,rider.angle);
+        const s=state==="win"?"ナイス着地！":state==="fail"?"うそやろ〜":state==="go"?(rider.velocity.y<-2?"ぎゃあああ":"え？"):"…なにするの？";
+        talk(p.x,p.y-90,s);}}
+  };
+  function talk(x,y,s){ctx.font="bold 22px sans-serif";const w=ctx.measureText(s).width+24;x=Math.max(w/2+6,Math.min(W-w/2-6,x));
+    ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20,w,36,14);ctx.fill();ctx.stroke();
+    ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(s,x,y+6);ctx.textAlign="left";}
+  M.talk=talk;
+  return M;
+})();
 
 </script>
 <script>
@@ -980,8 +1204,8 @@ const HAND_IDEA=["span","span","ramp","ramp","span","ramp","span","wedge","ramp"
   "ramp","ramp","span","rotate","wedge","span","ramp","drop","drop","rotate"];
 HAND_IDEA.forEach((d,i)=>{if(LEVELS[i])LEVELS[i].idea=d;});
 const HAND=LEVELS.splice(0,LEVELS.length);
-for(const i of [0,10,2,15,27,7,16,14,24,19])LEVELS.push(HAND[i]);  // 橋→はね橋→坂→山→落とす→壁→谷→大はね橋→かべ2枚→逆はね橋
-for(let k=10;k<100;k++){const o=GEN.genLevel(k);if(o)LEVELS.push(o);}
+// 100 面の並びは gen_table.js。"hand" は上の手作り面（穴越え）、それ以外は gen.js の自動生成
+for(let k=0;k<100;k++){const e=GEN_TABLE[k];if(e&&e.t==="hand")LEVELS.push(HAND[e.s]);else{const o=GEN.genLevel(k);if(o)LEVELS.push(o);}}
 
 /* ---------- 絵柄（THEMES は looks.js。5 面ごとに変わる） ---------- */
 const themeOf=i=>THEMES[Math.min(THEMES.length-1,Math.floor(i/5))];  // 5 面ごとに絵柄が変わる
@@ -1083,6 +1307,7 @@ function loadLevel(i){
     Composite.add(world,[mill,Constraint.create({pointA:{x:mx,y:my},bodyB:mill,pointB:{x:0,y:0},length:0,stiffness:.9})]);
     mill.plugin.speed=L.mill[3]||.05;}
   Events.on(engine,"collisionStart",onHit);
+  MODE.load();
   state="draw";showHint=0;failAt=null;winFx=[];boomFx=[];shakeT=0;blown=false;
   document.getElementById("retryBig").classList.remove("show","pulse");
   document.getElementById("toast").style.opacity=0;
@@ -1097,6 +1322,7 @@ function banner(s){const t=$("toast");t.textContent=s;t.style.opacity=1;t.style.
 function onHit(ev){
   for(const pr of ev.pairs){
     for(const [a,b] of [[pr.bodyA,pr.bodyB],[pr.bodyB,pr.bodyA]]){
+      if(strokes.some(s=>s.body===a.parent))MODE.onHit(a,b.parent);
       const r=a.parent;if(!r.plugin.rock||r.plugin.dead)continue;
       const o=b.parent;
       if(cars.some(c=>!c.waiting&&(o===c.chassis||o===c.wA||o===c.wB))||(cargo&&o===cargo)){
@@ -1156,6 +1382,7 @@ function endDraw(){
   // 端とつなぎ目は丸くする（段差に車輪が乗り上げやすくなる）
   for(const p of pts)parts.push(Bodies.circle(p.x,p.y,T/2,{density:.008}));
   const body=Body.create({parts,friction:.9,frictionStatic:2,restitution:0});
+  for(const q of body.parts)q.collisionFilter.category=0x0002;body.collisionFilter.category=0x0002; // 線（飛んでいるおっさんはすり抜ける）
   // Matter は合体物の回りにくさ（慣性）を各部品の中心で足すだけなので、長い線が軽々と回ってしまう。重心からの距離を足して直す
   let I=0;for(const q of body.parts.slice(1))I+=q.inertia+q.mass*((q.position.x-body.position.x)**2+(q.position.y-body.position.y)**2);
   Body.setInertia(body,I);
@@ -1193,7 +1420,7 @@ addEventListener("keydown",e=>{
 const $=id=>document.getElementById(id);
 function go(){if(state!=="draw")return;state="go";goT=0;cars.forEach(c=>c.drive=0);
   if(L.air)for(const c of cars)for(const b of [c.chassis,c.wA,c.wB])Body.setStatic(b,false);
-  if(boulder){Body.setStatic(boulder,false);Body.setVelocity(boulder,{x:-6*DIR,y:3});}sfx.go();$("retryBig").classList.add("show");}
+  if(boulder){Body.setStatic(boulder,false);Body.setVelocity(boulder,{x:-6*DIR,y:3});}MODE.go();sfx.go();$("retryBig").classList.add("show");}
 let toastT=0;function toast(s){const t=$("toast");t.textContent=s;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity=0,1400);}
 $("retryBtn").onclick=()=>loadLevel(li);
 $("hintBtn").onclick=()=>{showHint=(showHint+1)%3;};  // 1回目: 始点と終点だけ／2回目: 線ぜんぶ／3回目: 消す
@@ -1230,8 +1457,8 @@ function finish(win,msg){
     for(let k=0;k<90;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%6]});}
   else{sfx.fail();toast(msg);$("retryBig").classList.add("show","pulse");
     const icon=msg.includes("落石")?"🪨":msg.includes("荷物")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("動けなく")||msg.includes("時間")?"⛔":"💦";
-    explode();
-    const c=car.chassis.position;failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
+    if(!MODE.noCar())explode();
+    const c=MODE.focus();failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
   setTimeout(()=>{
     $("resTitle").textContent=win?"クリア！":"しっぱい…";
     $("resTitle").style.color=win?"#ff5a4e":"#557";
@@ -1260,7 +1487,7 @@ function step(){
         if(!prev.waiting&&(prev.chassis.position.x-c.x0)*DIR>160*c.sz){c.waiting=false;c.startT=goT;
           Composite.add(world,[c.chassis,c.wA,c.wB,...c.cons]);sfx.go();}
         continue;}
-      if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
+      if(MODE.driveOff())c.drive=0;else if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
       motor(c.wA,c.drive*DIR);motor(c.wB,c.drive*DIR);
       // ジャンプ台: 上を通ると前へ強く押し出される
       for(const [x0,x1,py] of (L.pads||[])){const p=c.chassis.position;
@@ -1271,7 +1498,7 @@ function step(){
   if(mill){const d=Math.max(-.004,Math.min(.004,(mill.plugin.speed-mill.angularVelocity)*.3));mill.torque+=d*mill.inertia/(DT*DT);}
   if(boulder&&boulder.position.y>H+200){Composite.remove(world,boulder);boulder=null;}
   // 落石 L.rocks=[x0,x1,間隔(秒)]
-  if(L.rocks&&(state==="draw"||state==="go")){
+  if(L.rocks&&(state==="draw"&&L.mode!=="guard"||state==="go")){
     rockT-=DT/1000;
     if(rockT<=0){rockT=L.rocks[2];const [x0,x1]=L.rocks,rad=13+rockRng()*9;
       const b=Bodies.circle(x0+(x1-x0)*rockRng(),-30,rad,{density:.004,restitution:.2,friction:.5});
@@ -1285,6 +1512,7 @@ function step(){
   stepBoom();
   for(const p of winFx){p.x+=p.vx;p.y+=p.vy;p.vy+=.25;p.vx*=.99;p.r+=.2;}
   Engine.update(engine,DT);
+  if(state==="draw"||state==="go")MODE.step();
   // 落ちた線は捨てる
   for(let i=strokes.length-1;i>=0;i--)if(strokes[i].body.position.y>H+600){
     Composite.remove(world,strokes[i].body);strokes[i].cons.forEach(c=>Composite.remove(world,c));strokes.splice(i,1);}
@@ -1297,7 +1525,7 @@ function step(){
     if(flipT>1.2){finish(false,"ひっくり返っちゃった…");return;}
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
       if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
-    if(state==="go"){
+    if(state==="go"&&(!L.mode||L.mode==="switch")){
       const done=cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]);
       if(done)winT+=DT/1000;else winT=0;
       if(winT>.25)finish(true);
@@ -1370,13 +1598,14 @@ function render(){
     if(TH.glow){ctx.shadowColor=TH.glow;ctx.shadowBlur=14;}
     ctx.strokeStyle=TH.edge;ctx.lineWidth=TH.edgeW||3;ctx.stroke();ctx.shadowBlur=0;
     if(TH.rough){ctx.save();ctx.translate(2,-1.5);ctx.globalAlpha=.5;ctx.lineWidth=1.5;ctx.stroke();ctx.restore();}}
+  MODE.draw();
   // ゴールの旗
-  const [gx,gy]=L.goal;
+  const [gx,gy]=L.goal;if(MODE.flag()){
   ctx.fillStyle="#555";ctx.fillRect(gx-3,gy-110,6,110);
   ctx.save();ctx.translate(gx+3,gy-108);
   for(let r=0;r<3;r++)for(let c=0;c<5;c++){ctx.fillStyle=(r+c)%2?"#222":"#fff";
     const w=Math.sin(time*5+c*.8)*3;ctx.fillRect(c*12,r*12+w,12,12);}
-  ctx.restore();
+  ctx.restore();}
   // 線
   ctx.lineCap="round";ctx.lineJoin="round";
   for(const s of strokes){const b=s.body,{pts,c0}=b.plugin;
@@ -1420,7 +1649,7 @@ function render(){
   if(boulder){ctx.save();ctx.translate(boulder.position.x,boulder.position.y);ctx.rotate(boulder.angle);const r=boulder.circleRadius;
     ctx.fillStyle="#7a6a5a";ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.strokeStyle="#3a2e24";ctx.lineWidth=4;ctx.stroke();
     ctx.strokeStyle="#5a4a3a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-r*.5,-r*.2);ctx.lineTo(r*.1,r*.3);ctx.lineTo(r*.5,-r*.1);ctx.stroke();ctx.restore();}
-  if(!blown)for(const c of cars)if(!c.waiting)drawCar(c);
+  if(!blown&&!MODE.noCar())for(const c of cars)if(!c.waiting)drawCar(c);
   if(cargo){ctx.save();ctx.translate(cargo.position.x,cargo.position.y);ctx.rotate(cargo.angle);
     ctx.fillStyle="#d9a066";ctx.fillRect(-17,-13,34,26);ctx.strokeStyle="#8a5a2a";ctx.lineWidth=3;ctx.strokeRect(-17,-13,34,26);
     ctx.beginPath();ctx.moveTo(-17,-2);ctx.lineTo(17,-2);ctx.stroke();ctx.restore();}
