@@ -1,0 +1,7 @@
+# 公開しない物（作業メモ・確認用・PC用の起動ファイル）
+CLAUDE.md
+context/
+_test.js
+あそぶ.bat
+dist/
+build_single.py

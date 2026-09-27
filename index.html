@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="線でわたれ">
+<meta name="theme-color" content="#5fb8ff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<title>線でわたれ！</title>
+<style>
+html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:none;
+  font-family:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic UI","Meiryo",sans-serif;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+#wrap{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden}
+#cv{position:absolute;left:0;top:0;width:1280px;height:720px;display:block;cursor:crosshair}
+.hud{position:absolute;pointer-events:none}
+.btn{pointer-events:auto;touch-action:manipulation;border:0;border-radius:18px;background:#fff;color:#334;font:inherit;font-weight:bold;
+  box-shadow:0 5px 0 #0003;cursor:pointer;transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #0003}
+.btn:disabled{opacity:.4;cursor:default}
+#top{left:0;right:0;top:0;height:80px}
+#stage{position:absolute;left:22px;top:16px;font-size:26px;font-weight:bold;color:#fff;text-shadow:0 2px 0 #0006}
+#stage small{display:block;font-size:17px;opacity:.85}
+#tools{position:absolute;right:18px;top:14px;display:flex;gap:10px}
+#tools .btn{width:62px;height:56px;font-size:28px}
+#retryBig{position:absolute;right:26px;bottom:26px;width:210px;height:86px;font-size:34px;background:#ffd23f;color:#334;border-radius:26px;display:none}
+#retryBig.show{display:block}
+#retryBig.pulse{animation:pulse .7s ease-in-out infinite alternate}
+@keyframes pulse{to{transform:scale(1.1)}}
+#hint{position:absolute;left:24px;bottom:22px;max-width:760px;color:#fff;font-size:20px;font-weight:bold;
+  text-shadow:0 2px 0 #0007;background:#0003;padding:8px 16px;border-radius:14px}
+.ov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#0008;pointer-events:auto}
+.ov.show{display:flex}
+.card{background:#fff;border-radius:30px;padding:34px 46px;text-align:center;min-width:420px;box-shadow:0 10px 0 #0004}
+.card h1{margin:0 0 6px;font-size:52px;color:#ff5a4e}
+.card h2{margin:0 0 10px;font-size:40px;color:#334}
+.card p{margin:6px 0 18px;font-size:21px;color:#556}
+.card .btn{font-size:26px;padding:14px 30px;margin:6px;background:#ffd23f}
+.card .btn.sub{background:#e4e8f0}
+#pager{display:flex;align-items:center;justify-content:center;gap:18px;font-size:24px;font-weight:bold;color:#556}
+#pager .btn{width:64px;height:52px;padding:0;margin:0;font-size:32px}
+#grid{display:grid;grid-template-columns:repeat(10,86px);gap:12px;margin:14px 0 20px}
+#grid .btn{height:86px;font-size:32px;background:var(--wc,#8fd3ff);color:#fff;text-shadow:0 2px 0 #0005;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#grid .btn span{font-size:18px;color:#fff;text-shadow:0 2px 0 #3a7}
+#titleOv{background:linear-gradient(#58b8ff,#c9ecff)}
+#titleOv h1{font-size:96px;color:#fff;text-shadow:0 6px 0 #2f6fd0,0 10px 20px #0004;margin:0}
+#titleOv p{font-size:26px;color:#2b4a7a;font-weight:bold}
+#titleOv .btn{font-size:36px;padding:18px 60px;background:#ff5a4e;color:#fff}
+#toast{position:absolute;left:50%;top:110px;transform:translateX(-50%);background:#000a;color:#fff;font-size:22px;
+  padding:8px 20px;border-radius:14px;opacity:0;transition:opacity .2s;font-weight:bold}
+#rotate{display:none;position:fixed;inset:0;background:#1b2838;color:#fff;font-size:26px;align-items:center;justify-content:center;text-align:center;z-index:9}
+@media (orientation:portrait) and (max-width:700px){#rotate{display:flex}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="cv"></canvas>
+  <div class="hud" id="top">
+    <div id="stage">STAGE 1<small>はじめの一本</small></div>
+    <div id="tools">
+      <button class="btn" id="hintBtn" title="ヒント">💡</button>
+      <button class="btn" id="retryBtn" title="やり直し">↻</button>
+      <button class="btn" id="menuBtn" title="ステージ選択">☰</button>
+    </div>
+  </div>
+  <div class="hud" id="hint"></div>
+  <button class="btn" id="retryBig">↻ リトライ</button>
+  <div id="toast"></div>
+
+  <div class="ov show" id="titleOv"><div style="text-align:center">
+    <h1>線でわたれ！</h1>
+    <p>線は一本だけ。指を離した瞬間、線は落ちて車が走り出す。<br>うまく橋をかけて、車を向こう岸まで送りとどけよう。</p>
+    <button class="btn" id="startBtn">あそぶ</button>
+  </div></div>
+
+  <div class="ov" id="selOv"><div class="card">
+    <h2>ステージをえらぶ</h2>
+    <div id="pager"><button class="btn sub" id="pgPrev">‹</button><span id="pgLabel"></span><button class="btn sub" id="pgNext">›</button></div>
+    <div id="grid"></div>
+    <button class="btn sub" id="selBack">もどる</button>
+  </div></div>
+
+  <div class="ov" id="resOv"><div class="card">
+    <h1 id="resTitle">クリア！</h1>
+        <p id="resMsg"></p>
+    <div>
+      <button class="btn sub" id="resRetry">もう一回</button>
+      <button class="btn" id="resNext">次へ ▶</button>
+    </div>
+  </div></div>
+</div>
+<div id="rotate">横向きにしてあそんでね</div>
+
+<script src="matter.min.js?v=3"></script>
+<script src="gen.js?v=3"></script>
+<script src="gen_table.js?v=3"></script>
+<script>
+"use strict";
+const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
+const W=1280,H=720;
+const T=12;              // 線の太さ
+const SEG=12;            // 線の点の最小間隔
+const PIN_R=24;          // くぎに付く距離
+const WR=19;             // 車輪の半径
+const WY=20;             // 車輪の付け根（車体の中心から下へ）
+const WATER_Y=600;
+
+/* ---------- ステージ ---------- */
+const rect=(x0,x1,top,bot=1000)=>[[x0,top],[x1,top],[x1,bot],[x0,bot]];
+// 崖っぽく下すぼまりの台形（凸なので当たり判定にそのまま使える）
+const cliffL=(x1,top)=>[[-60,top],[x1,top],[x1-40,1000],[-60,1000]];
+const cliffR=(x0,top)=>[[x0,top],[W+60,top],[W+60,1000],[x0+40,1000]];
+
+const LEVELS=[
+ {name:"はじめの一本",hint:"谷の上に横線を一本。指を離すと線が落ちて、車が走り出す！",
+  ground:[cliffL(470,440),cliffR(730,440)],car:[150,440],goal:[1060,440]},
+ {name:"ひろい谷",hint:"短いと谷に落ちる。両岸にしっかりかかる長さで。",
+  ground:[cliffL(380,440),cliffR(820,440)],car:[140,440],goal:[1090,440]},
+ {name:"のぼり坂",hint:"向こう岸が高い。坂道を作ろう。",
+  ground:[cliffL(440,470),cliffR(740,380)],car:[150,470],goal:[1060,380]},
+ {name:"くぎで止める",hint:"黒いくぎの上を通った線は、くぎに留まる（くるっと回る）。坂は向こう岸の上までのせよう。",
+  ground:[cliffL(420,480),cliffR(700,330)],car:[140,480],goal:[1040,330],pins:[[432,470]]},
+ {name:"まん中の岩",hint:"長い谷。まん中の岩を足場に使える。",
+  ground:[cliffL(300,440),rect(600,680,470),cliffR(980,440)],car:[120,440],goal:[1120,440]},
+ {name:"くだり坂",hint:"赤いところには描けない。",
+  ground:[cliffL(450,380),cliffR(780,540)],car:[150,380],goal:[1080,540],
+  noDraw:[[450,0,330,330]]},
+ {name:"うかぶ足場",hint:"宙に浮いた足場を中継しよう。",
+  ground:[cliffL(300,440),[[560,460],[720,460],[700,500],[580,500]],cliffR(980,440)],car:[120,440],goal:[1120,440]},
+ {name:"かべ",hint:"壁にたてかけただけの坂はすべって倒れる。三角形に描くと…？",
+  ground:[rect(-60,W+60,480),rect(560,700,370)],car:[150,480],goal:[1080,480]},
+ {name:"谷と段",hint:"谷をわたった先に段差。一本で両方なんとかしよう。",
+  ground:[cliffL(360,460),rect(660,W+60,460),rect(900,1000,405)],car:[140,460],goal:[1150,460]},
+ {name:"大峡谷",hint:"とても長い谷。くぎを通して長い一本を。",
+  ground:[cliffL(260,440),cliffR(1020,440)],car:[110,440],goal:[1140,440],pins:[[520,452],[760,452]]},
+ /* ---- 11〜20 ---- */
+ {name:"はね橋",hint:"谷の上には描けない。くぎから上へ線をのばせば、倒れて橋になる。",
+  ground:[cliffL(420,440),cliffR(660,440)],car:[140,440],goal:[1000,440],pins:[[428,424]],noDraw:[[455,0,205,600]]},
+ {name:"高い壁",hint:"大きな三角形で、壁の上まで。",
+  ground:[rect(-60,W+60,480),rect(620,760,330)],car:[150,480],goal:[1080,480]},
+ {name:"階段",hint:"段差は高すぎて登れない。角をまとめて一本の坂に。",
+  ground:[rect(-60,500,480),rect(500,700,420),rect(700,900,360),rect(900,W+60,300)],car:[150,480],goal:[1100,300]},
+ {name:"がけ下り",hint:"飛び降りたら危ない。ゆるやかな下り坂を。",
+  ground:[cliffL(400,300),cliffR(640,520)],car:[140,300],goal:[1060,520]},
+ {name:"大はね橋",hint:"もっと長いはね橋。まっすぐ高く描こう。",
+  ground:[cliffL(400,460),cliffR(740,460)],car:[130,460],goal:[1080,460],pins:[[408,444]],noDraw:[[436,0,304,600]]},
+ {name:"山越え",hint:"まん中の岩をまたぐ山の形。",
+  ground:[cliffL(380,480),rect(590,630,400),cliffR(840,480)],car:[140,480],goal:[1100,480]},
+ {name:"谷底",hint:"低い岩をくぐる谷の形。",
+  ground:[cliffL(380,380),rect(580,700,480),cliffR(900,380)],car:[140,380],goal:[1100,380]},
+ {name:"ぬい針",hint:"赤いところのすき間を、まっすぐ通して。",
+  ground:[cliffL(260,440),rect(470,540,460),rect(740,810,460),cliffR(1020,440)],car:[110,440],goal:[1140,440],
+  noDraw:[[470,0,70,425],[740,0,70,425]]},
+ {name:"トンネル",hint:"天井が低い。車がぶつからない高さで。",
+  ground:[cliffL(420,440),cliffR(820,440),rect(380,860,-200,330)],car:[140,440],goal:[1100,440]},
+ {name:"逆はね橋",hint:"今度はくぎが向こう岸に。こっち側へ倒そう。",
+  ground:[cliffL(480,440),cliffR(740,440)],car:[140,440],goal:[1120,440],pins:[[880,432]],noDraw:[[480,0,260,600]]},
+ /* ---- 21〜30 ---- */
+ {name:"のぼり谷",hint:"上のほうは描けない。",
+  ground:[cliffL(400,480),cliffR(660,380)],car:[140,480],goal:[1060,380],noDraw:[[400,0,260,300]]},
+ {name:"急坂",hint:"けわしい坂。くぎで滑り止め。",
+  ground:[cliffL(360,500),cliffR(700,330)],car:[130,500],goal:[1060,330],pins:[[352,488]]},
+ {name:"ながーい橋",hint:"低いところにしか描けない。長い一本を。",
+  ground:[cliffL(200,440),rect(500,540,470),rect(760,800,470),cliffR(1080,440)],car:[90,440],goal:[1180,440],noDraw:[[0,0,1280,380]]},
+ {name:"はね橋くだり",hint:"向こう岸は低い。倒せば下り坂に。",
+  ground:[cliffL(420,400),cliffR(680,480)],car:[100,400],goal:[1060,480],pins:[[428,384]],noDraw:[[472,0,208,600]]},
+ {name:"かべ2枚",hint:"壁から壁へ。のぼる坂と、わたる橋をいっぺんに。",
+  ground:[rect(-60,W+60,480),rect(480,560,400),rect(800,880,400)],car:[150,480],goal:[1100,480]},
+ {name:"深い穴",hint:"落ちたら出られない穴。",
+  ground:[rect(-60,420,440),rect(420,760,560),rect(760,W+60,440)],car:[150,440],goal:[1080,440],noDraw:[[420,0,340,390]]},
+ {name:"高台",hint:"ゴールは高いところ。",
+  ground:[rect(-60,700,480),rect(900,1120,400)],car:[150,480],goal:[960,400]},
+ {name:"落とす橋",hint:"谷の近くには描けない。上から落とそう。",
+  ground:[cliffL(420,440),cliffR(740,440)],car:[140,440],goal:[1060,440],noDraw:[[300,140,680,460]]},
+ {name:"落とす坂",hint:"上から落として、坂にする。",
+  ground:[cliffL(420,470),cliffR(700,380)],car:[140,470],goal:[1060,380],noDraw:[[300,140,560,470]]},
+ {name:"さいごの谷",hint:"広い谷。こっち側からしか描けない。",
+  ground:[cliffL(380,440),cliffR(720,440)],car:[130,440],goal:[1080,440],pins:[[390,424]],noDraw:[[440,0,840,600]]},
+];
+
+// 手作りの 30 面の模範解答（💡ヒントで薄く見せる）
+const HAND_SOLS=[
+ [[440,400],[760,400]],
+ [[350,400],[850,400]],
+ [[415,445],[765,355]],
+ [[432,470],[690,322],[760,318]],
+ [[280,400],[1000,400]],
+ [[440,360],[800,520]],
+ [[280,410],[1000,410]],
+ [[320,466],[550,380],[550,466],[340,466]],
+ [[340,440],[700,440],[890,398],[930,394]],
+ [[250,430],[520,452],[1030,430]],
+ 
+ [[426,430],[446,140]],
+ [[330,472],[606,340],[606,472],[350,472]],
+ [[300,470],[906,288]],
+ [[390,280],[760,512]],
+ [[406,450],[428,70]],
+ [[300,472],[378,472],[610,380],[842,472],[920,472]],
+ [[300,372],[378,372],[590,473],[690,473],[902,372],[980,372]],
+ [[250,436],[1030,436]],
+ [[400,400],[840,400]],
+ [[884,436],[752,30]],
+ 
+ [[390,466],[690,360]],
+ [[340,496],[715,312]],
+ [[190,420],[1090,420]],
+ [[426,390],[464,110]],
+ [[320,472],[470,392],[886,392]],
+ [[400,420],[780,420]],
+ [[690,466],[930,370]],
+ [[380,100],[800,100]],
+ [[380,120],[760,20]],
+ [[388,430],[430,60]],
+];;
+HAND_SOLS.forEach((s,i)=>{if(LEVELS[i])LEVELS[i].sol=s;});
+// 31 面目以降は gen.js の自動生成（GEN_TABLE にある合格済みの種だけ）
+for(let k=0;k<window.GEN_TABLE.length;k++){const o=GEN.genLevel(k);if(o)LEVELS.push(o);}
+
+/* ---------- 世界（30 面ごとに見た目が変わる） ---------- */
+// sky:空の色(上→下) hill:遠くの山2段 ground:土(上,下) grass:表面2段 water:水(上,下) line:描いた線 car:車体,屋根,ふち
+const THEMES=[
+ {name:"みどりの谷",sky:["#5fb8ff","#d9f1ff"],hill:["#9cc9e8","#86bcdf"],ground:["#b07a45","#6e4526"],grass:["#5cc443","#46a834"],edge:"#4a2e18",
+  water:["#2d8fe0","#1552a0"],line:["#151827","#3a4166"],car:["#ff5a4e","#e8412f","#9c2518"],deco:"clouds"},
+ {name:"夕やけの丘",sky:["#6a4c93","#ff9a5a","#ffd9a0"],hill:["#c9728a","#a85a7a"],ground:["#a0603a","#5a2f1e"],grass:["#e0a33a","#c4822a"],edge:"#3a1e10",
+  water:["#d9705a","#7a3050"],line:["#2a1030","#5a3060"],car:["#3fa7ff","#2a86dd","#1a4f8a"],deco:"sunset"},
+ {name:"さばく",sky:["#6cc8ff","#fff3c4"],hill:["#f2c77a","#e0b060"],ground:["#e0a860","#a8743a"],grass:["#f7dc98","#e6c47a"],edge:"#7a5020",
+  water:["#35c9c0","#1a8a90"],line:["#3a2410","#7a5030"],car:["#ffd23f","#f0b400","#8a6400"],deco:"desert"},
+ {name:"雪山",sky:["#8cc8f5","#f0f8ff"],hill:["#dbe9f7","#c2d6ec"],ground:["#8a9bb0","#56657a"],grass:["#ffffff","#dfe9f5"],edge:"#3a4658",
+  water:["#7ec8e8","#3f7fb0"],line:["#1a2440","#40507a"],car:["#40c070","#2ea058","#16603a"],deco:"snow"},
+ {name:"夜の町",sky:["#0b1a3a","#2a3f75"],hill:["#1f2f55","#18264a"],ground:["#4a3a5a","#241a30"],grass:["#3a8a5a","#2a6a44"],edge:"#120c1a",
+  water:["#1a3a7a","#0a1a40"],line:["#fff4c0","#ffd860"],car:["#ffffff","#dde4ee","#556"],deco:"night"},
+ {name:"秋の森",sky:["#9fd3ff","#fff0d8"],hill:["#e0a070","#c8805a"],ground:["#9a5a30","#5a3018"],grass:["#d9822b","#b8661e"],edge:"#3a1e0c",
+  water:["#3a9ad0","#1a5a90"],line:["#20140a","#5a3a20"],car:["#8a5cff","#6a3ce0","#3a1a8a"],deco:"autumn"},
+ {name:"南の島",sky:["#3fbfff","#c9f3ff"],hill:["#7fd8c8","#5cc0b0"],ground:["#f0d090","#c8a060"],grass:["#63d471","#48b858"],edge:"#8a6a30",
+  water:["#1fc8d8","#0a7fb0"],line:["#0a2a40","#2a5a80"],car:["#ff8ac8","#ff5aa8","#a02a6a"],deco:"island"},
+ {name:"火山",sky:["#2a0a0a","#a0381e"],hill:["#4a1a14","#3a120e"],ground:["#4a3434","#1e1212"],grass:["#6a5a5a","#4a3a3a"],edge:"#0a0404",
+  water:["#ff8a00","#c01e00"],line:["#fff0d0","#ffc070"],car:["#e8e8e8","#c8c8c8","#444"],deco:"volcano",lava:true},
+ {name:"おかしの国",sky:["#ffb6e1","#fff0fa"],hill:["#ffd0ea","#f7b8dc"],ground:["#8a5230","#5a3018"],grass:["#ff8ac8","#ff6ab4"],edge:"#3a1a0a",
+  water:["#b0e8ff","#70c0f0"],line:["#5a2a10","#8a5030"],car:["#5ad0ff","#2ab0f0","#1a6a9a"],deco:"candy"},
+ {name:"月",sky:["#05040f","#1a1440"],hill:["#2a2a3a","#20202e"],ground:["#9a9aa4","#5a5a66"],grass:["#d0d0d8","#b0b0bc"],edge:"#303038",
+  water:["#1a1030","#08040f"],line:["#ffffff","#b0d0ff"],car:["#ff5a4e","#e8412f","#9c2518"],deco:"moon",gravity:.45,space:true},
+];
+const themeOf=i=>THEMES[Math.min(THEMES.length-1,Math.floor(i/30))];
+
+/* ---------- セーブ ---------- */
+const SAVE_KEY="senwatari_v1";
+let save={stars:[]};
+try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&Array.isArray(s.stars))save=s;}catch(e){}
+function writeSave(){if(location.hash==="#test")return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
+const unlocked=i=>i===0||(save.stars[i-1]|0)>0;
+
+/* ---------- 画面の大きさ ---------- */
+const wrap=document.getElementById("wrap"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+let K=1;
+function fit(){
+  const s=Math.min(innerWidth/W,innerHeight/H);
+  wrap.style.transform=`scale(${s})`;
+  wrap.style.left=((innerWidth-W*s)/2)+"px";wrap.style.top=((innerHeight-H*s)/2)+"px";
+  K=Math.min(3,s*(devicePixelRatio||1));
+  cv.width=Math.round(W*K);cv.height=Math.round(H*K);
+}
+addEventListener("resize",fit);fit();
+
+/* ---------- 音 ---------- */
+let ac=null;
+function audio(){if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  if(ac&&ac.state==="suspended")ac.resume();return ac;}
+function tone(f,d,type="sine",v=.12,f2=0,delay=0){
+  const a=audio();if(!a)return;const t0=a.currentTime+delay;
+  const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t0);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t0+d);
+  g.gain.setValueAtTime(v,t0);g.gain.exponentialRampToValueAtTime(.001,t0+d);
+  o.connect(g).connect(a.destination);o.start(t0);o.stop(t0+d+.02);}
+// 発進の「ブオーン」: 低いのこぎり波2本を低域フィルタに通し、回転を上げて少し戻す。細かい脈動でエンジンらしくする
+function vroom(){
+  const a=audio();if(!a)return;const t=a.currentTime,D=1.3;
+  const lp=a.createBiquadFilter();lp.type="lowpass";lp.Q.value=4;
+  lp.frequency.setValueAtTime(300,t);lp.frequency.linearRampToValueAtTime(1400,t+.35);lp.frequency.linearRampToValueAtTime(700,t+D);
+  const g=a.createGain();g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.35,t+.06);
+  g.gain.setValueAtTime(.35,t+.5);g.gain.exponentialRampToValueAtTime(.001,t+D);
+  const am=a.createGain();am.gain.value=.7;
+  const lfo=a.createOscillator(),lg=a.createGain();lfo.type="square";lg.gain.value=.3;
+  lfo.frequency.setValueAtTime(18,t);lfo.frequency.linearRampToValueAtTime(45,t+.35);lfo.frequency.linearRampToValueAtTime(35,t+D);
+  lfo.connect(lg).connect(am.gain);
+  for(const det of [0,7]){
+    const o=a.createOscillator();o.type="sawtooth";o.detune.value=det*10;
+    o.frequency.setValueAtTime(48,t);o.frequency.exponentialRampToValueAtTime(150,t+.35);o.frequency.exponentialRampToValueAtTime(105,t+D);
+    o.connect(am);o.start(t);o.stop(t+D+.05);
+  }
+  am.connect(lp).connect(g).connect(a.destination);lfo.start(t);lfo.stop(t+D+.05);
+}
+const sfx={
+  draw(){tone(900+Math.random()*300,.04,"triangle",.03);},
+  drop(){tone(220,.12,"sine",.12,110);},
+  go(){vroom();},
+  win(){[523,659,784,1047].forEach((f,i)=>tone(f,.25,"square",.07,0,i*.11));},
+  fail(){tone(400,.5,"sawtooth",.07,90);},
+  no(){tone(140,.1,"square",.05);},
+};
+
+/* ---------- 状態 ---------- */
+let engine,world,L,TH=THEMES[0],li=0,cars=[],car=null,cargo=null,rocks=[],rockT=0,rockRng=null,parts=[],strokes=[],statics=[],pins=[],state="title";
+let showHint=0,lastStroke=null,failAt=null,winFx=[],selPage=-1,drawing=null,goT=0,winT=0,flipT=0,stuckT=0,time=0,clouds=[];
+for(let i=0;i<6;i++)clouds.push({x:Math.random()*W,y:40+Math.random()*180,s:.6+Math.random()*.8});
+
+function loadLevel(i){
+  li=i;L=LEVELS[i];
+  TH=themeOf(i);
+  engine=Engine.create();engine.gravity.y=TH.gravity||1;engine.positionIterations=10;engine.velocityIterations=8;
+  world=engine.world;strokes=[];statics=[];drawing=null;goT=0;winT=0;flipT=0;stuckT=0;rocks=[];rockT=0;parts=[];
+  rockRng=mulberry(i*977+13);
+  for(const poly of L.ground){
+    const vs=poly.map(([x,y])=>({x,y}));
+    const b=Body.create({position:Vertices.centre(vs),vertices:vs,isStatic:true,friction:.9,frictionStatic:2});
+    b.plugin.poly=poly;statics.push(b);
+  }
+  Composite.add(world,statics);
+  pins=(L.pins||[]).map(([x,y])=>({x,y}));
+  // 車（2 台の面は、1 台目が少し進んだら同じ所から 2 台目が出る）。sz は車の大きさ
+  const sz=L.size||1,cy=L.car[1]-(WY+WR+2)*sz;
+  cars=[];car=makeCar(L.car[0],cy,false,sz);cars.push(car);
+  for(let n=1;n<(L.cars||1);n++)cars.push(makeCar(L.car[0],cy,true,sz));
+  cargo=null;
+  if(L.cargo){cargo=Bodies.rectangle(L.car[0]-4,cy-36*sz-14,34,26,{density:.0015,friction:1,frictionStatic:4,restitution:0});
+    Composite.add(world,cargo);}
+  Events.on(engine,"collisionStart",onHit);
+  state="draw";showHint=0;failAt=null;winFx=[];
+  document.getElementById("retryBig").classList.remove("show","pulse");
+  document.getElementById("toast").style.opacity=0;
+  document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${L.name}</small>`;
+  document.getElementById("hint").textContent=L.hint;
+  if(i%30===0&&i>0)banner(`ワールド${Math.floor(i/30)+1}　${TH.name}`);
+}
+function mulberry(a){return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function banner(s){const t=$("toast");t.textContent=s;t.style.opacity=1;t.style.fontSize="34px";clearTimeout(toastT);
+  toastT=setTimeout(()=>{t.style.opacity=0;t.style.fontSize="";},2200);}
+// 落石: 車や荷物に当たったら失敗。地面に当たったら砕ける
+function onHit(ev){
+  for(const pr of ev.pairs){
+    for(const [a,b] of [[pr.bodyA,pr.bodyB],[pr.bodyB,pr.bodyA]]){
+      const r=a.parent;if(!r.plugin.rock||r.plugin.dead)continue;
+      const o=b.parent;
+      if(cars.some(c=>!c.waiting&&(o===c.chassis||o===c.wA||o===c.wB))||(cargo&&o===cargo)){
+        if(state==="draw"||state==="go")finish(false,"落石にあたっちゃった！");}
+      else if(o.isStatic){r.plugin.dead=true;}
+    }
+  }
+}
+
+function makeCar(x,y,waiting,sz=1){
+  const g=Body.nextGroup(true),f={group:g};
+  const chassis=Bodies.rectangle(x,y,96*sz,26*sz,{collisionFilter:f,density:.003,friction:.4,chamfer:{radius:9*sz}});
+  const wopt={collisionFilter:f,density:.004,friction:1,frictionStatic:8,restitution:0};
+  const wA=Bodies.circle(x-32*sz,y+WY*sz,WR*sz,wopt),wB=Bodies.circle(x+32*sz,y+WY*sz,WR*sz,wopt);
+  const cA=Constraint.create({bodyA:chassis,pointA:{x:-32*sz,y:WY*sz},bodyB:wA,length:0,stiffness:.6,damping:.1});
+  const cB=Constraint.create({bodyA:chassis,pointA:{x:32*sz,y:WY*sz},bodyB:wB,length:0,stiffness:.6,damping:.1});
+  const c={chassis,wA,wB,cons:[cA,cB],drive:0,waiting:!!waiting,x0:x,y0:y,sz};
+  if(!waiting)Composite.add(world,[chassis,wA,wB,cA,cB]);
+  return c;
+}
+
+/* ---------- 線を描く ---------- */
+function inNoDraw(p){return (L.noDraw||[]).some(([x,y,w,h])=>p.x>=x-T/2&&p.x<=x+w+T/2&&p.y>=y-T/2&&p.y<=y+h+T/2);}
+function blocked(a,b){
+  if(b.x<T||b.x>W-T||b.y<T||b.y>H-T)return true;
+  const bodies=Composite.allBodies(world);
+  const bb=(a.x===b.x&&a.y===b.y)?{x:b.x+.5,y:b.y}:b;
+  if(Query.ray(bodies,a,bb,T+2).length)return true;
+  const n=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/6));
+  for(let k=0;k<=n;k++){const t=k/n;if(inNoDraw({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t}))return true;}
+  return false;
+}
+let lastDrawSfx=0;
+function beginDraw(p){
+  if(state!=="draw"||strokes.length)return;   // 線は一本だけ
+  if(blocked(p,p)){drawing={pts:[],len:0,pending:true};return;}
+  drawing={pts:[p],len:0};
+}
+function moveDraw(p){
+  if(!drawing)return;
+  if(drawing.pending){ if(!blocked(p,p)){drawing={pts:[p],len:0};} return; }
+  const a=drawing.pts[drawing.pts.length-1];
+  let d=Math.hypot(p.x-a.x,p.y-a.y);if(d<SEG)return;
+  if(blocked(a,p))return;
+  drawing.pts.push(p);drawing.len+=d;
+  if(drawing.len-lastDrawSfx>40){lastDrawSfx=drawing.len;sfx.draw();}
+}
+function endDraw(){
+  if(!drawing)return;const dr=drawing;drawing=null;lastDrawSfx=0;
+  if(dr.pending||dr.pts.length<2)return;   // 点だけ（タップ）は無かった事にして描き直せる
+  const pts=dr.pts;
+  const parts=[];
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1],len=Math.hypot(b.x-a.x,b.y-a.y);
+    parts.push(Bodies.rectangle((a.x+b.x)/2,(a.y+b.y)/2,len,T,{angle:Math.atan2(b.y-a.y,b.x-a.x),density:.008}));
+  }
+  // 端とつなぎ目は丸くする（段差に車輪が乗り上げやすくなる）
+  for(const p of pts)parts.push(Bodies.circle(p.x,p.y,T/2,{density:.008}));
+  const body=Body.create({parts,friction:.9,frictionStatic:2,restitution:0});
+  // Matter は合体物の回りにくさ（慣性）を各部品の中心で足すだけなので、長い線が軽々と回ってしまう。重心からの距離を足して直す
+  let I=0;for(const q of body.parts.slice(1))I+=q.inertia+q.mass*((q.position.x-body.position.x)**2+(q.position.y-body.position.y)**2);
+  Body.setInertia(body,I);
+  body.plugin.pts=pts;body.plugin.c0={x:body.position.x,y:body.position.y};body.plugin.len=dr.len;
+  Composite.add(world,body);
+  const cons=[];
+  for(const pin of pins){
+    let best=1e9;
+    for(let i=0;i<pts.length-1;i++)best=Math.min(best,segDist(pin,pts[i],pts[i+1]));
+    if(best<=PIN_R){
+      const c=Constraint.create({pointA:{x:pin.x,y:pin.y},bodyB:body,
+        pointB:{x:pin.x-body.position.x,y:pin.y-body.position.y},length:0,stiffness:.4,damping:.05}); // 1 だと暴れる
+      Composite.add(world,c);cons.push(c);
+    }
+  }
+  strokes.push({body,cons});sfx.drop();lastStroke={li,pts:pts.map(p=>({x:p.x,y:p.y}))};
+  go();   // 指を離した瞬間に発進
+}
+function segDist(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let t=l?((p.x-a.x)*dx+(p.y-a.y)*dy)/l:0;
+  t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
+
+/* ---------- 入力 ---------- */
+function toWorld(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};}
+let pid=null;
+cv.addEventListener("pointerdown",e=>{audio();if(pid!==null)return;pid=e.pointerId;cv.setPointerCapture(pid);beginDraw(toWorld(e));});
+cv.addEventListener("pointermove",e=>{if(e.pointerId!==pid)return;
+  const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of evs)moveDraw(toWorld(ev));});
+const up=e=>{if(e.pointerId!==pid)return;pid=null;endDraw();};
+cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
+addEventListener("keydown",e=>{
+  if((state==="draw"||state==="go"||state==="fail")&&e.key==="r"){$("resOv").classList.remove("show");loadLevel(li);}
+});
+
+/* ---------- UI ---------- */
+const $=id=>document.getElementById(id);
+function go(){if(state!=="draw")return;state="go";goT=0;cars.forEach(c=>c.drive=0);sfx.go();$("retryBig").classList.add("show");}
+let toastT=0;function toast(s){const t=$("toast");t.textContent=s;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity=0,1400);}
+$("retryBtn").onclick=()=>loadLevel(li);
+$("hintBtn").onclick=()=>{showHint=(showHint+1)%3;};  // 1回目: 始点と終点だけ／2回目: 線ぜんぶ／3回目: 消す
+$("retryBig").onclick=()=>{$("resOv").classList.remove("show");loadLevel(li);};
+$("menuBtn").onclick=()=>showSel();
+$("startBtn").onclick=()=>{audio();$("titleOv").classList.remove("show");showSel();};
+$("selBack").onclick=()=>{$("selOv").classList.remove("show");if(state==="title")$("titleOv").classList.add("show");};
+$("resRetry").onclick=()=>{$("resOv").classList.remove("show");loadLevel(li);};
+$("resNext").onclick=()=>{$("resOv").classList.remove("show");
+  if(state==="win"&&li+1<LEVELS.length)loadLevel(li+1);else if(state==="win")showSel();else loadLevel(li);};
+const PER=30,PAGES=()=>Math.ceil(LEVELS.length/PER);
+$("pgPrev").onclick=()=>{selPage=(selPage-1+PAGES())%PAGES();showSel();};
+$("pgNext").onclick=()=>{selPage=(selPage+1)%PAGES();showSel();};
+function showSel(){
+  const g=$("grid");g.innerHTML="";
+  if(selPage<0){let i=0;while(i<LEVELS.length-1&&save.stars[i])i++;selPage=Math.floor(i/PER);} // 最初は続きのページ
+  const a0=selPage*PER,a1=Math.min(LEVELS.length,(selPage+1)*PER);let got=0;for(let i=a0;i<a1;i++)if(save.stars[i])got++;
+  $("pgLabel").textContent=`ワールド${selPage+1} ${themeOf(a0).name}  ${got}/${a1-a0}${got===a1-a0?" 🏅":""}`;
+  const th=themeOf(a0);$("grid").style.setProperty("--wc",th.sky[th.sky.length>2?1:0]);
+  LEVELS.slice(selPage*PER,(selPage+1)*PER).forEach((lv,j)=>{const i=selPage*PER+j;
+    const b=document.createElement("button");b.className="btn";
+    b.innerHTML=unlocked(i)?`${i+1}<span>${save.stars[i]?"クリア":"&nbsp;"}</span>`:"🔒";
+    b.disabled=!unlocked(i);
+    b.onclick=()=>{$("selOv").classList.remove("show");loadLevel(i);};
+    g.appendChild(b);
+  });
+  $("selOv").classList.add("show");
+}
+function finish(win,msg){
+  if(state==="win"||state==="fail")return;
+  state=win?"win":"fail";
+  if(win){save.stars[li]=1;writeSave();sfx.win();$("retryBig").classList.remove("show");
+    const cols=["#ff5a4e","#ffd23f","#5cc443","#3fa7ff","#ff8ac8","#8a5cff"];
+    for(let k=0;k<90;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%6]});}
+  else{sfx.fail();toast(msg);$("retryBig").classList.add("show","pulse");
+    const icon=msg.includes("落石")?"🪨":msg.includes("荷物")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("動けなく")||msg.includes("時間")?"⛔":"💦";
+    const c=car.chassis.position;failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
+  setTimeout(()=>{
+    $("resTitle").textContent=win?"クリア！":"しっぱい…";
+    $("resTitle").style.color=win?"#ff5a4e":"#557";
+    $("resMsg").innerHTML=win?`STAGE ${li+1} ${L.name}`:msg;
+    $("resNext").textContent=win?(li+1<LEVELS.length?"次へ ▶":"ステージ選択"):"やり直す";
+    $("resRetry").style.display=win?"":"none";
+    $("resOv").classList.add("show");
+  },win?700:900);
+}
+
+/* ---------- 物理の1歩 ---------- */
+const DT=1000/60;
+// 車輪は力に上限のあるモーターで回す（速度を直接決めると空転して線を押しのけてしまう）
+function motor(w,target){
+  const d=Math.max(-.03,Math.min(.03,(target-w.angularVelocity)*.3));
+  w.torque+=d*w.inertia/(DT*DT);
+}
+function step(){
+  if(!engine)return;
+  time+=DT/1000;
+  if(state==="go"){
+    goT+=DT/1000;
+    for(let n=0;n<cars.length;n++){const c=cars[n];
+      if(c.waiting){ // 前の車が 160px 進んだら出発
+        const prev=cars[n-1];
+        if(!prev.waiting&&prev.chassis.position.x>c.x0+160*c.sz){c.waiting=false;c.startT=goT;
+          Composite.add(world,[c.chassis,c.wA,c.wB,...c.cons]);sfx.go();}
+        continue;}
+      if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
+      motor(c.wA,c.drive);motor(c.wB,c.drive);
+    }
+  }
+  // 落石 L.rocks=[x0,x1,間隔(秒)]
+  if(L.rocks&&(state==="draw"||state==="go")){
+    rockT-=DT/1000;
+    if(rockT<=0){rockT=L.rocks[2];const [x0,x1]=L.rocks,rad=13+rockRng()*9;
+      const b=Bodies.circle(x0+(x1-x0)*rockRng(),-30,rad,{density:.004,restitution:.2,friction:.5});
+      b.plugin.rock=true;Composite.add(world,b);rocks.push(b);}
+  }
+  for(let i=rocks.length-1;i>=0;i--){const b=rocks[i];
+    if(b.plugin.dead||b.position.y>H+100){
+      if(b.plugin.dead)for(let k=0;k<8;k++)parts.push({x:b.position.x,y:b.position.y,vx:(Math.random()-.5)*6,vy:-Math.random()*5,t:.6,c:"#8a7a6a"});
+      Composite.remove(world,b);rocks.splice(i,1);}}
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.t-=DT/1000;if(p.t<=0)parts.splice(i,1);}
+  for(const p of winFx){p.x+=p.vx;p.y+=p.vy;p.vy+=.25;p.vx*=.99;p.r+=.2;}
+  Engine.update(engine,DT);
+  // 落ちた線は捨てる
+  for(let i=strokes.length-1;i>=0;i--)if(strokes[i].body.position.y>H+600){
+    Composite.remove(world,strokes[i].body);strokes[i].cons.forEach(c=>Composite.remove(world,c));strokes.splice(i,1);}
+  if(state==="draw"||state==="go"){
+    const live=cars.filter(c=>!c.waiting);
+    const fallMsg=TH.lava?"溶岩に落ちちゃった…":TH.space?"宇宙に落ちちゃった…":"車が落ちちゃった…";
+    if(live.some(c=>c.chassis.position.y>WATER_Y+60)){finish(false,fallMsg);return;}
+    let fl=false;for(const c of live){const a=((c.chassis.angle%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI;if(Math.abs(a)>1.9)fl=true;}
+    flipT=fl?flipT+DT/1000:0;
+    if(flipT>1.2){finish(false,"ひっくり返っちゃった…");return;}
+    if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
+      if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
+    if(state==="go"){
+      const done=cars.every(c=>!c.waiting&&c.chassis.position.x>L.goal[0]&&c.chassis.position.y<L.goal[1]);
+      if(done)winT+=DT/1000;else winT=0;
+      if(winT>.25)finish(true);
+      else if(goT>30)finish(false,"時間切れ… 車が進めなかった");
+      else{ // 走っている車が 1 台も無いまま 2.5 秒で失敗（穴や壁で詰まった時に待たせない）
+        const pending=live.filter(c=>c.chassis.position.x<L.goal[0]);
+        const moving=pending.some(c=>Math.hypot(c.chassis.velocity.x,c.chassis.velocity.y)>=.25);
+        stuckT=(goT>1.5&&pending.length&&!moving)?stuckT+DT/1000:0;
+        if(stuckT>2.5)finish(false,"動けなくなっちゃった…");
+      }
+    }
+  }
+  if(state==="win"){ // ゴール後はゆっくり止める
+    for(const c of cars){if(c.waiting)continue;c.drive*=.95;motor(c.wA,c.drive);motor(c.wB,c.drive);}
+  }
+}
+
+/* ---------- 描画 ---------- */
+function render(){
+  ctx.setTransform(K,0,0,K,0,0);
+  const th=L?TH:THEMES[0],ph=li*1.7; // ph: 面ごとに背景の形を少しずつ変える
+  // 空
+  let g=ctx.createLinearGradient(0,0,0,H);th.sky.forEach((c,k)=>g.addColorStop(k/(th.sky.length-1),c));
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  drawSkyDeco(th,ph);
+  // 遠くの山
+  ctx.fillStyle=th.hill[0];ctx.beginPath();ctx.moveTo(0,H);
+  for(let x=0;x<=W;x+=40)ctx.lineTo(x,430-Math.sin(x*.006+1+ph)*70-Math.sin(x*.017+ph*.5)*25);
+  ctx.lineTo(W,H);ctx.fill();
+  if(th.deco==="snow"){ctx.fillStyle="#ffffffcc";ctx.beginPath();ctx.moveTo(0,H); // 雪の山頂
+    for(let x=0;x<=W;x+=40)ctx.lineTo(x,430-Math.sin(x*.006+1+ph)*70-Math.sin(x*.017+ph*.5)*25+(Math.sin(x*.006+1+ph)>.6?0:200));
+    ctx.lineTo(W,H);ctx.fill();}
+  ctx.fillStyle=th.hill[1];ctx.beginPath();ctx.moveTo(0,H);
+  for(let x=0;x<=W;x+=40)ctx.lineTo(x,500-Math.sin(x*.009+3+ph)*50);
+  ctx.lineTo(W,H);ctx.fill();
+  drawFarDeco(th,ph);
+  // 水（火山は溶岩、月は宇宙）
+  g=ctx.createLinearGradient(0,WATER_Y,0,H);g.addColorStop(0,th.water[0]);g.addColorStop(1,th.water[1]);
+  ctx.fillStyle=g;ctx.fillRect(0,WATER_Y,W,H-WATER_Y);
+  if(th.space){ctx.fillStyle="#ffffffaa";for(let k=0;k<40;k++){const x=(k*397)%W,y=WATER_Y+10+(k*131)%110;ctx.fillRect(x,y,2,2);}}
+  else{
+    ctx.strokeStyle=th.lava?"#ffe06099":"#ffffff88";ctx.lineWidth=3;
+    for(let row=0;row<3;row++){ctx.beginPath();
+      for(let x=0;x<=W;x+=10){const y=WATER_Y+8+row*34+Math.sin(x*.03+time*(th.lava?1:2)+row)*4;x?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
+    if(th.lava){ctx.fillStyle="#ffd040";for(let k=0;k<6;k++){const t=(time*.7+k*.37)%1,x=(k*233+li*57)%W;
+      ctx.globalAlpha=1-t;ctx.beginPath();ctx.arc(x,WATER_Y+20-t*30,4+t*6,0,7);ctx.fill();}ctx.globalAlpha=1;}
+  }
+  if(!L)return;
+  // 描けない場所
+  for(const [x,y,w,h] of (L.noDraw||[])){
+    ctx.save();ctx.fillStyle="#ff3b3b22";ctx.fillRect(x,y,w,h);ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+    ctx.strokeStyle="#ff3b3b55";ctx.lineWidth=6;for(let k=-h;k<w;k+=26){ctx.beginPath();ctx.moveTo(x+k,y+h);ctx.lineTo(x+k+h,y);ctx.stroke();}
+    ctx.restore();ctx.strokeStyle="#ff3b3b";ctx.lineWidth=3;ctx.setLineDash([12,8]);ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);}
+  // 地面
+  for(const b of statics){const poly=b.plugin.poly;
+    ctx.beginPath();poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();
+    const top=Math.min(...poly.map(p=>p[1]));
+    g=ctx.createLinearGradient(0,top,0,top+300);g.addColorStop(0,TH.ground[0]);g.addColorStop(1,TH.ground[1]);
+    ctx.fillStyle=g;ctx.fill();
+    ctx.save();ctx.clip();ctx.fillStyle="#00000018";
+    for(let y=top+40;y<H;y+=46){ctx.fillRect(-100,y,W+200,8);}
+    if(TH.deco==="moon"){ctx.fillStyle="#00000022";for(let k=0;k<6;k++){ctx.beginPath();ctx.ellipse((k*211+top)%W,top+60+(k*67)%200,26,9,0,0,7);ctx.fill();}}
+    if(TH.lava){ctx.strokeStyle="#ff6a0088";ctx.lineWidth=3;for(let k=0;k<5;k++){const x=(k*263+top*3)%W;ctx.beginPath();ctx.moveTo(x,top+30);ctx.lineTo(x+20,top+80);ctx.lineTo(x+5,top+130);ctx.stroke();}}
+    if(top>-100){ctx.fillStyle=TH.grass[0];ctx.fillRect(-100,top,W+200,14);ctx.fillStyle=TH.grass[1];ctx.fillRect(-100,top+14,W+200,5);
+      if(TH.deco==="candy"){ctx.fillStyle="#ffffff";for(let x=-100;x<W+100;x+=26){ctx.beginPath();ctx.arc(x,top+19,6,0,Math.PI);ctx.fill();}}}
+    ctx.restore();
+    ctx.strokeStyle=TH.edge;ctx.lineWidth=3;ctx.stroke();}
+  // ゴールの旗
+  const [gx,gy]=L.goal;
+  ctx.fillStyle="#555";ctx.fillRect(gx-3,gy-110,6,110);
+  ctx.save();ctx.translate(gx+3,gy-108);
+  for(let r=0;r<3;r++)for(let c=0;c<5;c++){ctx.fillStyle=(r+c)%2?"#222":"#fff";
+    const w=Math.sin(time*5+c*.8)*3;ctx.fillRect(c*12,r*12+w,12,12);}
+  ctx.restore();
+  // 線
+  ctx.lineCap="round";ctx.lineJoin="round";
+  for(const s of strokes){const b=s.body,{pts,c0}=b.plugin;
+    ctx.save();ctx.translate(b.position.x,b.position.y);ctx.rotate(b.angle);
+    if(pts.length===1){ctx.fillStyle="#2a2f45";ctx.beginPath();ctx.arc(0,0,T*.7,0,7);ctx.fill();}
+    else{strokePath(pts,-c0.x,-c0.y);}
+    ctx.restore();}
+  if(drawing&&drawing.pts.length){
+    if(drawing.pts.length===1){ctx.fillStyle="#2a2f45aa";ctx.beginPath();ctx.arc(drawing.pts[0].x,drawing.pts[0].y,T*.7,0,7);ctx.fill();}
+    else{ctx.globalAlpha=.7;strokePath(drawing.pts,0,0);ctx.globalAlpha=1;}
+  }
+  // ヒント（模範解答を点線で）
+  // 前に描いた線（やり直した時の目安）
+  if(lastStroke&&lastStroke.li===li&&state==="draw"&&!drawing){
+    ctx.save();ctx.globalAlpha=.28;strokePath(lastStroke.pts,0,0);ctx.restore();}
+  if(showHint&&L.sol&&state==="draw"){
+    const a=.8+.2*Math.sin(time*5);
+    if(showHint===2){
+      ctx.save();ctx.setLineDash([14,12]);ctx.lineWidth=T;ctx.lineCap="round";ctx.lineJoin="round";
+      ctx.beginPath();L.sol.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.strokeStyle="rgba(120,70,0,.55)";ctx.lineWidth=T+4;ctx.stroke();
+      ctx.strokeStyle=`rgba(255,215,60,${a})`;ctx.lineWidth=T-2;ctx.stroke();ctx.restore();}
+    const s0=L.sol[0],s1=L.sol[L.sol.length-1];
+    for(const [[x,y],t] of [[s0,"ここから"],[s1,"ここまで"]]){
+      ctx.fillStyle=`rgba(255,215,60,${a})`;ctx.strokeStyle="#7a4a00";ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,13,0,7);ctx.fill();ctx.stroke();
+      ctx.font="bold 20px sans-serif";ctx.textAlign="center";ctx.lineWidth=5;ctx.strokeStyle="#fff";ctx.strokeText(t,x,y-22);ctx.fillStyle="#7a4a00";ctx.fillText(t,x,y-22);ctx.textAlign="left";}}
+  // くぎ
+  for(const p of pins){
+    ctx.fillStyle="#ffffff55";ctx.beginPath();ctx.arc(p.x,p.y,PIN_R,0,7);ctx.fill();
+    ctx.fillStyle="#333";ctx.beginPath();ctx.arc(p.x,p.y,8,0,7);ctx.fill();
+    ctx.fillStyle="#aaa";ctx.beginPath();ctx.arc(p.x-2,p.y-2,3,0,7);ctx.fill();}
+  for(const c of cars)if(!c.waiting)drawCar(c);
+  if(cargo){ctx.save();ctx.translate(cargo.position.x,cargo.position.y);ctx.rotate(cargo.angle);
+    ctx.fillStyle="#d9a066";ctx.fillRect(-17,-13,34,26);ctx.strokeStyle="#8a5a2a";ctx.lineWidth=3;ctx.strokeRect(-17,-13,34,26);
+    ctx.beginPath();ctx.moveTo(-17,-2);ctx.lineTo(17,-2);ctx.stroke();ctx.restore();}
+  for(const b of rocks){ctx.save();ctx.translate(b.position.x,b.position.y);ctx.rotate(b.angle);const r=b.circleRadius;
+    ctx.fillStyle=TH.lava?"#5a2a1a":"#8a7a6a";ctx.beginPath();
+    for(let k=0;k<7;k++){const a=k/7*Math.PI*2,rr2=r*(.85+.15*Math.sin(k*2.3));k?ctx.lineTo(Math.cos(a)*rr2,Math.sin(a)*rr2):ctx.moveTo(Math.cos(a)*rr2,Math.sin(a)*rr2);}
+    ctx.closePath();ctx.fill();ctx.strokeStyle="#00000055";ctx.lineWidth=2;ctx.stroke();ctx.restore();}
+  for(const p of parts){ctx.globalAlpha=Math.max(0,p.t/.6);ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}ctx.globalAlpha=1;
+  for(const p of winFx){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-6,-3,12,6);ctx.restore();}
+  if(failAt){const k=Math.min(1,(time-failAt.t)*4),bob=Math.sin(time*6)*4;
+    ctx.save();ctx.translate(failAt.x,failAt.y+bob);ctx.scale(k,k);ctx.fillStyle="#fffffff0";ctx.beginPath();ctx.arc(0,0,44,0,7);ctx.fill();
+    ctx.strokeStyle="#ff5a4e";ctx.lineWidth=5;ctx.stroke();ctx.font="52px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText(failAt.icon,0,3);ctx.restore();ctx.textAlign="left";ctx.textBaseline="alphabetic";}
+  // 落石の注意（まだ落ちてこない間も場所が分かるように）
+  if(L.rocks){const [x0,x1]=L.rocks;ctx.fillStyle="#ffd23f";ctx.strokeStyle="#6a4a00";ctx.lineWidth=3;
+    for(const x of [x0,(x0+x1)/2,x1]){ctx.beginPath();ctx.moveTo(x,8);ctx.lineTo(x-14,34);ctx.lineTo(x+14,34);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle="#6a4a00";ctx.fillRect(x-2,15,4,11);ctx.fillRect(x-2,28,4,4);ctx.fillStyle="#ffd23f";}}
+  // 2 台目の車は左上に小さく「あと1台」
+  const wait=cars.filter(c=>c.waiting).length;
+  if(wait){ctx.fillStyle="#0006";rr(18,78,150,40,12);ctx.fill();ctx.fillStyle="#fff";ctx.font="bold 22px sans-serif";ctx.fillText(`🚗 あと${wait}台`,32,106);}
+}
+// 空の飾り（太陽・月・星・雲・雪）
+function drawSkyDeco(th,ph){
+  const d=th.deco;
+  if(d==="night"||d==="moon"||d==="volcano"&&false){}
+  if(d==="night"||d==="moon"){ctx.fillStyle="#fff";for(let k=0;k<70;k++){const x=(k*173+li*31)%W,y=(k*97)%380;
+      ctx.globalAlpha=.4+.6*Math.abs(Math.sin(time*1.5+k));ctx.fillRect(x,y,2,2);}ctx.globalAlpha=1;}
+  if(d==="night"){ctx.fillStyle="#fff6cc";ctx.beginPath();ctx.arc(1050,110,44,0,7);ctx.fill();ctx.fillStyle=th.sky[0];ctx.beginPath();ctx.arc(1070,98,40,0,7);ctx.fill();}
+  if(d==="moon"){ // 地球
+    ctx.fillStyle="#3a8ae8";ctx.beginPath();ctx.arc(1040,120,50,0,7);ctx.fill();
+    ctx.fillStyle="#5cc443";ctx.beginPath();ctx.ellipse(1025,105,20,14,.5,0,7);ctx.ellipse(1060,135,16,10,-.3,0,7);ctx.fill();}
+  if(d==="sunset"){ctx.fillStyle="#ffdd88";ctx.beginPath();ctx.arc(900,360,70,0,7);ctx.fill();}
+  if(d==="desert"||d==="island"){ctx.fillStyle="#fff2a0";ctx.beginPath();ctx.arc(1080,100,46,0,7);ctx.fill();}
+  if(d==="volcano"){ctx.fillStyle="#ff6a3055";for(let k=0;k<30;k++){const x=(k*211+time*20)%W,y=H-((time*40+k*53)%H);ctx.fillRect(x,y,3,3);}}
+  if(d!=="night"&&d!=="moon"&&d!=="volcano"){ // 雲
+    ctx.fillStyle=d==="sunset"?"#ffc0a0c0":d==="candy"?"#ffffffe0":"#ffffffd0";
+    for(const c of clouds){const x=((c.x+time*12*c.s)%(W+300))-150;
+      ctx.beginPath();ctx.ellipse(x,c.y,60*c.s,22*c.s,0,0,7);ctx.ellipse(x+40*c.s,c.y-12*c.s,40*c.s,24*c.s,0,0,7);
+      ctx.ellipse(x-38*c.s,c.y-6*c.s,34*c.s,18*c.s,0,0,7);ctx.fill();}}
+  if(d==="snow"){ctx.fillStyle="#fff";for(let k=0;k<60;k++){const x=(k*151+Math.sin(time+k)*20)%W,y=(k*83+time*40)%H;ctx.beginPath();ctx.arc(x,y,2.5,0,7);ctx.fill();}}
+  if(d==="autumn"){for(let k=0;k<18;k++){const x=(k*181+time*30)%W,y=(k*71+time*50)%H;
+      ctx.fillStyle=k%2?"#e8602a":"#f0a030";ctx.save();ctx.translate(x,y);ctx.rotate(time*2+k);ctx.fillRect(-5,-3,10,6);ctx.restore();}}
+}
+// 遠景の飾り（サボテン・木・ヤシ・火山・キャンディ・ビル）
+function drawFarDeco(th,ph){
+  const d=th.deco,n=6;
+  for(let k=0;k<n;k++){
+    const x=((k*223+li*97)%(W+100))-50,base=500-Math.sin(x*.009+3+ph)*50+6;
+    ctx.save();ctx.translate(x,base);
+    if(d==="desert"){ctx.fillStyle="#5a9a4a";ctx.fillRect(-7,-60,14,60);ctx.fillRect(-24,-40,10,24);ctx.fillRect(-24,-22,20,8);ctx.fillRect(14,-48,10,26);ctx.fillRect(4,-30,20,8);}
+    else if(d==="autumn"){ctx.fillStyle="#6a3a1a";ctx.fillRect(-5,-40,10,40);ctx.fillStyle=k%2?"#e8602a":"#f0a030";ctx.beginPath();ctx.arc(0,-55,28,0,7);ctx.fill();}
+    else if(d==="clouds"&&k%2){ctx.fillStyle="#6ab04a";ctx.fillRect(-4,-30,8,30);ctx.fillStyle="#4a9a3a";ctx.beginPath();ctx.arc(0,-40,20,0,7);ctx.fill();}
+    else if(d==="island"){ctx.strokeStyle="#8a6a3a";ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(10,-40,4,-80);ctx.stroke();
+      ctx.fillStyle="#3aa84a";for(let j=0;j<5;j++){ctx.save();ctx.translate(4,-80);ctx.rotate(j*1.25);ctx.beginPath();ctx.ellipse(22,0,24,7,0,0,7);ctx.fill();ctx.restore();}}
+    else if(d==="candy"){ctx.fillStyle="#fff";ctx.fillRect(-3,-60,6,60);ctx.fillStyle=["#ff6ab4","#5ad0ff","#ffd23f"][k%3];ctx.beginPath();ctx.arc(0,-70,20,0,7);ctx.fill();
+      ctx.strokeStyle="#fff";ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,-70,11,0,5);ctx.stroke();}
+    else if(d==="night"){ctx.fillStyle="#141e3a";const h=60+(k*37)%80;ctx.fillRect(-26,-h,52,h);ctx.fillStyle="#ffe680";
+      for(let yy=-h+10;yy<-10;yy+=18)for(let xx=-18;xx<18;xx+=14)if((xx*7+yy*3+k)%3)ctx.fillRect(xx,yy,7,9);}
+    else if(d==="volcano"&&k===2){ctx.fillStyle="#2a0c08";ctx.beginPath();ctx.moveTo(-160,0);ctx.lineTo(-40,-150);ctx.lineTo(40,-150);ctx.lineTo(160,0);ctx.fill();
+      ctx.fillStyle="#ff6a00";ctx.beginPath();ctx.ellipse(0,-150,40,10,0,0,7);ctx.fill();}
+    else if(d==="snow"&&k%2){ctx.fillStyle="#2a6a4a";ctx.beginPath();ctx.moveTo(0,-60);ctx.lineTo(-20,0);ctx.lineTo(20,0);ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(0,-60);ctx.lineTo(-8,-36);ctx.lineTo(8,-36);ctx.fill();}
+    ctx.restore();
+  }
+}
+function strokePath(pts,ox,oy){
+  ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x+ox,p.y+oy):ctx.moveTo(p.x+ox,p.y+oy));
+  ctx.strokeStyle=TH.line[0];ctx.lineWidth=T+3;ctx.stroke();
+  ctx.strokeStyle=TH.line[1];ctx.lineWidth=T-3;ctx.stroke();
+}
+function drawCar(cr){
+  const c=cr.chassis,z=cr.sz,[body,roof,edge]=cr===cars[1]?[TH.car[2]==="#556"?"#ffd23f":"#ffffff",TH.car[0],TH.car[2]]:TH.car;
+  ctx.save();ctx.translate(c.position.x,c.position.y);ctx.rotate(c.angle);ctx.scale(z,z);
+  if(TH.deco==="night"){ctx.fillStyle="#fff6a055";ctx.beginPath();ctx.moveTo(46,-4);ctx.lineTo(180,-40);ctx.lineTo(180,40);ctx.closePath();ctx.fill();}
+  // 屋根と窓
+  ctx.fillStyle=roof;rr(-30,-34,56,26,10);ctx.fill();
+  ctx.fillStyle="#bfe8ff";rr(-23,-28,20,16,4);ctx.fill();rr(1,-28,19,16,4);ctx.fill();
+  // 車体
+  ctx.fillStyle=body;rr(-48,-13,96,26,9);ctx.fill();
+  ctx.strokeStyle=edge;ctx.lineWidth=3;rr(-48,-13,96,26,9);ctx.stroke();
+  ctx.fillStyle="#ffe066";ctx.fillRect(40,-7,8,7);
+  // 顔
+  const mood=state==="win"?"happy":state==="fail"?"oops":state==="go"?"go":"idle";
+  ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(18,-1,7,8,0,0,7);ctx.ellipse(33,-1,7,8,0,0,7);ctx.fill();
+  ctx.fillStyle="#222";ctx.strokeStyle="#222";ctx.lineWidth=2.5;
+  if(mood==="happy"){ctx.beginPath();ctx.arc(18,1,4,Math.PI,0);ctx.arc(33,1,4,Math.PI,0);ctx.stroke();}
+  else if(mood==="oops"){ctx.beginPath();ctx.arc(18,-1,4.5,0,7);ctx.arc(33,-1,4.5,0,7);ctx.stroke();}
+  else{const lk=mood==="go"?2:Math.sin(time*2)*1.5;ctx.beginPath();ctx.arc(19+lk,0,3.2,0,7);ctx.arc(34+lk,0,3.2,0,7);ctx.fill();
+    if(mood==="go"){ctx.beginPath();ctx.moveTo(12,-10);ctx.lineTo(24,-7);ctx.moveTo(27,-7);ctx.lineTo(39,-10);ctx.stroke();}}
+  ctx.restore();
+  for(const w of [cr.wA,cr.wB]){
+    ctx.save();ctx.translate(w.position.x,w.position.y);ctx.rotate(w.angle);ctx.scale(z,z);
+    ctx.fillStyle="#222";ctx.beginPath();ctx.arc(0,0,WR,0,7);ctx.fill();
+    ctx.fillStyle="#ccc";ctx.beginPath();ctx.arc(0,0,9,0,7);ctx.fill();
+    ctx.strokeStyle="#666";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(9,0);ctx.moveTo(0,-9);ctx.lineTo(0,9);ctx.stroke();
+    ctx.restore();}
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);}
+
+/* ---------- ループ ---------- */
+let acc=0,last=performance.now();
+function loop(now){
+  acc+=Math.min(100,now-last);last=now;
+  let n=0;while(acc>=DT&&n<5){step();acc-=DT;n++;}
+  render();requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// iPad の指2本の拡大を止める
+["gesturestart","gesturechange"].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+/* ---------- オフライン（ホーム画面に追加した時用） ---------- */
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+/* ---------- 確認用の窓口（#test の時だけ） ---------- */
+if(location.hash==="#test"){
+  window.__sw={
+    load(i){["titleOv","selOv","resOv"].forEach(id=>$(id).classList.remove("show"));loadLevel(i);},
+    tryLevel(o,idx=LEVELS.length){["titleOv","selOv","resOv"].forEach(id=>$(id).classList.remove("show"));const keep=LEVELS[idx];LEVELS[idx]=o;loadLevel(idx);
+      if(keep===undefined)LEVELS.length=Math.min(LEVELS.length,idx);else LEVELS[idx]=keep;},
+    stroke(pts){beginDraw({x:pts[0][0],y:pts[0][1]});
+      for(let i=1;i<pts.length;i++){const [ax,ay]=pts[i-1],[bx,by]=pts[i],n=Math.ceil(Math.hypot(bx-ax,by-ay)/6);
+        for(let k=1;k<=n;k++)moveDraw({x:ax+(bx-ax)*k/n,y:ay+(by-ay)*k/n});}
+      endDraw();},
+    go, step(n){for(let i=0;i<n;i++)step();render();},
+    get info(){const lc=cars[cars.length-1],c=lc.waiting?car.chassis:lc.chassis;return {state,x:Math.round(c.position.x),y:Math.round(c.position.y),strokes:strokes.length,goT:+goT.toFixed(2)};},
+    get levels(){return LEVELS;},
+  };
+}
+</script>
+</body>
+</html>
