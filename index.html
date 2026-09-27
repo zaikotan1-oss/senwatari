@@ -43,8 +43,8 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 .card .btn.sub{background:#e4e8f0}
 #pager{display:flex;align-items:center;justify-content:center;gap:18px;font-size:24px;font-weight:bold;color:#556}
 #pager .btn{width:64px;height:52px;padding:0;margin:0;font-size:32px}
-#grid{display:grid;grid-template-columns:repeat(10,86px);gap:12px;margin:14px 0 20px}
-#grid .btn{height:86px;font-size:32px;background:var(--wc,#8fd3ff);color:#fff;text-shadow:0 2px 0 #0005;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#grid{display:grid;grid-template-columns:repeat(5,110px);gap:14px;margin:14px 0 20px;justify-content:center}
+#grid .btn{height:100px;font-size:36px;background:var(--wc,#8fd3ff);color:#fff;text-shadow:0 2px 0 #0005;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #grid .btn span{font-size:18px;color:#fff;text-shadow:0 2px 0 #3a7}
 #titleOv{background:linear-gradient(#58b8ff,#c9ecff)}
 #titleOv h1{font-size:96px;color:#fff;text-shadow:0 6px 0 #2f6fd0,0 10px 20px #0004;margin:0}
@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=3"></script>
-<script src="gen.js?v=3"></script>
-<script src="gen_table.js?v=3"></script>
+<script src="matter.min.js?v=10"></script>
+<script src="gen.js?v=10"></script>
+<script src="gen_table.js?v=10"></script><script src="looks.js?v=10"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -219,33 +219,16 @@ const HAND_SOLS=[
 ];;
 HAND_SOLS.forEach((s,i)=>{if(LEVELS[i])LEVELS[i].sol=s;});
 // 31 面目以降は gen.js の自動生成（GEN_TABLE にある合格済みの種だけ）
-for(let k=0;k<window.GEN_TABLE.length;k++){const o=GEN.genLevel(k);if(o)LEVELS.push(o);}
+// 100 面: 世界1 は手作りから 10 面（発想が続かない順）、世界2〜10 は gen.js の自動生成（GEN_TABLE の 10〜99 番）
+const HAND_IDEA=["span","span","ramp","ramp","span","ramp","span","wedge","ramp","span","rotate","wedge","ramp","ramp","rotate","shape","shape","span","span","rotate",
+  "ramp","ramp","span","rotate","wedge","span","ramp","drop","drop","rotate"];
+HAND_IDEA.forEach((d,i)=>{if(LEVELS[i])LEVELS[i].idea=d;});
+const HAND=LEVELS.splice(0,LEVELS.length);
+for(const i of [0,10,2,15,27,7,16,14,24,19])LEVELS.push(HAND[i]);  // 橋→はね橋→坂→山→落とす→壁→谷→大はね橋→かべ2枚→逆はね橋
+for(let k=10;k<100;k++){const o=GEN.genLevel(k);if(o)LEVELS.push(o);}
 
-/* ---------- 世界（30 面ごとに見た目が変わる） ---------- */
-// sky:空の色(上→下) hill:遠くの山2段 ground:土(上,下) grass:表面2段 water:水(上,下) line:描いた線 car:車体,屋根,ふち
-const THEMES=[
- {name:"みどりの谷",sky:["#5fb8ff","#d9f1ff"],hill:["#9cc9e8","#86bcdf"],ground:["#b07a45","#6e4526"],grass:["#5cc443","#46a834"],edge:"#4a2e18",
-  water:["#2d8fe0","#1552a0"],line:["#151827","#3a4166"],car:["#ff5a4e","#e8412f","#9c2518"],deco:"clouds"},
- {name:"夕やけの丘",sky:["#6a4c93","#ff9a5a","#ffd9a0"],hill:["#c9728a","#a85a7a"],ground:["#a0603a","#5a2f1e"],grass:["#e0a33a","#c4822a"],edge:"#3a1e10",
-  water:["#d9705a","#7a3050"],line:["#2a1030","#5a3060"],car:["#3fa7ff","#2a86dd","#1a4f8a"],deco:"sunset"},
- {name:"さばく",sky:["#6cc8ff","#fff3c4"],hill:["#f2c77a","#e0b060"],ground:["#e0a860","#a8743a"],grass:["#f7dc98","#e6c47a"],edge:"#7a5020",
-  water:["#35c9c0","#1a8a90"],line:["#3a2410","#7a5030"],car:["#ffd23f","#f0b400","#8a6400"],deco:"desert"},
- {name:"雪山",sky:["#8cc8f5","#f0f8ff"],hill:["#dbe9f7","#c2d6ec"],ground:["#8a9bb0","#56657a"],grass:["#ffffff","#dfe9f5"],edge:"#3a4658",
-  water:["#7ec8e8","#3f7fb0"],line:["#1a2440","#40507a"],car:["#40c070","#2ea058","#16603a"],deco:"snow"},
- {name:"夜の町",sky:["#0b1a3a","#2a3f75"],hill:["#1f2f55","#18264a"],ground:["#4a3a5a","#241a30"],grass:["#3a8a5a","#2a6a44"],edge:"#120c1a",
-  water:["#1a3a7a","#0a1a40"],line:["#fff4c0","#ffd860"],car:["#ffffff","#dde4ee","#556"],deco:"night"},
- {name:"秋の森",sky:["#9fd3ff","#fff0d8"],hill:["#e0a070","#c8805a"],ground:["#9a5a30","#5a3018"],grass:["#d9822b","#b8661e"],edge:"#3a1e0c",
-  water:["#3a9ad0","#1a5a90"],line:["#20140a","#5a3a20"],car:["#8a5cff","#6a3ce0","#3a1a8a"],deco:"autumn"},
- {name:"南の島",sky:["#3fbfff","#c9f3ff"],hill:["#7fd8c8","#5cc0b0"],ground:["#f0d090","#c8a060"],grass:["#63d471","#48b858"],edge:"#8a6a30",
-  water:["#1fc8d8","#0a7fb0"],line:["#0a2a40","#2a5a80"],car:["#ff8ac8","#ff5aa8","#a02a6a"],deco:"island"},
- {name:"火山",sky:["#2a0a0a","#a0381e"],hill:["#4a1a14","#3a120e"],ground:["#4a3434","#1e1212"],grass:["#6a5a5a","#4a3a3a"],edge:"#0a0404",
-  water:["#ff8a00","#c01e00"],line:["#fff0d0","#ffc070"],car:["#e8e8e8","#c8c8c8","#444"],deco:"volcano",lava:true},
- {name:"おかしの国",sky:["#ffb6e1","#fff0fa"],hill:["#ffd0ea","#f7b8dc"],ground:["#8a5230","#5a3018"],grass:["#ff8ac8","#ff6ab4"],edge:"#3a1a0a",
-  water:["#b0e8ff","#70c0f0"],line:["#5a2a10","#8a5030"],car:["#5ad0ff","#2ab0f0","#1a6a9a"],deco:"candy"},
- {name:"月",sky:["#05040f","#1a1440"],hill:["#2a2a3a","#20202e"],ground:["#9a9aa4","#5a5a66"],grass:["#d0d0d8","#b0b0bc"],edge:"#303038",
-  water:["#1a1030","#08040f"],line:["#ffffff","#b0d0ff"],car:["#ff5a4e","#e8412f","#9c2518"],deco:"moon",gravity:.45,space:true},
-];
-const themeOf=i=>THEMES[Math.min(THEMES.length-1,Math.floor(i/30))];
+/* ---------- 絵柄（THEMES は looks.js。5 面ごとに変わる） ---------- */
+const themeOf=i=>THEMES[Math.min(THEMES.length-1,Math.floor(i/5))];  // 5 面ごとに絵柄が変わる
 
 /* ---------- セーブ ---------- */
 const SAVE_KEY="senwatari_v1";
@@ -304,7 +287,7 @@ const sfx={
 };
 
 /* ---------- 状態 ---------- */
-let engine,world,L,TH=THEMES[0],li=0,cars=[],car=null,cargo=null,rocks=[],rockT=0,rockRng=null,parts=[],strokes=[],statics=[],pins=[],state="title";
+let DIR=1,boulder=null,mill=null,engine,world,L,TH=THEMES[0],li=0,cars=[],car=null,cargo=null,rocks=[],rockT=0,rockRng=null,parts=[],strokes=[],statics=[],pins=[],state="title";
 let showHint=0,lastStroke=null,failAt=null,winFx=[],selPage=-1,drawing=null,goT=0,winT=0,flipT=0,stuckT=0,time=0,clouds=[];
 for(let i=0;i<6;i++)clouds.push({x:Math.random()*W,y:40+Math.random()*180,s:.6+Math.random()*.8});
 
@@ -328,13 +311,28 @@ function loadLevel(i){
   cargo=null;
   if(L.cargo){cargo=Bodies.rectangle(L.car[0]-4,cy-36*sz-14,34,26,{density:.0015,friction:1,frictionStatic:4,restitution:0});
     Composite.add(world,cargo);}
+  DIR=L.dir||1;
+  // 空から車: 発進までは空中で止めておく
+  if(L.air)for(const c of cars)for(const b of [c.chassis,c.wA,c.wB])Body.setStatic(b,true);
+  // 大岩: 発進と同時に坂を転がり出す（それまでは止めておく）
+  boulder=null;
+  if(L.boulder){const [bx,by,br]=L.boulder;boulder=Bodies.circle(bx,by,br,{density:.006,friction:.3,frictionStatic:.3,restitution:.1});
+    boulder.plugin.rock=true;boulder.plugin.big=true;Body.setStatic(boulder,true);Composite.add(world,boulder);}
+  // 風車: くぎで留まった羽根が、力に上限のあるモーターで回る（線がはさまると止まる）
+  mill=null;
+  if(L.mill){const [mx,my,mr]=L.mill;
+    const a=Bodies.rectangle(mx,my,mr*2,16,{density:.003}),b=Bodies.rectangle(mx,my,16,mr*2,{density:.003});
+    mill=Body.create({parts:[a,b],friction:.4});
+    let I=0;for(const q of mill.parts.slice(1))I+=q.inertia;Body.setInertia(mill,I*1.5);
+    Composite.add(world,[mill,Constraint.create({pointA:{x:mx,y:my},bodyB:mill,pointB:{x:0,y:0},length:0,stiffness:.9})]);
+    mill.plugin.speed=L.mill[3]||.05;}
   Events.on(engine,"collisionStart",onHit);
   state="draw";showHint=0;failAt=null;winFx=[];
   document.getElementById("retryBig").classList.remove("show","pulse");
   document.getElementById("toast").style.opacity=0;
   document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${L.name}</small>`;
   document.getElementById("hint").textContent=L.hint;
-  if(i%30===0&&i>0)banner(`ワールド${Math.floor(i/30)+1}　${TH.name}`);
+  if(i%5===0&&i>0)banner(i%10===0?`ワールド${Math.floor(i/10)+1}　${TH.name}`:TH.name);
 }
 function mulberry(a){return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function banner(s){const t=$("toast");t.textContent=s;t.style.opacity=1;t.style.fontSize="34px";clearTimeout(toastT);
@@ -346,8 +344,8 @@ function onHit(ev){
       const r=a.parent;if(!r.plugin.rock||r.plugin.dead)continue;
       const o=b.parent;
       if(cars.some(c=>!c.waiting&&(o===c.chassis||o===c.wA||o===c.wB))||(cargo&&o===cargo)){
-        if(state==="draw"||state==="go")finish(false,"落石にあたっちゃった！");}
-      else if(o.isStatic){r.plugin.dead=true;}
+        if(state==="draw"||state==="go")finish(false,r.plugin.big?"大岩にぶつかっちゃった！":"落石にあたっちゃった！");}
+      else if(o.isStatic&&!r.plugin.big){r.plugin.dead=true;}
     }
   }
 }
@@ -437,7 +435,9 @@ addEventListener("keydown",e=>{
 
 /* ---------- UI ---------- */
 const $=id=>document.getElementById(id);
-function go(){if(state!=="draw")return;state="go";goT=0;cars.forEach(c=>c.drive=0);sfx.go();$("retryBig").classList.add("show");}
+function go(){if(state!=="draw")return;state="go";goT=0;cars.forEach(c=>c.drive=0);
+  if(L.air)for(const c of cars)for(const b of [c.chassis,c.wA,c.wB])Body.setStatic(b,false);
+  if(boulder){Body.setStatic(boulder,false);Body.setVelocity(boulder,{x:-6*DIR,y:3});}sfx.go();$("retryBig").classList.add("show");}
 let toastT=0;function toast(s){const t=$("toast");t.textContent=s;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity=0,1400);}
 $("retryBtn").onclick=()=>loadLevel(li);
 $("hintBtn").onclick=()=>{showHint=(showHint+1)%3;};  // 1回目: 始点と終点だけ／2回目: 線ぜんぶ／3回目: 消す
@@ -448,15 +448,15 @@ $("selBack").onclick=()=>{$("selOv").classList.remove("show");if(state==="title"
 $("resRetry").onclick=()=>{$("resOv").classList.remove("show");loadLevel(li);};
 $("resNext").onclick=()=>{$("resOv").classList.remove("show");
   if(state==="win"&&li+1<LEVELS.length)loadLevel(li+1);else if(state==="win")showSel();else loadLevel(li);};
-const PER=30,PAGES=()=>Math.ceil(LEVELS.length/PER);
+const PER=10,PAGES=()=>Math.ceil(LEVELS.length/PER);
 $("pgPrev").onclick=()=>{selPage=(selPage-1+PAGES())%PAGES();showSel();};
 $("pgNext").onclick=()=>{selPage=(selPage+1)%PAGES();showSel();};
 function showSel(){
   const g=$("grid");g.innerHTML="";
   if(selPage<0){let i=0;while(i<LEVELS.length-1&&save.stars[i])i++;selPage=Math.floor(i/PER);} // 最初は続きのページ
   const a0=selPage*PER,a1=Math.min(LEVELS.length,(selPage+1)*PER);let got=0;for(let i=a0;i<a1;i++)if(save.stars[i])got++;
-  $("pgLabel").textContent=`ワールド${selPage+1} ${themeOf(a0).name}  ${got}/${a1-a0}${got===a1-a0?" 🏅":""}`;
-  const th=themeOf(a0);$("grid").style.setProperty("--wc",th.sky[th.sky.length>2?1:0]);
+  $("pgLabel").textContent=`ワールド${selPage+1} ${themeOf(a0).name}／${themeOf(a0+5).name}  ${got}/${a1-a0}${got===a1-a0?" 🏅":""}`;
+  const th=themeOf(a0);$("grid").style.setProperty("--wc",th.sky?th.sky[th.sky.length>2?1:0]:th.ground[0]);
   LEVELS.slice(selPage*PER,(selPage+1)*PER).forEach((lv,j)=>{const i=selPage*PER+j;
     const b=document.createElement("button");b.className="btn";
     b.innerHTML=unlocked(i)?`${i+1}<span>${save.stars[i]?"クリア":"&nbsp;"}</span>`:"🔒";
@@ -500,13 +500,19 @@ function step(){
     for(let n=0;n<cars.length;n++){const c=cars[n];
       if(c.waiting){ // 前の車が 160px 進んだら出発
         const prev=cars[n-1];
-        if(!prev.waiting&&prev.chassis.position.x>c.x0+160*c.sz){c.waiting=false;c.startT=goT;
+        if(!prev.waiting&&(prev.chassis.position.x-c.x0)*DIR>160*c.sz){c.waiting=false;c.startT=goT;
           Composite.add(world,[c.chassis,c.wA,c.wB,...c.cons]);sfx.go();}
         continue;}
       if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
-      motor(c.wA,c.drive);motor(c.wB,c.drive);
+      motor(c.wA,c.drive*DIR);motor(c.wB,c.drive*DIR);
+      // ジャンプ台: 上を通ると前へ強く押し出される
+      for(const [x0,x1,py] of (L.pads||[])){const p=c.chassis.position;
+        if(p.x>x0&&p.x<x1&&Math.abs(p.y-(py-(WY+WR)*c.sz))<30){const v=(L.padV||13)*DIR;
+          for(const b of [c.chassis,c.wA,c.wB])Body.setVelocity(b,{x:v,y:Math.min(b.velocity.y,-1.5)});if(!c.jumped){c.jumped=1;sfx.go();}}}
     }
   }
+  if(mill){const d=Math.max(-.004,Math.min(.004,(mill.plugin.speed-mill.angularVelocity)*.3));mill.torque+=d*mill.inertia/(DT*DT);}
+  if(boulder&&boulder.position.y>H+200){Composite.remove(world,boulder);boulder=null;}
   // 落石 L.rocks=[x0,x1,間隔(秒)]
   if(L.rocks&&(state==="draw"||state==="go")){
     rockT-=DT/1000;
@@ -534,12 +540,12 @@ function step(){
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
       if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
     if(state==="go"){
-      const done=cars.every(c=>!c.waiting&&c.chassis.position.x>L.goal[0]&&c.chassis.position.y<L.goal[1]);
+      const done=cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]);
       if(done)winT+=DT/1000;else winT=0;
       if(winT>.25)finish(true);
       else if(goT>30)finish(false,"時間切れ… 車が進めなかった");
       else{ // 走っている車が 1 台も無いまま 2.5 秒で失敗（穴や壁で詰まった時に待たせない）
-        const pending=live.filter(c=>c.chassis.position.x<L.goal[0]);
+        const pending=live.filter(c=>(c.chassis.position.x-L.goal[0])*DIR<0);
         const moving=pending.some(c=>Math.hypot(c.chassis.velocity.x,c.chassis.velocity.y)>=.25);
         stuckT=(goT>1.5&&pending.length&&!moving)?stuckT+DT/1000:0;
         if(stuckT>2.5)finish(false,"動けなくなっちゃった…");
@@ -547,7 +553,7 @@ function step(){
     }
   }
   if(state==="win"){ // ゴール後はゆっくり止める
-    for(const c of cars){if(c.waiting)continue;c.drive*=.95;motor(c.wA,c.drive);motor(c.wB,c.drive);}
+    for(const c of cars){if(c.waiting)continue;c.drive*=.95;motor(c.wA,c.drive*DIR);motor(c.wB,c.drive*DIR);}
   }
 }
 
@@ -555,8 +561,10 @@ function step(){
 function render(){
   ctx.setTransform(K,0,0,K,0,0);
   const th=L?TH:THEMES[0],ph=li*1.7; // ph: 面ごとに背景の形を少しずつ変える
+  let g;
+  if(th.bg){BG[th.bg](th,ph);}else{
   // 空
-  let g=ctx.createLinearGradient(0,0,0,H);th.sky.forEach((c,k)=>g.addColorStop(k/(th.sky.length-1),c));
+  g=ctx.createLinearGradient(0,0,0,H);th.sky.forEach((c,k)=>g.addColorStop(k/(th.sky.length-1),c));
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
   drawSkyDeco(th,ph);
   // 遠くの山
@@ -580,7 +588,7 @@ function render(){
       for(let x=0;x<=W;x+=10){const y=WATER_Y+8+row*34+Math.sin(x*.03+time*(th.lava?1:2)+row)*4;x?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
     if(th.lava){ctx.fillStyle="#ffd040";for(let k=0;k<6;k++){const t=(time*.7+k*.37)%1,x=(k*233+li*57)%W;
       ctx.globalAlpha=1-t;ctx.beginPath();ctx.arc(x,WATER_Y+20-t*30,4+t*6,0,7);ctx.fill();}ctx.globalAlpha=1;}
-  }
+  }}
   if(!L)return;
   // 描けない場所
   for(const [x,y,w,h] of (L.noDraw||[])){
@@ -594,13 +602,16 @@ function render(){
     g=ctx.createLinearGradient(0,top,0,top+300);g.addColorStop(0,TH.ground[0]);g.addColorStop(1,TH.ground[1]);
     ctx.fillStyle=g;ctx.fill();
     ctx.save();ctx.clip();ctx.fillStyle="#00000018";
-    for(let y=top+40;y<H;y+=46){ctx.fillRect(-100,y,W+200,8);}
+    if(!TH.noStripe)for(let y=top+40;y<H;y+=46){ctx.fillRect(-100,y,W+200,8);}
+    if(TH.gpat)GPAT[TH.gpat](top);
     if(TH.deco==="moon"){ctx.fillStyle="#00000022";for(let k=0;k<6;k++){ctx.beginPath();ctx.ellipse((k*211+top)%W,top+60+(k*67)%200,26,9,0,0,7);ctx.fill();}}
     if(TH.lava){ctx.strokeStyle="#ff6a0088";ctx.lineWidth=3;for(let k=0;k<5;k++){const x=(k*263+top*3)%W;ctx.beginPath();ctx.moveTo(x,top+30);ctx.lineTo(x+20,top+80);ctx.lineTo(x+5,top+130);ctx.stroke();}}
-    if(top>-100){ctx.fillStyle=TH.grass[0];ctx.fillRect(-100,top,W+200,14);ctx.fillStyle=TH.grass[1];ctx.fillRect(-100,top+14,W+200,5);
+    if(top>-100&&!TH.noGrass){ctx.fillStyle=TH.grass[0];ctx.fillRect(-100,top,W+200,14);ctx.fillStyle=TH.grass[1];ctx.fillRect(-100,top+14,W+200,5);
       if(TH.deco==="candy"){ctx.fillStyle="#ffffff";for(let x=-100;x<W+100;x+=26){ctx.beginPath();ctx.arc(x,top+19,6,0,Math.PI);ctx.fill();}}}
     ctx.restore();
-    ctx.strokeStyle=TH.edge;ctx.lineWidth=3;ctx.stroke();}
+    if(TH.glow){ctx.shadowColor=TH.glow;ctx.shadowBlur=14;}
+    ctx.strokeStyle=TH.edge;ctx.lineWidth=TH.edgeW||3;ctx.stroke();ctx.shadowBlur=0;
+    if(TH.rough){ctx.save();ctx.translate(2,-1.5);ctx.globalAlpha=.5;ctx.lineWidth=1.5;ctx.stroke();ctx.restore();}}
   // ゴールの旗
   const [gx,gy]=L.goal;
   ctx.fillStyle="#555";ctx.fillRect(gx-3,gy-110,6,110);
@@ -639,6 +650,18 @@ function render(){
     ctx.fillStyle="#ffffff55";ctx.beginPath();ctx.arc(p.x,p.y,PIN_R,0,7);ctx.fill();
     ctx.fillStyle="#333";ctx.beginPath();ctx.arc(p.x,p.y,8,0,7);ctx.fill();
     ctx.fillStyle="#aaa";ctx.beginPath();ctx.arc(p.x-2,p.y-2,3,0,7);ctx.fill();}
+  // ジャンプ台
+  for(const [x0,x1,py] of (L.pads||[])){ctx.fillStyle="#ff9f1a";ctx.fillRect(x0,py-8,x1-x0,10);ctx.fillStyle="#fff";
+    for(let x=x0+10;x<x1-10;x+=26){const a=DIR>0?x:x+14;ctx.beginPath();ctx.moveTo(a,py-7);ctx.lineTo(a+14*DIR,py-3);ctx.lineTo(a,py+1);ctx.fill();}}
+  // 風車
+  if(mill){ctx.save();ctx.translate(mill.position.x,mill.position.y);ctx.rotate(mill.angle);const r=L.mill[2];
+    ctx.fillStyle="#f4f0e0";ctx.strokeStyle="#6a5a40";ctx.lineWidth=3;
+    for(const [w,h] of [[r*2,16],[16,r*2]]){ctx.fillRect(-w/2,-h/2,w,h);ctx.strokeRect(-w/2,-h/2,w,h);}
+    ctx.fillStyle="#c0392b";ctx.beginPath();ctx.arc(0,0,10,0,7);ctx.fill();ctx.restore();}
+  // 大岩
+  if(boulder){ctx.save();ctx.translate(boulder.position.x,boulder.position.y);ctx.rotate(boulder.angle);const r=boulder.circleRadius;
+    ctx.fillStyle="#7a6a5a";ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.strokeStyle="#3a2e24";ctx.lineWidth=4;ctx.stroke();
+    ctx.strokeStyle="#5a4a3a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-r*.5,-r*.2);ctx.lineTo(r*.1,r*.3);ctx.lineTo(r*.5,-r*.1);ctx.stroke();ctx.restore();}
   for(const c of cars)if(!c.waiting)drawCar(c);
   if(cargo){ctx.save();ctx.translate(cargo.position.x,cargo.position.y);ctx.rotate(cargo.angle);
     ctx.fillStyle="#d9a066";ctx.fillRect(-17,-13,34,26);ctx.strokeStyle="#8a5a2a";ctx.lineWidth=3;ctx.strokeRect(-17,-13,34,26);
@@ -649,6 +672,7 @@ function render(){
     ctx.closePath();ctx.fill();ctx.strokeStyle="#00000055";ctx.lineWidth=2;ctx.stroke();ctx.restore();}
   for(const p of parts){ctx.globalAlpha=Math.max(0,p.t/.6);ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}ctx.globalAlpha=1;
   for(const p of winFx){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-6,-3,12,6);ctx.restore();}
+  if(TH.post)postFx(TH.post);
   if(failAt){const k=Math.min(1,(time-failAt.t)*4),bob=Math.sin(time*6)*4;
     ctx.save();ctx.translate(failAt.x,failAt.y+bob);ctx.scale(k,k);ctx.fillStyle="#fffffff0";ctx.beginPath();ctx.arc(0,0,44,0,7);ctx.fill();
     ctx.strokeStyle="#ff5a4e";ctx.lineWidth=5;ctx.stroke();ctx.font="52px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
@@ -706,35 +730,16 @@ function drawFarDeco(th,ph){
 }
 function strokePath(pts,ox,oy){
   ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x+ox,p.y+oy):ctx.moveTo(p.x+ox,p.y+oy));
-  ctx.strokeStyle=TH.line[0];ctx.lineWidth=T+3;ctx.stroke();
+  if(TH.glow){ctx.shadowColor=TH.line[0];ctx.shadowBlur=16;}
+  ctx.strokeStyle=TH.line[0];ctx.lineWidth=T+3;ctx.stroke();ctx.shadowBlur=0;
   ctx.strokeStyle=TH.line[1];ctx.lineWidth=T-3;ctx.stroke();
 }
 function drawCar(cr){
-  const c=cr.chassis,z=cr.sz,[body,roof,edge]=cr===cars[1]?[TH.car[2]==="#556"?"#ffd23f":"#ffffff",TH.car[0],TH.car[2]]:TH.car;
-  ctx.save();ctx.translate(c.position.x,c.position.y);ctx.rotate(c.angle);ctx.scale(z,z);
-  if(TH.deco==="night"){ctx.fillStyle="#fff6a055";ctx.beginPath();ctx.moveTo(46,-4);ctx.lineTo(180,-40);ctx.lineTo(180,40);ctx.closePath();ctx.fill();}
-  // 屋根と窓
-  ctx.fillStyle=roof;rr(-30,-34,56,26,10);ctx.fill();
-  ctx.fillStyle="#bfe8ff";rr(-23,-28,20,16,4);ctx.fill();rr(1,-28,19,16,4);ctx.fill();
-  // 車体
-  ctx.fillStyle=body;rr(-48,-13,96,26,9);ctx.fill();
-  ctx.strokeStyle=edge;ctx.lineWidth=3;rr(-48,-13,96,26,9);ctx.stroke();
-  ctx.fillStyle="#ffe066";ctx.fillRect(40,-7,8,7);
-  // 顔
-  const mood=state==="win"?"happy":state==="fail"?"oops":state==="go"?"go":"idle";
-  ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(18,-1,7,8,0,0,7);ctx.ellipse(33,-1,7,8,0,0,7);ctx.fill();
-  ctx.fillStyle="#222";ctx.strokeStyle="#222";ctx.lineWidth=2.5;
-  if(mood==="happy"){ctx.beginPath();ctx.arc(18,1,4,Math.PI,0);ctx.arc(33,1,4,Math.PI,0);ctx.stroke();}
-  else if(mood==="oops"){ctx.beginPath();ctx.arc(18,-1,4.5,0,7);ctx.arc(33,-1,4.5,0,7);ctx.stroke();}
-  else{const lk=mood==="go"?2:Math.sin(time*2)*1.5;ctx.beginPath();ctx.arc(19+lk,0,3.2,0,7);ctx.arc(34+lk,0,3.2,0,7);ctx.fill();
-    if(mood==="go"){ctx.beginPath();ctx.moveTo(12,-10);ctx.lineTo(24,-7);ctx.moveTo(27,-7);ctx.lineTo(39,-10);ctx.stroke();}}
+  const c=cr.chassis,z=cr.sz,pal=cr===cars[1]?[TH.car[2]==="#556"?"#ffd23f":"#ffffff",TH.car[0],TH.car[2]]:TH.car;
+  ctx.save();ctx.translate(c.position.x,c.position.y);ctx.rotate(c.angle);ctx.scale(z*DIR,z);
+  (RIDERS[TH.rider]||RIDERS.car)(...pal);
   ctx.restore();
-  for(const w of [cr.wA,cr.wB]){
-    ctx.save();ctx.translate(w.position.x,w.position.y);ctx.rotate(w.angle);ctx.scale(z,z);
-    ctx.fillStyle="#222";ctx.beginPath();ctx.arc(0,0,WR,0,7);ctx.fill();
-    ctx.fillStyle="#ccc";ctx.beginPath();ctx.arc(0,0,9,0,7);ctx.fill();
-    ctx.strokeStyle="#666";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(9,0);ctx.moveTo(0,-9);ctx.lineTo(0,9);ctx.stroke();
-    ctx.restore();}
+  for(const w of [cr.wA,cr.wB])drawWheel(w,z);
 }
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);}
 

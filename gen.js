@@ -100,46 +100,66 @@ const TPL={
   return {name:"落石",hint:"石が落ちてくる！ くぎ2本に線を通して屋根を作ろう。",ground:[rect(-60,W+60,Y)],car:[150,Y],goal:[1120,Y],
     pins:[[x0-12,py],[x1+12,py+sl]],rocks:[x0+12,x1-12,+lerp(.26,.18,d).toFixed(2)],
     sol:[[x0-40,py-sl*28/(w+24)],[x1+40,py+sl+sl*28/(w+24)]]};},
+ skycar(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,500)),X=rd(lerp(520,780,d)+R(-30,30)),px=100,py=228;
+  return {name:"空から車",hint:"車が空から落ちてくる！ くぎに引っかけて滑り台を。",ground:[rect(X,W+60,Y)],car:[150,170],air:true,
+    goal:[Math.min(X+280,1180),Y],pins:[[px,py]],sol:[[70,py+4],[X+40,Y-12]]};},
+ jumppad(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=rd(R(440,480)),L=rd(R(440,520)),g=rd(lerp(320,430,d)),X=L+g,Y2=Y+rd(R(-20,40));
+  return {name:"ジャンプ台",hint:"ジャンプ台で飛ぶ！ 着地できる所を作ろう。",ground:[cliffL(L,Y),cliffR(X,Y2)],car:[120,Y],
+    pads:[[L-200,L-50,Y]],goal:[Math.min(X+230,1180),Y2],pins:[[X-150,Y2+30]],noDraw:[[L+30,0,Math.max(40,g-200),600]],
+    sol:[[X-168,Y2+36],[X+50,Y2-24]]};},
+ boulder(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=480,x1=rd(R(700,800)),y1=Y-150,top=x=>60+(y1-60)*(1300-x)/(1300-x1),xm=rd(lerp(x1+180,x1+120,d));
+  return {name:"大岩",hint:"大岩が転がってくる！ くぎ2本に線を通して止めよう。",
+    ground:[rect(-60,W+60,Y),[[1300,60],[x1,y1],[x1,y1+40],[1300,100]]],car:[150,Y],goal:[1150,Y],
+    boulder:[1190,top(1190)-34,30],pins:[[xm,rd(top(xm)-22)],[xm-6,rd(top(xm)-90)]],
+    sol:[[xm+2,rd(top(xm)-10)],[xm-8,rd(top(xm)-110)]]};},
+ mill(r,d){const R=(a,b)=>a+(b-a)*r();
+  const Y=480,mx=rd(R(560,760)),mr=100,my=Y-mr-14;
+  return {name:"風車",hint:"風車がじゃま！ 線をはさんで止めよう。",ground:[rect(-60,W+60,Y)],car:[150,Y],goal:[1150,Y],
+    mill:[mx,my,mr,+lerp(.05,.08,d).toFixed(3)],sol:[[mx-150,Y-8],[mx-20,Y-60]]};},
  gapstep(r,d){const R=(a,b)=>a+(b-a)*r();
   const Y=rd(R(440,480)),L=rd(R(340,400)),g=rd(lerp(240,320,d)),X=L+g,sx=X+rd(R(200,260)),sh=rd(lerp(40,60,d));
   return {name:"谷と段",hint:"谷をわたった先に段差。一本で両方なんとかしよう。",
     ground:[cliffL(L,Y),rect(X,W+60,Y),rect(sx,sx+100,Y-sh)],car:[Math.max(90,L-240),Y],goal:[Math.min(sx+240,1180),Y],
     sol:[[L-20,Y-20],[X+40,Y-20],[sx-10,Y-sh-7],[sx+30,Y-sh-11]]};},
 };
-const ORDER=["bridge","slope","drawbridge","wall","tent","tunnel","stairs","valley","drop","revbridge","pit","needle","high","long","walls2","gapstep","rockfall"];
-// 仕掛け（型に後から足す）: 車2台・荷物・でっかい車。世界が進むごとに増える
-const MULTI=["bridge","slope","tunnel","pit","long","drop","needle","high","gapstep","drawbridge","revbridge"];
-// 仕掛けの初登場（教える面）: この番号では易しい型に、その仕掛けだけを付ける
-const INTRO={15:["bridge","size"],30:["bridge","cars"],60:["bridge","cargo"],90:["rockfall",null]};
-function addGimmick(o,tpl,k,seed){
-  const r=rng(seed*131+k*7+5);
-  const it=INTRO[k];
-  if(tpl==="rockfall"){if(it)o.hint="あたらしい！ 石が落ちてくる。くぎ2本に線を通して屋根を作ろう。";return o;}
-  if(it){ if(it[1]==="size"){o.size=1.5;o.name+="（でっかい車）";o.hint="あたらしい！ でっかい車。いつもより長い橋を。";o.car=[Math.max(o.car[0],150),o.car[1]];}
-    if(it[1]==="cars"){o.cars=2;o.name+="（2台）";o.hint="あたらしい！ 車が2台。2台とも旗まで。";}
-    if(it[1]==="cargo"){o.cargo=true;o.name+="（荷物）";o.hint="あたらしい！ 屋根の荷物を落とさないで。";}
-    return o;}
-  const roll=r();
-  if(k>=30&&MULTI.includes(tpl)&&roll<.3){o.cars=2;o.name+="（2台）";o.hint="車が2台！ 2台とも旗まで。"+o.hint;}
-  else if(k>=60&&roll<.5){o.cargo=true;o.name+="（荷物）";o.hint="屋根の荷物を落とさないで！ "+o.hint;}
-  else if(k>=15&&roll<.68){o.size=+(1.45+r()*.35).toFixed(2);o.name+="（でっかい車）";o.hint="でっかい車！ "+o.hint;
-    o.car=[Math.max(o.car[0],100*o.size),o.car[1]];}
+// 発想（遊んだ時に何を考えるか）: 同じ発想が続かないように並べる
+const IDEA={bridge:"span",long:"span",needle:"span",pit:"span",tunnel:"span",slope:"ramp",high:"ramp",stairs:"ramp",gapstep:"ramp",
+  tent:"shape",valley:"shape",wall:"wedge",walls2:"wedge",drawbridge:"rotate",revbridge:"rotate",drop:"drop",rockfall:"roof",
+  skycar:"slide",jumppad:"catch",boulder:"fence",mill:"jam"};
+const ORDER=Object.keys(IDEA);
+// 世界ごとに新しく出る物（1 面目で教える）
+const WORLD_NEW=[null,["drop"],["skycar","rev"],["jumppad"],["rockfall"],["boulder"],["revbridge"],["cars"],["cargo","size"],[]];
+function mirror(o){ // 左右反転（車が右から左へ走る）
+  const fx=x=>W-x;o.ground=o.ground.map(poly=>poly.map(([x,y])=>[fx(x),y]).reverse());
+  o.car=[fx(o.car[0]),o.car[1]];o.goal=[fx(o.goal[0]),o.goal[1]];
+  if(o.pins)o.pins=o.pins.map(([x,y])=>[fx(x),y]);
+  if(o.noDraw)o.noDraw=o.noDraw.map(([x,y,w,h])=>[W-x-w,y,w,h]);
+  if(o.rocks)o.rocks=[fx(o.rocks[1]),fx(o.rocks[0]),o.rocks[2]];
+  if(o.pads)o.pads=o.pads.map(([a,b,y])=>[fx(b),fx(a),y]);
+  if(o.boulder)o.boulder=[fx(o.boulder[0]),o.boulder[1],o.boulder[2]];
+  if(o.mill)o.mill=[fx(o.mill[0]),o.mill[1],o.mill[2],-o.mill[3]];
+  o.sol=o.sol.map(([x,y])=>[fx(x),y]);o.dir=-1;o.name+="（ぎゃく）";return o;
+}
+function gimmick(o,g,intro){
+  if(g==="cars"){o.cars=2;o.name+="（2台）";o.hint=(intro?"あたらしい！ ":"")+"車が2台。2台とも旗まで。";}
+  if(g==="cargo"){o.cargo=true;o.name+="（荷物）";o.hint=(intro?"あたらしい！ ":"")+"屋根の荷物を落とさないで！ "+o.hint;}
+  if(g==="size"){o.size=1.55;o.name+="（でっかい車）";o.hint=(intro?"あたらしい！ ":"")+"でっかい車！ "+o.hint;o.car=[o.dir===-1?Math.min(o.car[0],W-160):Math.max(o.car[0],160),o.car[1]];}
   return o;
 }
-// 難しさ: 右肩上がりだが 5 面ごとにひと休み（易しい面）。初登場の面もやさしく
-function diff(k){let d=Math.min(1,k/240);if(k%5===4)d*=.35;if(INTRO[k])d=.05;return d;}
-function build(tpl,seed,k){const d=diff(k);const o=TPL[tpl](rng(seed*7919+k),d);
-  o.sol=o.sol.map(p=>[Math.round(p[0]),Math.round(p[1])]);o.tpl=tpl;return addGimmick(o,tpl,k,seed);}
-function genLevel(k){ // k: 0 始まりの生成番号（面番号 = 31 + k）
-  const e=window.GEN_TABLE[k];if(!e)return null;const [tpl,seed]=e;return build(tpl,seed,k);
-}
-function tplFor(k){ // 型の並び: 最初は順に紹介し、後は種で混ぜる
-  if(INTRO[k])return INTRO[k][0];
-  if(k<16)return ORDER[k];
-  if(k===92)return "rockfall";                  // 落石: 121 面で教えて、123 面でもう一度
-  const r=rng(1000+k),n=k>=90?ORDER.length:16;return ORDER[Math.floor(r()*n)];
-}
-window.GEN={TPL,ORDER,rng,genLevel,tplFor,diff,INTRO,
-  make:build};
+// 難しさ: 世界が進むほど上がり、世界の中でも少し上がる。4・8 面目はひと休み、1 面目（教える面）は易しく
+function diff(idx){const w=Math.floor(idx/10),s=idx%10;let d=Math.min(1,w/9*.8+s/10*.25);if(s===4||s===8)d*=.4;if(s===0)d*=.3;return d;}
+// e = {t:型, s:種, m:反転, g:仕掛け, n:教える面か}
+function build(e,idx){const d=diff(idx);const o=TPL[e.t](rng(e.s*7919+idx*31),d);
+  o.sol=o.sol.map(p=>[Math.round(p[0]),Math.round(p[1])]);o.tpl=e.t;o.idea=IDEA[e.t];
+  if(e.n&&!e.g)o.hint="あたらしい！ "+o.hint;
+  if(e.m)mirror(o);
+  if(e.m&&e.n&&!e.g)o.hint="あたらしい！ 車が右から左へ走る。"+o.hint.replace("あたらしい！ ","");
+  if(e.g)gimmick(o,e.g,e.n);
+  return o;}
+function genLevel(idx){const e=window.GEN_TABLE[idx];if(!e)return null;return build(e,idx);}
+window.GEN={TPL,ORDER,IDEA,WORLD_NEW,rng,diff,build,genLevel,mirror};
 window.GEN_TABLE=window.GEN_TABLE||[];
 })();
