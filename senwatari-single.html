@@ -403,11 +403,11 @@ const THEMES=[
  {name:"南の島",sky:["#3fbfff","#c9f3ff"],hill:["#7fd8c8","#5cc0b0"],ground:["#f0d090","#c8a060"],grass:["#63d471","#48b858"],edge:"#8a6a30",
   water:["#1fc8d8","#0a7fb0"],line:["#0a2a40","#2a5a80"],car:["#48b858","#2e8a40","#145a24"],deco:"island",rider:"bath"},
  {name:"アメコミ",bg:"comic",ground:["#ffd23f","#f0a800"],grass:["#ff3b3b","#c81e1e"],noStripe:1,gpat:"dots",edge:"#000000",edgeW:6,
-  water:["#1e6ae0","#1e6ae0"],line:["#000000","#ffffff"],car:["#ff3b3b","#ffffff","#000000"],deco:"comic",rider:"fire",wheel:"comic"},
+  water:["#1e6ae0","#1e6ae0"],line:["#000000","#ffffff"],car:["#ff3b3b","#ffffff","#000000"],deco:"comic",rider:"superoji",wheel:"comic"},
  {name:"火山",sky:["#2a0a0a","#a0381e"],hill:["#4a1a14","#3a120e"],ground:["#4a3434","#1e1212"],grass:["#6a5a5a","#4a3a3a"],edge:"#0a0404",
   water:["#ff8a00","#c01e00"],line:["#fff0d0","#ffc070"],car:["#8a8a90","#5a5a60","#222"],deco:"volcano",lava:true,rider:"cart"},
  {name:"ゲームボーイ",bg:"pixel",ground:["#306230","#306230"],grass:["#8bac0f","#0f380f"],noStripe:1,gpat:"brick",edge:"#0f380f",edgeW:4,
-  water:["#306230","#0f380f"],line:["#0f380f","#9bbc0f"],car:["#8bac0f","#306230","#0f380f"],deco:"pixel",rider:"car",post:"gb"},
+  water:["#306230","#0f380f"],line:["#0f380f","#9bbc0f"],car:["#8bac0f","#306230","#0f380f"],deco:"pixel",rider:"futon",post:"gb"},
  {name:"おかしの国",sky:["#ffb6e1","#fff0fa"],hill:["#ffd0ea","#f7b8dc"],ground:["#8a5230","#5a3018"],grass:["#ff8ac8","#ff6ab4"],edge:"#3a1a0a",
   water:["#b0e8ff","#70c0f0"],line:["#5a2a10","#8a5030"],car:["#fff4e0","#ff6ab4","#8a5230"],deco:"candy",rider:"cake"},
  {name:"海の底",bg:"sea",ground:["#d8c090","#8a7048"],grass:["#ff7a8a","#d84a6a"],noStripe:1,gpat:"sand",edge:"#4a3a20",
@@ -675,11 +675,12 @@ const RIDERS={
 };
 // 笑いの乗り物
 const SKIN="#f0c8a0";
-function ojiHead(x,y,s,rot){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale(s,s);
+function ojiHead(x,y,s,rot,sleep){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale(s,s);
   ctx.fillStyle=SKIN;ctx.beginPath();ctx.arc(0,0,13,0,7);ctx.fill();ctx.strokeStyle="#a07050";ctx.lineWidth=1.5;ctx.stroke();
   ctx.fillStyle="#3a2a20";ctx.beginPath();ctx.arc(-11,2,4,0,7);ctx.arc(11,2,4,0,7);ctx.fill(); // 横だけ残った髪
   ctx.fillStyle="#ffffff90";ctx.beginPath();ctx.ellipse(-3,-8,5,2.5,-.4,0,7);ctx.fill(); // 頭のてかり
-  face(0,1,.5);ctx.fillStyle="#3a2a20";ctx.beginPath();ctx.ellipse(-4,8,5,2.5,.2,0,7);ctx.ellipse(4,8,5,2.5,-.2,0,7);ctx.fill(); // ひげ
+  if(sleep){ctx.strokeStyle="#222";ctx.lineWidth=2;ctx.beginPath();ctx.arc(-4,0,3,0,Math.PI);ctx.moveTo(7,0);ctx.arc(4,0,3,0,Math.PI);ctx.stroke();}else face(0,1,.5);
+  ctx.fillStyle="#3a2a20";ctx.beginPath();ctx.ellipse(-4,8,5,2.5,.2,0,7);ctx.ellipse(4,8,5,2.5,-.2,0,7);ctx.fill(); // ひげ
   ctx.restore();}
 Object.assign(RIDERS,{
  bridge(){const j=Math.sin(time*14)*(state==="go"?3:1); // ブリッジしたおっさん（足=後ろの車輪、手=前の車輪、頭は逆さにぶら下がる）
@@ -705,10 +706,48 @@ Object.assign(RIDERS,{
   ctx.fillStyle="#fff";for(let x=-40;x<44;x+=12){ctx.beginPath();ctx.arc(x,-26,6,0,7);ctx.fill();} // 泡
   ctx.fillStyle="#ffd23f";ctx.beginPath();ctx.arc(24,-34+b,8,0,7);ctx.arc(30,-40+b,6,0,7);ctx.fill();ctx.fillStyle="#ff8a00";ctx.fillRect(35,-41+b,6,3); // アヒル
   ctx.fillStyle="#f4f4f4";rr(-52,-22,104,32,14);ctx.fill();ctx.strokeStyle="#9aa";ctx.lineWidth=3;ctx.stroke();},
+ superoji(){const w=Math.sin(time*10)*6; // スーパーおっさん（スケボーに腹ばいで飛ぶ）
+  ctx.fillStyle="#6a4a2a";rr(-50,6,100,8,4);ctx.fill();ctx.strokeStyle="#000";ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle="#e8202a";ctx.beginPath();ctx.moveTo(18,-30);ctx.quadraticCurveTo(-30,-44+w,-66,-36+w*1.5);ctx.lineTo(-60,-14+w);ctx.quadraticCurveTo(-20,-20,10,-16);ctx.closePath();ctx.fill();ctx.stroke(); // マント
+  ctx.fillStyle="#2a5ae0";ctx.beginPath();ctx.ellipse(-4,-18,42,13,0,0,7);ctx.fill();ctx.stroke(); // 体
+  ctx.fillStyle="#3a6af0";ctx.beginPath();ctx.ellipse(4,-4,24,11,0,0,Math.PI);ctx.fill();ctx.stroke(); // 出たおなか
+  ctx.fillStyle="#e8202a";ctx.beginPath();ctx.ellipse(-34,-18,12,11,0,0,7);ctx.fill();ctx.stroke(); // パンツ
+  ctx.fillStyle="#ffd23f";ctx.beginPath();ctx.arc(8,-22,8,0,7);ctx.fill();ctx.stroke();ctx.fillStyle="#e8202a";ctx.font="bold 11px sans-serif";ctx.textAlign="center";ctx.fillText("オ",8,-18);ctx.textAlign="left";
+  ctx.strokeStyle="#000";ctx.lineWidth=11;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(24,-24);ctx.lineTo(56,-32);ctx.stroke();ctx.strokeStyle=SKIN;ctx.lineWidth=7;ctx.stroke(); // 前に突き出した腕
+  ctx.fillStyle=SKIN;ctx.beginPath();ctx.arc(58,-32,6,0,7);ctx.fill();ctx.strokeStyle="#000";ctx.lineWidth=2;ctx.stroke();
+  ojiHead(32,-38,.95,0);ctx.fillStyle="#2a5ae0";ctx.fillRect(22,-42,22,5);}, // 目だけのマスク
+ futon(){ctx.fillStyle="#fff";rr(28,-30,26,14,6);ctx.fill(); // 布団で寝たまま走るおっさん
+  ojiHead(38,-30,.85,-.3,true);
+  ctx.fillStyle="#6a8ad0";rr(-54,-24,86,32,8);ctx.fill();ctx.strokeStyle="#223";ctx.lineWidth=2.5;ctx.stroke();
+  ctx.fillStyle="#fff";for(let x=-46;x<28;x+=16)for(let y=-16;y<6;y+=12){ctx.beginPath();ctx.arc(x+(y%24?8:0),y,3,0,7);ctx.fill();}
+  ctx.fillStyle="#223";ctx.font="bold 18px sans-serif";for(let k=0;k<3;k++){const t=(time*.7+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",44+k*6+t*20,-50-t*40);}ctx.globalAlpha=1;},
 });
 // しゃべる乗り物（待ち・走る・クリア・失敗）
 const TALK={bridge:["……","ふんっ！！","腰、無事！","腰がぁぁ！"],kotatsu:["出たくない…","出たくないぃ","みかん、うまし","こたつごと〜！"],
-  bath:["ふぅ〜","いい湯だな〜","ととのった","あちちちっ"],pig:["ブヒ","ブヒー！","ブヒヒッ♪","ブヒィ…"],cat:["にゃ","にゃーっ！","にゃふん","ふにゃ〜"]};
+  bath:["ふぅ〜","いい湯だな〜","ととのった","あちちちっ"],pig:["ブヒ","ブヒー！","ブヒヒッ♪","ブヒィ…"],cat:["にゃ","にゃーっ！","にゃふん","ふにゃ〜"],
+  car:["いくぞ","ブオーン！","よっしゃ！","うそーん"],tank:["……","前進！","制圧完了","撤退〜！"],buggy:["砂あつい","ヒャッホー！","最高かよ","砂がぁ"],
+  loco:["シュッ","シュッポッポ！","定刻どおり","脱線〜！"],penguin:["さむ","すべる〜！","ペンッ！","ひぇ〜"],sports:["……","フゥーーッ！","イケてる","ダサッ"],
+  boar:["フゴ","猪突猛進！","フゴフゴ♪","フゴォ…"],rickshaw:["へい","へいらっしゃい！","毎度あり！","お代はいらねぇ…"],cart:["あつ","熱っ熱っ！","お宝ゲット","もえつきた…"],
+  cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","潜航〜！","浮上成功","浸水〜！"],rover:["ピピ","小さな一歩！","人類の大きな一歩","ヒューストン…"],
+  ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","正義は勝つ","マントが…"],futon:["zzz","むにゃ…","あと5分…","（まだ寝てる）"]};
+// 失敗の擬音
+function failWord(msg){return msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
+  msg.includes("動けなく")||msg.includes("時間")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":"ドボーン！";}
+function drawFailWord(f){if(!f.word)return;const k=Math.min(1,(time-f.t)*5),s=k<1?k*1.3:1;
+  ctx.save();ctx.translate(f.x,Math.max(70,f.y-90));ctx.rotate(-.12);ctx.scale(s,s);ctx.font="900 64px 'Hiragino Maru Gothic ProN','Arial Black',sans-serif";ctx.textAlign="center";
+  ctx.lineJoin="round";ctx.lineWidth=12;ctx.strokeStyle="#000";ctx.strokeText(f.word,0,0);ctx.fillStyle="#ffd23f";ctx.fillText(f.word,0,0);ctx.restore();ctx.textAlign="left";}
+// クリアした時の見物のおっさん（旗の向こうで拍手）
+let winAt=0,talkAt=null;
+const CHEER=["おお〜！","ナイス！","天才か","やるやん","見事！","拍手〜！"];
+function drawCheer(){if(state!=="win"||!L)return;const k=Math.min(1,(time-winAt)*3),x=L.goal[0]-70*DIR,y=L.goal[1],c=Math.sin(time*18)*6;
+  ctx.save();ctx.translate(x,y+(1-k)*80);
+  ctx.strokeStyle="#4a3020";ctx.lineWidth=7;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(-4,-26);ctx.moveTo(6,0);ctx.lineTo(4,-26);ctx.stroke();
+  ctx.fillStyle="#e8dcc0";rr(-12,-34,24,12,4);ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(0,-48,15,18,0,0,7);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();
+  ctx.strokeStyle=SKIN;ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-12,-56);ctx.lineTo(-4+c,-72);ctx.moveTo(12,-56);ctx.lineTo(4-c,-72);ctx.stroke();
+  ojiHead(0,-78,.9,0);
+  const w=CHEER[li%CHEER.length];ctx.font="bold 20px sans-serif";const tw=ctx.measureText(w).width+20,bx=Math.max(-60,Math.min(60,(W/2-x)*.1));
+  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2;rr(bx-tw/2,-128,tw,32,12);ctx.fill();ctx.stroke();ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(w,bx,-106);ctx.textAlign="left";
+  ctx.restore();}
 function drawTalk(c,z){const t=TALK[TH.rider];if(!t||state==="title")return;
   const k=state==="win"?2:state==="fail"?3:state==="go"?1:0,s=t[k],x=c.position.x,y=c.position.y-(TH.rider==="bridge"?120:92)*z;
   ctx.font="bold 22px sans-serif";const w=ctx.measureText(s).width+24;
@@ -1117,12 +1156,12 @@ function showSel(){
 function finish(win,msg){
   if(state==="win"||state==="fail")return;
   state=win?"win":"fail";
-  if(win){save.stars[li]=1;writeSave();sfx.win();$("retryBig").classList.remove("show");
+  if(win){winAt=time;save.stars[li]=1;writeSave();sfx.win();$("retryBig").classList.remove("show");
     const cols=["#ff5a4e","#ffd23f","#5cc443","#3fa7ff","#ff8ac8","#8a5cff"];
     for(let k=0;k<90;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%6]});}
   else{sfx.fail();toast(msg);$("retryBig").classList.add("show","pulse");
     const icon=msg.includes("落石")?"🪨":msg.includes("荷物")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("動けなく")||msg.includes("時間")?"⛔":"💦";
-    const c=car.chassis.position;failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
+    const c=car.chassis.position;failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
   setTimeout(()=>{
     $("resTitle").textContent=win?"クリア！":"しっぱい…";
     $("resTitle").style.color=win?"#ff5a4e":"#557";
@@ -1321,10 +1360,12 @@ function render(){
   for(const p of parts){ctx.globalAlpha=Math.max(0,p.t/.6);ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}ctx.globalAlpha=1;
   for(const p of winFx){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-6,-3,12,6);ctx.restore();}
   if(TH.post)postFx(TH.post);
+  if(talkAt){drawTalk(talkAt.c,talkAt.z);talkAt=null;}
   if(failAt){const k=Math.min(1,(time-failAt.t)*4),bob=Math.sin(time*6)*4;
     ctx.save();ctx.translate(failAt.x,failAt.y+bob);ctx.scale(k,k);ctx.fillStyle="#fffffff0";ctx.beginPath();ctx.arc(0,0,44,0,7);ctx.fill();
     ctx.strokeStyle="#ff5a4e";ctx.lineWidth=5;ctx.stroke();ctx.font="52px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillText(failAt.icon,0,3);ctx.restore();ctx.textAlign="left";ctx.textBaseline="alphabetic";}
+    ctx.fillText(failAt.icon,0,3);ctx.restore();ctx.textAlign="left";ctx.textBaseline="alphabetic";drawFailWord(failAt);}
+  drawCheer();
   // 落石の注意（まだ落ちてこない間も場所が分かるように）
   if(L.rocks){const [x0,x1]=L.rocks;ctx.fillStyle="#ffd23f";ctx.strokeStyle="#6a4a00";ctx.lineWidth=3;
     for(const x of [x0,(x0+x1)/2,x1]){ctx.beginPath();ctx.moveTo(x,8);ctx.lineTo(x-14,34);ctx.lineTo(x+14,34);ctx.closePath();ctx.fill();ctx.stroke();
@@ -1388,7 +1429,7 @@ function drawCar(cr){
   (RIDERS[TH.rider]||RIDERS.car)(...pal);
   ctx.restore();
   for(const w of [cr.wA,cr.wB])drawWheel(w,z);
-  if(cr===cars[0])drawTalk(c,z);
+  if(cr===cars[0])talkAt={c,z};
 }
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);}
 

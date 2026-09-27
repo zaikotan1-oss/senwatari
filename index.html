@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=13"></script>
-<script src="gen.js?v=13"></script>
-<script src="gen_table.js?v=13"></script><script src="looks.js?v=13"></script>
+<script src="matter.min.js?v=15"></script>
+<script src="gen.js?v=15"></script>
+<script src="gen_table.js?v=15"></script><script src="looks.js?v=15"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -469,12 +469,12 @@ function showSel(){
 function finish(win,msg){
   if(state==="win"||state==="fail")return;
   state=win?"win":"fail";
-  if(win){save.stars[li]=1;writeSave();sfx.win();$("retryBig").classList.remove("show");
+  if(win){winAt=time;save.stars[li]=1;writeSave();sfx.win();$("retryBig").classList.remove("show");
     const cols=["#ff5a4e","#ffd23f","#5cc443","#3fa7ff","#ff8ac8","#8a5cff"];
     for(let k=0;k<90;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%6]});}
   else{sfx.fail();toast(msg);$("retryBig").classList.add("show","pulse");
     const icon=msg.includes("落石")?"🪨":msg.includes("荷物")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("動けなく")||msg.includes("時間")?"⛔":"💦";
-    const c=car.chassis.position;failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
+    const c=car.chassis.position;failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
   setTimeout(()=>{
     $("resTitle").textContent=win?"クリア！":"しっぱい…";
     $("resTitle").style.color=win?"#ff5a4e":"#557";
@@ -673,10 +673,12 @@ function render(){
   for(const p of parts){ctx.globalAlpha=Math.max(0,p.t/.6);ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}ctx.globalAlpha=1;
   for(const p of winFx){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-6,-3,12,6);ctx.restore();}
   if(TH.post)postFx(TH.post);
+  if(talkAt){drawTalk(talkAt.c,talkAt.z);talkAt=null;}
   if(failAt){const k=Math.min(1,(time-failAt.t)*4),bob=Math.sin(time*6)*4;
     ctx.save();ctx.translate(failAt.x,failAt.y+bob);ctx.scale(k,k);ctx.fillStyle="#fffffff0";ctx.beginPath();ctx.arc(0,0,44,0,7);ctx.fill();
     ctx.strokeStyle="#ff5a4e";ctx.lineWidth=5;ctx.stroke();ctx.font="52px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillText(failAt.icon,0,3);ctx.restore();ctx.textAlign="left";ctx.textBaseline="alphabetic";}
+    ctx.fillText(failAt.icon,0,3);ctx.restore();ctx.textAlign="left";ctx.textBaseline="alphabetic";drawFailWord(failAt);}
+  drawCheer();
   // 落石の注意（まだ落ちてこない間も場所が分かるように）
   if(L.rocks){const [x0,x1]=L.rocks;ctx.fillStyle="#ffd23f";ctx.strokeStyle="#6a4a00";ctx.lineWidth=3;
     for(const x of [x0,(x0+x1)/2,x1]){ctx.beginPath();ctx.moveTo(x,8);ctx.lineTo(x-14,34);ctx.lineTo(x+14,34);ctx.closePath();ctx.fill();ctx.stroke();
@@ -740,7 +742,7 @@ function drawCar(cr){
   (RIDERS[TH.rider]||RIDERS.car)(...pal);
   ctx.restore();
   for(const w of [cr.wA,cr.wB])drawWheel(w,z);
-  if(cr===cars[0])drawTalk(c,z);
+  if(cr===cars[0])talkAt={c,z};
 }
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);}
 
