@@ -10,8 +10,8 @@ const THEMES=[
   water:["#2d8fe0","#1552a0"],line:["#151827","#3a4166"],car:["#ff5a4e","#e8412f","#9c2518"],deco:"clouds",rider:"car"},
  {name:"ノートの落書き",bg:"sketch",ground:["#eee6cf","#e4dbc0"],grass:["#fbf8ef","#fbf8ef"],noGrass:1,noStripe:1,edge:"#2a2a2a",edgeW:3,rough:1,gpat:"hatch",
   water:["#fbf8ef","#fbf8ef"],line:["#1a3a9a","#5a88f0"],car:["#ffc4d0","#ff9ab4","#2a2a2a"],deco:"sketch",rider:"pig",wheel:"sketch"},
- {name:"夕やけの丘",sky:["#6a4c93","#ff9a5a","#ffd9a0"],hill:["#c9728a","#a85a7a"],ground:["#a0603a","#5a2f1e"],grass:["#e0a33a","#c4822a"],edge:"#3a1e10",
-  water:["#d9705a","#7a3050"],line:["#2a1030","#5a3060"],car:["#3fa7ff","#2a86dd","#1a4f8a"],deco:"sunset",rider:"bridge"},
+ {name:"地下鉄",bg:"subway",ground:["#a8a8ae","#6a6a72"],grass:["#f0d020","#c8a810"],gtop:"tactile",edge:"#2a2a30",
+  water:["#1a1a1e","#0a0a0c"],line:["#1a1a2a","#e0e0f0"],car:["#f0a020","#c87a10","#3a2a10"],deco:"subway",subway:true,rider:"bridge"},
  {name:"ドット絵の国",bg:"pixel",ground:["#c84c0c","#c84c0c"],grass:["#00a800","#006800"],noStripe:1,gpat:"brick",edge:"#000000",edgeW:4,
   water:["#3050f8","#2038a8"],line:["#000000","#fcfcfc"],car:["#00a800","#006800","#003800"],deco:"pixel",rider:"tank",post:"pixel"},
  {name:"さばく",sky:["#6cc8ff","#fff3c4"],hill:["#f2c77a","#e0b060"],ground:["#e0a860","#a8743a"],grass:["#f7dc98","#e6c47a"],edge:"#7a5020",
@@ -51,6 +51,29 @@ const THEMES=[
 /* ---------- 背景（bg を持つ絵柄） ---------- */
 function hills(y0,a,f,ph){ctx.beginPath();ctx.moveTo(0,H);for(let x=0;x<=W;x+=40)ctx.lineTo(x,y0-Math.sin(x*f+ph)*a);ctx.lineTo(W,H);}
 const BG={
+ subway(th,ph){ // 地下鉄の駅: タイルの壁・線の色の帯・柱・駅名・奥を通る電車・手前は線路
+  ctx.fillStyle="#e8e2d0";ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="#c8c2b0";ctx.lineWidth=1.5;for(let y=90;y<520;y+=24){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  for(let y=90,r=0;y<520;y+=24,r++)for(let x=(r%2)*24;x<W;x+=48){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+24);ctx.stroke();}
+  ctx.fillStyle="#f0a020";ctx.fillRect(0,250,W,26);ctx.fillStyle="#ffffff";ctx.fillRect(0,276,W,4);
+  ctx.fillStyle="#34343c";ctx.fillRect(0,0,W,90); // 天井と蛍光灯
+  for(let x=60;x<W;x+=220){const on=!(Math.floor(time*9+x)%37===0);ctx.fillStyle=on?"#fffbe8":"#8a8a80";ctx.fillRect(x,70,140,10);
+    if(on){const g=ctx.createLinearGradient(0,80,0,200);g.addColorStop(0,"#fffbe855");g.addColorStop(1,"#fffbe800");ctx.fillStyle=g;ctx.fillRect(x-30,80,200,120);}}
+  // 奥を通る電車（6 秒ごと）
+  const tt=(time+li*1.3)%6;if(tt<2.2){const x0=W+100-(tt/2.2)*(W+1400);
+    for(let k=0;k<3;k++){const x=x0+k*430;ctx.fillStyle="#c8ccd4";rr(x,300,420,170,14);ctx.fill();ctx.fillStyle="#f0a020";ctx.fillRect(x,420,420,14);
+      ctx.fillStyle="#2a3040";for(let w=0;w<4;w++)rr(x+30+w*96,322,70,70,6),ctx.fill();
+      ctx.fillStyle="#ffffff30";for(let w=0;w<4;w++){ctx.beginPath();ctx.arc(x+60+w*96,380,12,0,7);ctx.fill();}}
+    ctx.strokeStyle="#0003";ctx.lineWidth=3;for(let k=0;k<6;k++){const y=310+k*28;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}}
+  else{for(let x=110;x<W;x+=300){ctx.fillStyle="#1a3a8a";rr(x,150,180,50,6);ctx.fill(); // 駅名の看板
+    ctx.fillStyle="#fff";ctx.font="bold 24px sans-serif";ctx.textAlign="center";ctx.fillText(["せんわたり","つぎは かわむこう","←のりば","出口 ↗"][(x/300|0)%4],x+90,184);ctx.textAlign="left";}}
+  ctx.fillStyle="#5a5a64";for(let x=0;x<W;x+=320){ctx.fillRect(x+280,90,30,430);} // 柱
+  ctx.fillStyle="#1a1a1e";ctx.fillRect(0,WATER_Y,W,H-WATER_Y); // 線路
+  ctx.fillStyle="#4a3a2a";for(let x=-20;x<W;x+=36)ctx.fillRect(x,WATER_Y+46,22,16);
+  ctx.fillStyle="#c8ccd4";ctx.fillRect(0,WATER_Y+40,W,6);ctx.fillRect(0,WATER_Y+82,W,6);
+  const tr=(time*.8+li*.7)%4;if(tr<.6){const x=W-(tr/.6)*(W+900); // 線路を走り抜ける電車
+    ctx.fillStyle="#c8ccd4";rr(x,WATER_Y-30,900,120,10);ctx.fill();ctx.fillStyle="#f0a020";ctx.fillRect(x,WATER_Y+30,900,12);ctx.fillStyle="#fff8a0";ctx.fillRect(x+4,WATER_Y+10,14,12);}
+ },
  sketch(th,ph){ // 方眼ノートに鉛筆の落書き
   ctx.fillStyle="#fbf8ef";ctx.fillRect(0,0,W,H);
   ctx.strokeStyle="#9cc0e8";ctx.lineWidth=1.5;for(let y=40;y<H;y+=34){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
@@ -182,6 +205,8 @@ const BG={
 
 /* ---------- 地面の模様（地面の形で切り抜いた中に描く） ---------- */
 const GPAT={
+ tactile(top){ctx.fillStyle="#c8a810";for(let x=-100;x<W+100;x+=14){ctx.beginPath();ctx.arc(x,top+7,3,0,7);ctx.fill();}
+  ctx.strokeStyle="#00000020";ctx.lineWidth=2;for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,top+19);ctx.lineTo(x,H);ctx.stroke();}},
  hatch(top){ctx.strokeStyle="#55555555";ctx.lineWidth=2;for(let x=-400;x<W;x+=14){ctx.beginPath();ctx.moveTo(x,H);ctx.lineTo(x+H-top,top);ctx.stroke();}},
  brick(top){ctx.strokeStyle=TH.post==="gb"?"#0f380f":"#000";ctx.lineWidth=3;for(let y=top+24,r=0;y<H;y+=24,r++){ctx.beginPath();ctx.moveTo(-100,y);ctx.lineTo(W+100,y);ctx.stroke();
   for(let x=(r%2)*24;x<W;x+=48){ctx.beginPath();ctx.moveTo(x,y-24);ctx.lineTo(x,y);ctx.stroke();}}
@@ -362,7 +387,7 @@ const TALK={bridge:["……","ふんっ！！","腰、無事！","腰がぁぁ�
   ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","正義は勝つ","マントが…"],futon:["zzz","むにゃ…","あと5分…","（まだ寝てる）"]};
 // 失敗の擬音
 function failWord(msg){return msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
-  msg.includes("動けなく")||msg.includes("時間")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":"ドボーン！";}
+  msg.includes("動けなく")||msg.includes("時間")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":TH.subway?"プァーン！":"ドボーン！";}
 function drawFailWord(f){if(!f.word)return;const k=Math.min(1,(time-f.t)*5),s=k<1?k*1.3:1;
   ctx.save();ctx.translate(f.x,Math.max(70,f.y-90));ctx.rotate(-.12);ctx.scale(s,s);ctx.font="900 64px 'Hiragino Maru Gothic ProN','Arial Black',sans-serif";ctx.textAlign="center";
   ctx.lineJoin="round";ctx.lineWidth=12;ctx.strokeStyle="#000";ctx.strokeText(f.word,0,0);ctx.fillStyle="#ffd23f";ctx.fillText(f.word,0,0);ctx.restore();ctx.textAlign="left";}
@@ -413,3 +438,47 @@ function postFx(kind){
     postCtx.putImageData(im,0,0);}
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(postCv,0,0,cv.width,cv.height);ctx.restore();ctx.imageSmoothingEnabled=true;
 }
+
+/* ---------- 失敗したら爆発 ---------- */
+let boomFx=[],shakeT=0,blown=false;
+function boomSound(){const a=audio();if(!a)return;const t=a.currentTime,n=a.sampleRate*1.2,buf=a.createBuffer(1,n,a.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2);
+  const src=a.createBufferSource();src.buffer=buf;const lp=a.createBiquadFilter();lp.type="lowpass";lp.frequency.setValueAtTime(1800,t);lp.frequency.exponentialRampToValueAtTime(120,t+1.1);
+  const g=a.createGain();g.gain.value=.9;src.connect(lp).connect(g).connect(a.destination);src.start(t);
+  tone(90,.6,"sine",.35,30);}
+function explode(){
+  const live=cars.filter(c=>!c.waiting);if(!live.length)return;blown=true;shakeT=.6;boomSound();
+  for(const c of live){const p=c.chassis.position,x=Math.max(40,Math.min(W-40,p.x)),y=Math.min(p.y,WATER_Y-20),pal=c===cars[1]?["#ffffff",TH.car[0]]:TH.car;
+    boomFx.push({k:"flash",x,y,t:0});
+    for(let n=0;n<12;n++)boomFx.push({k:"fire",x:x+(Math.random()-.5)*110,y:y-20+(Math.random()-.5)*80,r:20,t:-n*.035});
+    for(let n=0;n<40;n++){const a=Math.random()*6.28,v=6+Math.random()*14;boomFx.push({k:"spark",x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-4,t:0});}
+    for(let n=0;n<12;n++)boomFx.push({k:"bit",x,y,vx:(Math.random()-.5)*16,vy:-6-Math.random()*10,r:0,vr:(Math.random()-.5)*.6,c:pal[n%2],w:16+Math.random()*26,t:0});
+    for(const s of [-1,1])boomFx.push({k:"wheel",x:x+s*30,y,vx:s*(5+Math.random()*5),vy:-9-Math.random()*6,r:0,vr:s*.3,t:0});
+    if(OJI.includes(TH.rider))boomFx.push({k:"head",x,y:y-30,vx:(Math.random()-.5)*6,vy:-16,r:0,vr:.25,t:0}); // おっさんの頭は高く飛ぶ
+    for(let n=0;n<6;n++)boomFx.push({k:"smoke",x:x+(Math.random()-.5)*90,y:y-20,r:24,t:-.2-n*.08});
+    for(const b of [c.chassis,c.wA,c.wB,...c.cons])Composite.remove(world,b);
+    // 爆風: 近くの線や岩を吹き飛ばす
+    for(const b of Composite.allBodies(world)){if(b.isStatic)continue;const dx=b.position.x-x,dy=b.position.y-y,d=Math.hypot(dx,dy);
+      if(d<260&&d>1){const f=(260-d)/260*14;Body.setVelocity(b,{x:b.velocity.x+dx/d*f,y:b.velocity.y+dy/d*f-3});Body.setAngularVelocity(b,(Math.random()-.5)*.3);}}}
+  if(cargo)Body.setVelocity(cargo,{x:(Math.random()-.5)*10,y:-12});}
+const OJI=["bridge","kotatsu","bath","superoji","futon"];
+function stepBoom(){const dt=DT/1000;if(shakeT>0)shakeT-=dt;
+  for(let i=boomFx.length-1;i>=0;i--){const f=boomFx[i];f.t+=dt;
+    if(f.vx!==undefined){f.x+=f.vx;f.y+=f.vy;f.vy+=.45;f.vx*=.99;if(f.vr)f.r+=f.vr;}
+    if(f.k==="smoke"){f.y-=1.2;f.r+=.8;}
+    if(f.t>(f.k==="smoke"?2.2:f.k==="head"||f.k==="wheel"||f.k==="bit"?3:1)||f.y>H+100)boomFx.splice(i,1);}}
+function drawBoom(){
+  for(const f of boomFx){if(f.t<0)continue;
+    if(f.k==="flash"){const a=Math.max(0,1-f.t*4);ctx.fillStyle=`rgba(255,250,210,${a*.8})`;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=`rgba(255,240,150,${a})`;ctx.beginPath();ctx.arc(f.x,f.y,40+f.t*500,0,7);ctx.fill();}
+    else if(f.k==="fire"){const r=f.r+f.t*300,a=Math.max(0,1-f.t*1.6);
+      const g=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,r);g.addColorStop(0,`rgba(255,255,200,${a})`);g.addColorStop(.4,`rgba(255,170,30,${a})`);g.addColorStop(1,`rgba(220,40,0,0)`);
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,r,0,7);ctx.fill();}
+    else if(f.k==="spark"){ctx.fillStyle=f.t<.3?"#fff6a0":"#ff8a20";ctx.fillRect(f.x-5,f.y-5,10,10);}
+    else if(f.k==="smoke"){ctx.fillStyle=`rgba(60,60,60,${Math.max(0,.55-f.t*.25)})`;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}
+    else{ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.r);
+      if(f.k==="bit"){ctx.fillStyle=f.c;ctx.fillRect(-f.w/2,-7,f.w,14);ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.strokeRect(-f.w/2,-7,f.w,14);}
+      else if(f.k==="wheel"){ctx.fillStyle="#222";ctx.beginPath();ctx.arc(0,0,WR,0,7);ctx.fill();ctx.fillStyle="#ccc";ctx.beginPath();ctx.arc(0,0,9,0,7);ctx.fill();
+        ctx.strokeStyle="#666";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(9,0);ctx.stroke();}
+      else if(f.k==="head"){ojiHead(0,0,1.2,0);ctx.rotate(-f.r);ctx.font="bold 22px sans-serif";ctx.fillStyle="#fff";ctx.strokeStyle="#000";ctx.lineWidth=4;ctx.strokeText("ぬわーっ",-40,-30);ctx.fillText("ぬわーっ",-40,-30);}
+      ctx.restore();}}}

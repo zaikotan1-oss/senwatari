@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=15"></script>
-<script src="gen.js?v=15"></script>
-<script src="gen_table.js?v=15"></script><script src="looks.js?v=15"></script>
+<script src="matter.min.js?v=18"></script>
+<script src="gen.js?v=18"></script>
+<script src="gen_table.js?v=18"></script><script src="looks.js?v=18"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -327,7 +327,7 @@ function loadLevel(i){
     Composite.add(world,[mill,Constraint.create({pointA:{x:mx,y:my},bodyB:mill,pointB:{x:0,y:0},length:0,stiffness:.9})]);
     mill.plugin.speed=L.mill[3]||.05;}
   Events.on(engine,"collisionStart",onHit);
-  state="draw";showHint=0;failAt=null;winFx=[];
+  state="draw";showHint=0;failAt=null;winFx=[];boomFx=[];shakeT=0;blown=false;
   document.getElementById("retryBig").classList.remove("show","pulse");
   document.getElementById("toast").style.opacity=0;
   document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${L.name}</small>`;
@@ -474,6 +474,7 @@ function finish(win,msg){
     for(let k=0;k<90;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%6]});}
   else{sfx.fail();toast(msg);$("retryBig").classList.add("show","pulse");
     const icon=msg.includes("落石")?"🪨":msg.includes("荷物")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("動けなく")||msg.includes("時間")?"⛔":"💦";
+    explode();
     const c=car.chassis.position;failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
   setTimeout(()=>{
     $("resTitle").textContent=win?"クリア！":"しっぱい…";
@@ -525,6 +526,7 @@ function step(){
       if(b.plugin.dead)for(let k=0;k<8;k++)parts.push({x:b.position.x,y:b.position.y,vx:(Math.random()-.5)*6,vy:-Math.random()*5,t:.6,c:"#8a7a6a"});
       Composite.remove(world,b);rocks.splice(i,1);}}
   for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.t-=DT/1000;if(p.t<=0)parts.splice(i,1);}
+  stepBoom();
   for(const p of winFx){p.x+=p.vx;p.y+=p.vy;p.vy+=.25;p.vx*=.99;p.r+=.2;}
   Engine.update(engine,DT);
   // 落ちた線は捨てる
@@ -532,7 +534,7 @@ function step(){
     Composite.remove(world,strokes[i].body);strokes[i].cons.forEach(c=>Composite.remove(world,c));strokes.splice(i,1);}
   if(state==="draw"||state==="go"){
     const live=cars.filter(c=>!c.waiting);
-    const fallMsg=TH.lava?"溶岩に落ちちゃった…":TH.space?"宇宙に落ちちゃった…":"車が落ちちゃった…";
+    const fallMsg=TH.lava?"溶岩に落ちちゃった…":TH.space?"宇宙に落ちちゃった…":TH.subway?"線路に落ちちゃった…":"車が落ちちゃった…";
     if(live.some(c=>c.chassis.position.y>WATER_Y+60)){finish(false,fallMsg);return;}
     let fl=false;for(const c of live){const a=((c.chassis.angle%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI;if(Math.abs(a)>1.9)fl=true;}
     flipT=fl?flipT+DT/1000:0;
@@ -559,7 +561,7 @@ function step(){
 
 /* ---------- 描画 ---------- */
 function render(){
-  ctx.setTransform(K,0,0,K,0,0);
+  const sh=shakeT>0?shakeT*22:0;ctx.setTransform(K,0,0,K,(Math.random()-.5)*sh*K,(Math.random()-.5)*sh*K);
   const th=L?TH:THEMES[0],ph=li*1.7; // ph: 面ごとに背景の形を少しずつ変える
   let g;
   if(th.bg){BG[th.bg](th,ph);}else{
@@ -606,7 +608,7 @@ function render(){
     if(TH.gpat)GPAT[TH.gpat](top);
     if(TH.deco==="moon"){ctx.fillStyle="#00000022";for(let k=0;k<6;k++){ctx.beginPath();ctx.ellipse((k*211+top)%W,top+60+(k*67)%200,26,9,0,0,7);ctx.fill();}}
     if(TH.lava){ctx.strokeStyle="#ff6a0088";ctx.lineWidth=3;for(let k=0;k<5;k++){const x=(k*263+top*3)%W;ctx.beginPath();ctx.moveTo(x,top+30);ctx.lineTo(x+20,top+80);ctx.lineTo(x+5,top+130);ctx.stroke();}}
-    if(top>-100&&!TH.noGrass){ctx.fillStyle=TH.grass[0];ctx.fillRect(-100,top,W+200,14);ctx.fillStyle=TH.grass[1];ctx.fillRect(-100,top+14,W+200,5);
+    if(top>-100&&!TH.noGrass){ctx.fillStyle=TH.grass[0];ctx.fillRect(-100,top,W+200,14);ctx.fillStyle=TH.grass[1];ctx.fillRect(-100,top+14,W+200,5);if(TH.gtop)GPAT[TH.gtop](top);
       if(TH.deco==="candy"){ctx.fillStyle="#ffffff";for(let x=-100;x<W+100;x+=26){ctx.beginPath();ctx.arc(x,top+19,6,0,Math.PI);ctx.fill();}}}
     ctx.restore();
     if(TH.glow){ctx.shadowColor=TH.glow;ctx.shadowBlur=14;}
@@ -662,7 +664,7 @@ function render(){
   if(boulder){ctx.save();ctx.translate(boulder.position.x,boulder.position.y);ctx.rotate(boulder.angle);const r=boulder.circleRadius;
     ctx.fillStyle="#7a6a5a";ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.strokeStyle="#3a2e24";ctx.lineWidth=4;ctx.stroke();
     ctx.strokeStyle="#5a4a3a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-r*.5,-r*.2);ctx.lineTo(r*.1,r*.3);ctx.lineTo(r*.5,-r*.1);ctx.stroke();ctx.restore();}
-  for(const c of cars)if(!c.waiting)drawCar(c);
+  if(!blown)for(const c of cars)if(!c.waiting)drawCar(c);
   if(cargo){ctx.save();ctx.translate(cargo.position.x,cargo.position.y);ctx.rotate(cargo.angle);
     ctx.fillStyle="#d9a066";ctx.fillRect(-17,-13,34,26);ctx.strokeStyle="#8a5a2a";ctx.lineWidth=3;ctx.strokeRect(-17,-13,34,26);
     ctx.beginPath();ctx.moveTo(-17,-2);ctx.lineTo(17,-2);ctx.stroke();ctx.restore();}
@@ -672,12 +674,13 @@ function render(){
     ctx.closePath();ctx.fill();ctx.strokeStyle="#00000055";ctx.lineWidth=2;ctx.stroke();ctx.restore();}
   for(const p of parts){ctx.globalAlpha=Math.max(0,p.t/.6);ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}ctx.globalAlpha=1;
   for(const p of winFx){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-6,-3,12,6);ctx.restore();}
+  drawBoom();
   if(TH.post)postFx(TH.post);
   if(talkAt){drawTalk(talkAt.c,talkAt.z);talkAt=null;}
-  if(failAt){const k=Math.min(1,(time-failAt.t)*4),bob=Math.sin(time*6)*4;
+  if(failAt){if(!blown){const k=Math.min(1,(time-failAt.t)*4),bob=Math.sin(time*6)*4;
     ctx.save();ctx.translate(failAt.x,failAt.y+bob);ctx.scale(k,k);ctx.fillStyle="#fffffff0";ctx.beginPath();ctx.arc(0,0,44,0,7);ctx.fill();
     ctx.strokeStyle="#ff5a4e";ctx.lineWidth=5;ctx.stroke();ctx.font="52px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillText(failAt.icon,0,3);ctx.restore();ctx.textAlign="left";ctx.textBaseline="alphabetic";drawFailWord(failAt);}
+    ctx.fillText(failAt.icon,0,3);ctx.restore();ctx.textAlign="left";ctx.textBaseline="alphabetic";}drawFailWord(failAt);}
   drawCheer();
   // 落石の注意（まだ落ちてこない間も場所が分かるように）
   if(L.rocks){const [x0,x1]=L.rocks;ctx.fillStyle="#ffd23f";ctx.strokeStyle="#6a4a00";ctx.lineWidth=3;
