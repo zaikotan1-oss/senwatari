@@ -11,7 +11,7 @@ const THEMES=[
  {name:"ノートの落書き",bg:"sketch",ground:["#eee6cf","#e4dbc0"],grass:["#fbf8ef","#fbf8ef"],noGrass:1,noStripe:1,edge:"#2a2a2a",edgeW:3,rough:1,gpat:"hatch",
   water:["#fbf8ef","#fbf8ef"],line:["#1a3a9a","#5a88f0"],car:["#ffc4d0","#ff9ab4","#2a2a2a"],deco:"sketch",rider:"pig",wheel:"sketch"},
  {name:"夕やけの丘",sky:["#6a4c93","#ff9a5a","#ffd9a0"],hill:["#c9728a","#a85a7a"],ground:["#a0603a","#5a2f1e"],grass:["#e0a33a","#c4822a"],edge:"#3a1e10",
-  water:["#d9705a","#7a3050"],line:["#2a1030","#5a3060"],car:["#3fa7ff","#2a86dd","#1a4f8a"],deco:"sunset",rider:"moto"},
+  water:["#d9705a","#7a3050"],line:["#2a1030","#5a3060"],car:["#3fa7ff","#2a86dd","#1a4f8a"],deco:"sunset",rider:"bridge"},
  {name:"ドット絵の国",bg:"pixel",ground:["#c84c0c","#c84c0c"],grass:["#00a800","#006800"],noStripe:1,gpat:"brick",edge:"#000000",edgeW:4,
   water:["#3050f8","#2038a8"],line:["#000000","#fcfcfc"],car:["#00a800","#006800","#003800"],deco:"pixel",rider:"tank",post:"pixel"},
  {name:"さばく",sky:["#6cc8ff","#fff3c4"],hill:["#f2c77a","#e0b060"],ground:["#e0a860","#a8743a"],grass:["#f7dc98","#e6c47a"],edge:"#7a5020",
@@ -23,7 +23,7 @@ const THEMES=[
  {name:"ネオン街道",bg:"neon",ground:["#120020","#07000f"],grass:["#ff2a9a","#7a0a5a"],noStripe:1,gpat:"neongrid",edge:"#00f0ff",edgeW:3,glow:"#00f0ff",
   water:["#0a0018","#000000"],line:["#ff2a9a","#ffd0f0"],car:["#1a0030","#ff2a9a","#00f0ff"],deco:"neon",rider:"sports",wheel:"neon"},
  {name:"夜の町",sky:["#0b1a3a","#2a3f75"],hill:["#1f2f55","#18264a"],ground:["#4a3a5a","#241a30"],grass:["#3a8a5a","#2a6a44"],edge:"#120c1a",
-  water:["#1a3a7a","#0a1a40"],line:["#fff4c0","#ffd860"],car:["#ffffff","#16161e","#556"],deco:"night",rider:"police"},
+  water:["#1a3a7a","#0a1a40"],line:["#fff4c0","#ffd860"],car:["#ffffff","#16161e","#556"],deco:"night",rider:"kotatsu"},
  {name:"黒板",bg:"chalk",ground:["#4a6a58","#3e5c4a"],grass:["#f4f4ec","#2e4a3a"],noGrass:1,noStripe:1,gpat:"chalk",edge:"#f4f4ec",edgeW:3,rough:1,
   water:["#2e4a3a","#2e4a3a"],line:["#fff6a0","#ffffff"],car:["#2e4a3a","#ffb0d0","#f4f4ec"],deco:"chalk",rider:"cat",wheel:"chalk"},
  {name:"秋の森",sky:["#9fd3ff","#fff0d8"],hill:["#e0a070","#c8805a"],ground:["#9a5a30","#5a3018"],grass:["#d9822b","#b8661e"],edge:"#3a1e0c",
@@ -31,7 +31,7 @@ const THEMES=[
  {name:"浮世絵",bg:"ukiyo",ground:["#7a5a3a","#4a3420"],grass:["#4a7a50","#2f5a38"],noStripe:1,gpat:"wood",edge:"#1a1410",edgeW:4,
   water:["#1f3a6a","#0f2448"],line:["#1a1410","#c8392b"],car:["#c8392b","#1f3a6a","#1a1410"],deco:"ukiyo",rider:"rickshaw"},
  {name:"南の島",sky:["#3fbfff","#c9f3ff"],hill:["#7fd8c8","#5cc0b0"],ground:["#f0d090","#c8a060"],grass:["#63d471","#48b858"],edge:"#8a6a30",
-  water:["#1fc8d8","#0a7fb0"],line:["#0a2a40","#2a5a80"],car:["#48b858","#2e8a40","#145a24"],deco:"island",rider:"turtle"},
+  water:["#1fc8d8","#0a7fb0"],line:["#0a2a40","#2a5a80"],car:["#48b858","#2e8a40","#145a24"],deco:"island",rider:"bath"},
  {name:"アメコミ",bg:"comic",ground:["#ffd23f","#f0a800"],grass:["#ff3b3b","#c81e1e"],noStripe:1,gpat:"dots",edge:"#000000",edgeW:6,
   water:["#1e6ae0","#1e6ae0"],line:["#000000","#ffffff"],car:["#ff3b3b","#ffffff","#000000"],deco:"comic",rider:"fire",wheel:"comic"},
  {name:"火山",sky:["#2a0a0a","#a0381e"],hill:["#4a1a14","#3a120e"],ground:["#4a3434","#1e1212"],grass:["#6a5a5a","#4a3a3a"],edge:"#0a0404",
@@ -303,6 +303,48 @@ const RIDERS={
   ctx.fillStyle=b;ctx.beginPath();ctx.ellipse(0,-6,58,16,0,0,7);ctx.fill();outline(e);
   for(let k=0;k<6;k++){ctx.fillStyle=(k+Math.floor(time*8))%3?"#40485a":"#ffe040";ctx.beginPath();ctx.arc(-42+k*17,-4,4,0,7);ctx.fill();}},
 };
+// 笑いの乗り物
+const SKIN="#f0c8a0";
+function ojiHead(x,y,s,rot){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale(s,s);
+  ctx.fillStyle=SKIN;ctx.beginPath();ctx.arc(0,0,13,0,7);ctx.fill();ctx.strokeStyle="#a07050";ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle="#3a2a20";ctx.beginPath();ctx.arc(-11,2,4,0,7);ctx.arc(11,2,4,0,7);ctx.fill(); // 横だけ残った髪
+  ctx.fillStyle="#ffffff90";ctx.beginPath();ctx.ellipse(-3,-8,5,2.5,-.4,0,7);ctx.fill(); // 頭のてかり
+  face(0,1,.5);ctx.fillStyle="#3a2a20";ctx.beginPath();ctx.ellipse(-4,8,5,2.5,.2,0,7);ctx.ellipse(4,8,5,2.5,-.2,0,7);ctx.fill(); // ひげ
+  ctx.restore();}
+Object.assign(RIDERS,{
+ bridge(){const j=Math.sin(time*14)*(state==="go"?3:1); // ブリッジしたおっさん（足=後ろの車輪、手=前の車輪、頭は逆さにぶら下がる）
+  const limb=(pts,c,w)=>{ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();pts.forEach(([x,y],k)=>k?ctx.lineTo(x,y):ctx.moveTo(x,y));
+    ctx.strokeStyle="#4a3020";ctx.lineWidth=w+4;ctx.stroke();ctx.strokeStyle=c;ctx.lineWidth=w;ctx.stroke();};
+  limb([[-36,2],[-34,-30],[-12,-52]],"#e8dcc0",15); // ステテコの脚
+  limb([[26,-44],[34,2]],SKIN,11); // 腕
+  ctx.fillStyle=SKIN;ctx.strokeStyle="#4a3020";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(4,-62-j,28,20+j,-.05,0,7);ctx.fill();ctx.stroke(); // おなか
+  ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(14,-78);ctx.quadraticCurveTo(34,-64,30,-40);ctx.lineTo(16,-44);ctx.quadraticCurveTo(20,-60,8,-74);ctx.closePath();ctx.fill();ctx.stroke(); // めくれたランニング
+  ctx.fillStyle="#a06a48";ctx.beginPath();ctx.ellipse(0,-78-j*1.6,3,2,0,0,7);ctx.fill(); // おへそ
+  ctx.strokeStyle="#4a3020";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-10,-60-j);ctx.quadraticCurveTo(-4,-56,2,-60-j);ctx.stroke(); // すじ
+  ojiHead(32,-18,1.25,Math.PI);
+  if(state==="go"){ctx.fillStyle="#9ad8ff";ctx.beginPath();ctx.ellipse(46,-30,3,5,0,0,7);ctx.ellipse(-20,-80,3,5,0,0,7);ctx.fill();}}, // 汗
+ kotatsu(){ctx.fillStyle="#c8392b";rr(-50,-24,100,36,6);ctx.fill();ctx.fillStyle="#ffd23f"; // こたつ（中におっさん）
+  for(let x=-42;x<46;x+=16)for(let y=-16;y<10;y+=14){ctx.beginPath();ctx.arc(x+(y%28?8:0),y,3,0,7);ctx.fill();}
+  ctx.fillStyle="#8a5a30";rr(-56,-32,112,9,3);ctx.fill();
+  ctx.fillStyle="#ff9a1a";ctx.beginPath();ctx.arc(18,-40,9,0,7);ctx.arc(34,-40,8,0,7);ctx.fill();ctx.fillStyle="#3a8a30";ctx.fillRect(17,-50,3,4);
+  ojiHead(-30,-44,.85,0);ctx.fillStyle="#fff";ctx.fillRect(-42,-58,24,5);},
+ bath(){const b=Math.sin(time*3)*2; // お風呂のおっさん
+  ctx.fillStyle="#ffffffaa";for(let k=0;k<3;k++){const t=(time*.6+k*.33)%1;ctx.globalAlpha=.6*(1-t);ctx.beginPath();ctx.arc(-20+k*18+Math.sin(t*6)*6,-60-t*40,8+t*8,0,7);ctx.fill();}ctx.globalAlpha=1; // 湯気
+  ojiHead(-12,-34,.9,0);ctx.fillStyle="#fff";rr(-24,-52,24,8,3);ctx.fill(); // 頭にタオル
+  ctx.fillStyle="#9ad8f0";rr(-48,-28,96,8,4);ctx.fill();
+  ctx.fillStyle="#fff";for(let x=-40;x<44;x+=12){ctx.beginPath();ctx.arc(x,-26,6,0,7);ctx.fill();} // 泡
+  ctx.fillStyle="#ffd23f";ctx.beginPath();ctx.arc(24,-34+b,8,0,7);ctx.arc(30,-40+b,6,0,7);ctx.fill();ctx.fillStyle="#ff8a00";ctx.fillRect(35,-41+b,6,3); // アヒル
+  ctx.fillStyle="#f4f4f4";rr(-52,-22,104,32,14);ctx.fill();ctx.strokeStyle="#9aa";ctx.lineWidth=3;ctx.stroke();},
+});
+// しゃべる乗り物（待ち・走る・クリア・失敗）
+const TALK={bridge:["……","ふんっ！！","腰、無事！","腰がぁぁ！"],kotatsu:["出たくない…","出たくないぃ","みかん、うまし","こたつごと〜！"],
+  bath:["ふぅ〜","いい湯だな〜","ととのった","あちちちっ"],pig:["ブヒ","ブヒー！","ブヒヒッ♪","ブヒィ…"],cat:["にゃ","にゃーっ！","にゃふん","ふにゃ〜"]};
+function drawTalk(c,z){const t=TALK[TH.rider];if(!t||state==="title")return;
+  const k=state==="win"?2:state==="fail"?3:state==="go"?1:0,s=t[k],x=c.position.x,y=c.position.y-(TH.rider==="bridge"?120:92)*z;
+  ctx.font="bold 22px sans-serif";const w=ctx.measureText(s).width+24;
+  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20,w,36,14);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x-6,y+16);ctx.lineTo(x,y+28);ctx.lineTo(x+6,y+16);ctx.fill();
+  ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(s,x,y+6);ctx.textAlign="left";}
 // 車輪の描き方
 function drawWheel(w,z){
   ctx.save();ctx.translate(w.position.x,w.position.y);ctx.rotate(w.angle);ctx.scale(z,z);

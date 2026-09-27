@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=10"></script>
-<script src="gen.js?v=10"></script>
-<script src="gen_table.js?v=10"></script><script src="looks.js?v=10"></script>
+<script src="matter.min.js?v=13"></script>
+<script src="gen.js?v=13"></script>
+<script src="gen_table.js?v=13"></script><script src="looks.js?v=13"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -740,6 +740,7 @@ function drawCar(cr){
   (RIDERS[TH.rider]||RIDERS.car)(...pal);
   ctx.restore();
   for(const w of [cr.wA,cr.wB])drawWheel(w,z);
+  if(cr===cars[0])drawTalk(c,z);
 }
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);}
 
