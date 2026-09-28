@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=73"></script>
-<script src="gen.js?v=73"></script>
-<script src="gen_table.js?v=73"></script><script src="looks.js?v=73"></script><script src="modes.js?v=73"></script><script src="stages.js?v=73"></script>
+<script src="matter.min.js?v=74"></script>
+<script src="gen.js?v=74"></script>
+<script src="gen_table.js?v=74"></script><script src="looks.js?v=74"></script><script src="modes.js?v=74"></script><script src="stages.js?v=74"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -238,7 +238,7 @@ const SAVE_KEY="senwatari_v1";
 let save={stars:[]};
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&Array.isArray(s.stars))save=s;}catch(e){}
 function writeSave(){if(location.hash==="#test")return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
-const unlocked=i=>i===0||(save.stars[i-1]|0)>0;
+const unlocked=i=>true; // 本人の指示（09-28）: 最初から全部の面を選べる
 
 /* ---------- 画面の大きさ ---------- */
 const wrap=document.getElementById("wrap"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");

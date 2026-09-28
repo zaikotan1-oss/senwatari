@@ -1715,7 +1715,7 @@ const SAVE_KEY="senwatari_v1";
 let save={stars:[]};
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&Array.isArray(s.stars))save=s;}catch(e){}
 function writeSave(){if(location.hash==="#test")return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
-const unlocked=i=>i===0||(save.stars[i-1]|0)>0;
+const unlocked=i=>true; // 本人の指示（09-28）: 最初から全部の面を選べる
 
 /* ---------- 画面の大きさ ---------- */
 const wrap=document.getElementById("wrap"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
