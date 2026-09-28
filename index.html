@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=33"></script>
-<script src="gen.js?v=33"></script>
-<script src="gen_table.js?v=33"></script><script src="looks.js?v=33"></script><script src="modes.js?v=33"></script>
+<script src="matter.min.js?v=69"></script>
+<script src="gen.js?v=69"></script>
+<script src="gen_table.js?v=69"></script><script src="looks.js?v=69"></script><script src="modes.js?v=69"></script><script src="stages.js?v=69"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -225,7 +225,10 @@ const HAND_IDEA=["span","span","ramp","ramp","span","ramp","span","wedge","ramp"
 HAND_IDEA.forEach((d,i)=>{if(LEVELS[i])LEVELS[i].idea=d;});
 const HAND=LEVELS.splice(0,LEVELS.length);
 // 100 面の並びは gen_table.js。"hand" は上の手作り面（穴越え）、それ以外は gen.js の自動生成
-for(let k=0;k<100;k++){const e=GEN_TABLE[k];if(e&&e.t==="hand")LEVELS.push(HAND[e.s]);else{const o=GEN.genLevel(k);if(o)LEVELS.push(o);}}
+// 手で設計した面（stages.js）。作り終わっていない所は前の自動生成の面で埋める
+for(let k=0;k<100;k++){const st=window.STAGES&&STAGES[k];
+  if(st){LEVELS.push(st.hand!==undefined?{...HAND[st.hand]}:st);continue;}
+  const e=GEN_TABLE[k];if(e&&e.t==="hand")LEVELS.push({...HAND[e.s]});else{const o=GEN.genLevel(k);if(o)LEVELS.push(o);}}
 
 /* ---------- 絵柄（THEMES は looks.js。5 面ごとに変わる） ---------- */
 const themeOf=i=>THEMES[Math.min(THEMES.length-1,Math.floor(i/5))];  // 5 面ごとに絵柄が変わる
@@ -291,16 +294,33 @@ let DIR=1,boulder=null,mill=null,engine,world,L,TH=THEMES[0],li=0,cars=[],car=nu
 let showHint=0,lastStroke=null,failAt=null,winFx=[],selPage=-1,drawing=null,goT=0,winT=0,flipT=0,stuckT=0,time=0,clouds=[];
 for(let i=0;i<6;i++)clouds.push({x:Math.random()*W,y:40+Math.random()*180,s:.6+Math.random()*.8});
 
+function convexParts(poly){ // 凸ならそのまま、へこみがあれば耳切りで三角形に
+  const cr=(a,b,c)=>(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);
+  const n=poly.length;let pos=0,neg=0;for(let i=0;i<n;i++){const c=cr(poly[i],poly[(i+1)%n],poly[(i+2)%n]);if(c>1e-9)pos++;else if(c<-1e-9)neg++;}
+  if(!pos||!neg)return [poly];
+  let area=0;for(let i=0;i<n;i++){const a=poly[i],b=poly[(i+1)%n];area+=a[0]*b[1]-b[0]*a[1];}
+  const sg=area>0?1:-1,v=poly.slice(),out=[];
+  const inTri=(p,a,b,c)=>{const d1=cr(a,b,p)*sg,d2=cr(b,c,p)*sg,d3=cr(c,a,p)*sg;return d1>=0&&d2>=0&&d3>=0;};
+  let guard=0;while(v.length>3&&guard++<500){let cut=false;
+    for(let i=0;i<v.length;i++){const a=v[(i+v.length-1)%v.length],b=v[i],c=v[(i+1)%v.length];
+      if(cr(a,b,c)*sg<=1e-9)continue;if(v.some(p=>p!==a&&p!==b&&p!==c&&inTri(p,a,b,c)))continue;
+      out.push([a,b,c]);v.splice(i,1);cut=true;break;}
+    if(!cut)break;}
+  out.push(v);return out;}
 function loadLevel(i){
-  li=i;L=LEVELS[i];
+  li=i;L=LEVELS[i];MODE.prep(L);
   TH=themeOf(i);
   engine=Engine.create();engine.gravity.y=TH.gravity||1;engine.positionIterations=10;engine.velocityIterations=8;
   world=engine.world;strokes=[];statics=[];drawing=null;goT=0;winT=0;flipT=0;stuckT=0;rocks=[];rockT=0;parts=[];
   rockRng=mulberry(i*977+13);
-  for(const poly of L.ground){
-    const vs=poly.map(([x,y])=>({x,y}));
-    const b=Body.create({position:Vertices.centre(vs),vertices:vs,isStatic:true,friction:.9,frictionStatic:2});
-    b.plugin.poly=poly;statics.push(b);
+  for(const g0 of L.ground){ // 地面: 点の並び、または {p:点の並び, ice:すべる, bounce:はずむ}
+    const poly=g0.p||g0;
+    // へこんだ形は当たり判定が凸包になってしまうので、三角形に割って置く（絵は元の形で 1 回だけ描く）
+    convexParts(poly).forEach((pc,k)=>{const vs=pc.map(([x,y])=>({x,y}));
+      const b=Body.create({position:Vertices.centre(vs),vertices:vs,isStatic:true,friction:g0.ice?0:.9,frictionStatic:g0.ice?0:2,restitution:g0.bounce?1.1:0});
+      b.friction=g0.ice?0:.9;b.frictionStatic=g0.ice?0:2;b.restitution=g0.bounce?1.1:0; // isStatic は摩擦を 1 に上書きするので、作った後で入れ直す
+      b.plugin.ice=!!g0.ice;b.plugin.bounce=!!g0.bounce;
+      b.plugin.poly=k?null:poly;statics.push(b);});
   }
   Composite.add(world,statics);
   pins=(L.pins||[]).map(([x,y])=>({x,y}));
@@ -341,12 +361,12 @@ function banner(s){const t=$("toast");t.textContent=s;t.style.opacity=1;t.style.
 // 落石: 車や荷物に当たったら失敗。地面に当たったら砕ける
 function onHit(ev){
   for(const pr of ev.pairs){
+    MODE.onHit(pr.bodyA,pr.bodyB);
     for(const [a,b] of [[pr.bodyA,pr.bodyB],[pr.bodyB,pr.bodyA]]){
-      if(strokes.some(s=>s.body===a.parent))MODE.onHit(a,b.parent);
-      const r=a.parent;if(!r.plugin.rock||r.plugin.dead)continue;
+      const r=a.parent;if(!r.plugin.rock&&!r.plugin.bee||r.plugin.dead)continue;
       const o=b.parent;
-      if(cars.some(c=>!c.waiting&&(o===c.chassis||o===c.wA||o===c.wB))||(cargo&&o===cargo)){
-        if(state==="draw"||state==="go")finish(false,r.plugin.big?"大岩にぶつかっちゃった！":"落石にあたっちゃった！");}
+      if(cars.some(c=>!c.waiting&&!L.nocar&&(o===c.chassis||o===c.wA||o===c.wB))||(cargo&&o===cargo)||o.plugin.guy){
+        if(state==="draw"||state==="go")finish(false,r.plugin.bee?"ハチに刺された！":r.plugin.big?"大岩にぶつかっちゃった！":"落石にあたっちゃった！");}
       else if(o.isStatic&&!r.plugin.big){r.plugin.dead=true;}
     }
   }
@@ -507,7 +527,7 @@ function step(){
         if(!prev.waiting&&(prev.chassis.position.x-c.x0)*DIR>160*c.sz){c.waiting=false;c.startT=goT;
           Composite.add(world,[c.chassis,c.wA,c.wB,...c.cons]);sfx.go();}
         continue;}
-      if(MODE.driveOff())c.drive=0;else if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
+      if(MODE.driveOff()||(L.cars>1&&(c.chassis.position.x-L.goal[0])*DIR>150)){c.drive=0;if(L.nocar||MODE.has("guard")||!MODE.has("flag")){}else{motor(c.wA,0);motor(c.wB,0);}}else if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
       motor(c.wA,c.drive*DIR);motor(c.wB,c.drive*DIR);
       // ジャンプ台: 上を通ると前へ強く押し出される
       for(const [x0,x1,py] of (L.pads||[])){const p=c.chassis.position;
@@ -518,7 +538,7 @@ function step(){
   if(mill){const d=Math.max(-.004,Math.min(.004,(mill.plugin.speed-mill.angularVelocity)*.3));mill.torque+=d*mill.inertia/(DT*DT);}
   if(boulder&&boulder.position.y>H+200){Composite.remove(world,boulder);boulder=null;}
   // 落石 L.rocks=[x0,x1,間隔(秒)]
-  if(L.rocks&&(state==="draw"&&L.mode!=="guard"||state==="go")){
+  if(L.rocks&&(state==="draw"&&!MODE.has("guard")||state==="go")){
     rockT-=DT/1000;
     if(rockT<=0){rockT=L.rocks[2];const [x0,x1]=L.rocks,rad=13+rockRng()*9;
       const b=Bodies.circle(x0+(x1-x0)*rockRng(),-30,rad,{density:.004,restitution:.2,friction:.5});
@@ -540,20 +560,21 @@ function step(){
     const live=cars.filter(c=>!c.waiting);
     const fallMsg=TH.lava?"溶岩に落ちちゃった…":TH.space?"宇宙に落ちちゃった…":TH.subway?"線路に落ちちゃった…":"車が落ちちゃった…";
     if(live.some(c=>c.chassis.position.y>WATER_Y+60)){finish(false,fallMsg);return;}
-    let fl=false;for(const c of live){const a=((c.chassis.angle%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI;if(Math.abs(a)>1.9)fl=true;}
+    let fl=false;for(const c of live){if(MODE.inGrav(c.chassis))continue;const a=((c.chassis.angle%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI;if(Math.abs(a)>1.9)fl=true;}
     flipT=fl?flipT+DT/1000:0;
     if(flipT>1.2){finish(false,"ひっくり返っちゃった…");return;}
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
       if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
-    if(state==="go"&&(!L.mode||L.mode==="switch")){
+    if(state==="go"&&MODE.has("flag")){
       const done=cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]);
       if(done)winT+=DT/1000;else winT=0;
-      if(winT>.25)finish(true);
+      MODE.flagDone(winT>.25);
+      if(winT>.25){}
       else if(goT>30)finish(false,"時間切れ… 車が進めなかった");
-      else{ // 走っている車が 1 台も無いまま 2.5 秒で失敗（穴や壁で詰まった時に待たせない）
+      else{ // 動いている車が 1 台も無いまま 2.5 秒で失敗（穴や壁で詰まった時に待たせない）。動く足場で運ばれている時は動いている扱い
         const pending=live.filter(c=>(c.chassis.position.x-L.goal[0])*DIR<0);
-        const moving=pending.some(c=>Math.hypot(c.chassis.velocity.x,c.chassis.velocity.y)>=.25);
-        stuckT=(goT>1.5&&pending.length&&!moving)?stuckT+DT/1000:0;
+        const moving=pending.some(c=>{const p=c.chassis.position,q=c.prevP||p;c.prevP={x:p.x,y:p.y};return Math.hypot(p.x-q.x,p.y-q.y)>=.25;});
+        stuckT=(goT>1.5&&pending.length&&!moving&&!MODE.busy())?stuckT+DT/1000:0;
         if(stuckT>2.5)finish(false,"動けなくなっちゃった…");
       }
     }
@@ -602,7 +623,7 @@ function render(){
     ctx.strokeStyle="#ff3b3b55";ctx.lineWidth=6;for(let k=-h;k<w;k+=26){ctx.beginPath();ctx.moveTo(x+k,y+h);ctx.lineTo(x+k+h,y);ctx.stroke();}
     ctx.restore();ctx.strokeStyle="#ff3b3b";ctx.lineWidth=3;ctx.setLineDash([12,8]);ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);}
   // 地面
-  for(const b of statics){const poly=b.plugin.poly;
+  for(const b of statics){const poly=b.plugin.poly;if(!poly)continue;
     ctx.beginPath();poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();
     const top=Math.min(...poly.map(p=>p[1]));
     g=ctx.createLinearGradient(0,top,0,top+300);g.addColorStop(0,TH.ground[0]);g.addColorStop(1,TH.ground[1]);

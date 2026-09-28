@@ -429,6 +429,7 @@ function drawWheel(w,z){
 let postCv=null,postCtx=null;
 const GB=[[15,56,15],[48,98,48],[139,172,15],[155,188,15]];
 function postFx(kind){
+  if(!cv.width||!cv.height)return;
   const f=kind==="gb"?4:3,w=Math.round(W/f),h=Math.round(H/f);
   if(!postCv){postCv=document.createElement("canvas");postCtx=postCv.getContext("2d",{willReadFrequently:true});}
   if(postCv.width!==w){postCv.width=w;postCv.height=h;}

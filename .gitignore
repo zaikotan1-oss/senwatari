@@ -5,3 +5,5 @@ _test.js
 あそぶ.bat
 dist/
 build_single.py
+_dev.js
+_w*.js
