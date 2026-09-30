@@ -95,14 +95,14 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=74"></script>
-<script src="gen.js?v=74"></script>
-<script src="gen_table.js?v=74"></script><script src="looks.js?v=74"></script><script src="modes.js?v=74"></script><script src="stages.js?v=74"></script>
+<script src="matter.min.js?v=91"></script>
+<script src="gen.js?v=91"></script>
+<script src="gen_table.js?v=91"></script><script src="looks.js?v=91"></script><script src="modes.js?v=91"></script><script src="stages.js?v=91"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
 const W=1280,H=720;
-const T=12;              // 線の太さ
+const T=7;               // 線の太さ（09-30 本人「細くして」12→7。端の段差で車が登れないのも減る）
 const SEG=12;            // 線の点の最小間隔
 const PIN_R=24;          // くぎに付く距離
 const WR=19;             // 車輪の半径
@@ -290,7 +290,7 @@ const sfx={
 };
 
 /* ---------- 状態 ---------- */
-let DIR=1,boulder=null,mill=null,engine,world,L,TH=THEMES[0],li=0,cars=[],car=null,cargo=null,rocks=[],rockT=0,rockRng=null,parts=[],strokes=[],statics=[],pins=[],state="title";
+let DIR=1,turned=false,boulder=null,mill=null,engine,world,L,TH=THEMES[0],li=0,cars=[],car=null,cargo=null,rocks=[],rockT=0,rockRng=null,parts=[],strokes=[],statics=[],pins=[],state="title";
 let showHint=0,lastStroke=null,failAt=null,winFx=[],selPage=-1,drawing=null,goT=0,winT=0,flipT=0,stuckT=0,time=0,clouds=[];
 for(let i=0;i<6;i++)clouds.push({x:Math.random()*W,y:40+Math.random()*180,s:.6+Math.random()*.8});
 
@@ -331,7 +331,7 @@ function loadLevel(i){
   cargo=null;
   if(L.cargo){cargo=Bodies.rectangle(L.car[0]-4,cy-36*sz-14,34,26,{density:.0015,friction:1,frictionStatic:4,restitution:0});
     Composite.add(world,cargo);}
-  DIR=L.dir||1;
+  DIR=L.dir||1;turned=false;
   // 空から車: 発進までは空中で止めておく
   if(L.air)for(const c of cars)for(const b of [c.chassis,c.wA,c.wB])Body.setStatic(b,true);
   // 大岩: 発進と同時に坂を転がり出す（それまでは止めておく）
@@ -346,20 +346,43 @@ function loadLevel(i){
     let I=0;for(const q of mill.parts.slice(1))I+=q.inertia;Body.setInertia(mill,I*1.5);
     Composite.add(world,[mill,Constraint.create({pointA:{x:mx,y:my},bodyB:mill,pointB:{x:0,y:0},length:0,stiffness:.9})]);
     mill.plugin.speed=L.mill[3]||.05;}
-  Events.on(engine,"collisionStart",onHit);
+  Events.on(engine,"collisionStart",onHit);Events.on(engine,"collisionActive",iceLine);
   MODE.load();
   state="draw";showHint=0;failAt=null;winFx=[];boomFx=[];shakeT=0;blown=false;
   document.getElementById("retryBig").classList.remove("show","pulse");
   document.getElementById("toast").style.opacity=0;
-  document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${L.name}</small>`;
-  document.getElementById("hint").textContent=L.hint;
+  const lk=LINE_KIND[L.line];
+  document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${L.name}${lk?`　<b style="background:${lk.col[1]};color:${lk.col[0]};border:2px solid ${lk.col[0]};padding:1px 10px;border-radius:12px;font-size:17px;opacity:1">${lk.name}</b>`:""}${L.ink?`　<b style="background:#3fa7ff;color:#fff;padding:1px 10px;border-radius:12px;font-size:17px">インク少し</b>`:""}</small>`;
+  document.getElementById("hint").textContent=(lk?`【${lk.name}】`:"")+L.hint;
   if(i%5===0&&i>0)banner(i%10===0?`ワールド${Math.floor(i/10)+1}　${TH.name}`:TH.name);
 }
 function mulberry(a){return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function banner(s){const t=$("toast");t.textContent=s;t.style.opacity=1;t.style.fontSize="34px";clearTimeout(toastT);
   toastT=setTimeout(()=>{t.style.opacity=0;t.style.fontSize="";},2200);}
 // 落石: 車や荷物に当たったら失敗。地面に当たったら砕ける
+// Matter は毎歩 Pair.update で摩擦を体の値から入れ直すので、そこに割り込んで氷の線を 0 にする
+{const pu=Matter.Pair.update;Matter.Pair.update=function(pair,col,ts){pu.call(this,pair,col,ts);const a=pair.bodyA.parent,b=pair.bodyB.parent;
+  if((a.plugin.kind==="ice"&&!b.isStatic)||(b.plugin.kind==="ice"&&!a.isStatic)){pair.friction=0;pair.frictionStatic=0;}
+};}
+// ゴムの線: 当たった動く物の速さを、当たった面で折り返す（Matter の反発は下に物がある線だと効かないので自分で）
+let RUB=[];
+function rubberHit(ev){for(const pr of ev.pairs){const A=pr.bodyA.parent,B=pr.bodyB.parent;let o=null,part=null;
+  if(A.plugin.kind==="rubber"&&!B.isStatic&&!B.plugin.kind){o=B;part=pr.bodyA;}else if(B.plugin.kind==="rubber"&&!A.isStatic&&!A.plugin.kind){o=A;part=pr.bodyB;}
+  if(!o||RUB.some(q=>q.o===o))continue;
+  // 面の向き: 線の棒なら棒に直角、つなぎ目の丸なら丸の中心から
+  const d={x:o.position.x-part.position.x,y:o.position.y-part.position.y};let n;
+  if(part.circleRadius){const l=Math.hypot(d.x,d.y)||1;n={x:d.x/l,y:d.y/l};}else{n={x:-Math.sin(part.angle),y:Math.cos(part.angle)};if(n.x*d.x+n.y*d.y<0)n={x:-n.x,y:-n.y};}
+  RUB.push({o,n,v:{x:o.velocity.x,y:o.velocity.y},t:time});}}
+function rubberApply(){for(const q of RUB){const {o,n,v}=q;const vn=v.x*n.x+v.y*n.y;if(vn>=-.5)continue; // 線に向かって来ていた時だけ
+  const k=1.3,nx=v.x-(1+k)*vn*n.x,ny=v.y-(1+k)*vn*n.y;const c=cars.find(c=>c.chassis===o||c.wA===o||c.wB===o);
+  if(c){const p=c.chassis.position,z=c.sz; // 車はトランポリンで姿勢がまっすぐに戻る（回ったまま飛ぶと必ずひっくり返るので）
+    Body.setAngle(c.chassis,0);Body.setPosition(c.wA,{x:p.x-32*z,y:p.y+WY*z});Body.setPosition(c.wB,{x:p.x+32*z,y:p.y+WY*z});
+    for(const b of [c.chassis,c.wA,c.wB]){Body.setVelocity(b,{x:nx,y:ny});Body.setAngularVelocity(b,0);}}
+  else Body.setVelocity(o,{x:nx,y:ny});}RUB=[];}
+function iceLine(ev){for(const pr of ev.pairs){const a=pr.bodyA.parent,b=pr.bodyB.parent; // 氷の線は、動く物との間だけ摩擦 0
+  if((a.plugin.kind==="ice"&&!b.isStatic)||(b.plugin.kind==="ice"&&!a.isStatic)){pr.friction=0;pr.frictionStatic=0;}}}
 function onHit(ev){
+  iceLine(ev);rubberHit(ev);
   for(const pr of ev.pairs){
     MODE.onHit(pr.bodyA,pr.bodyB);
     for(const [a,b] of [[pr.bodyA,pr.bodyB],[pr.bodyB,pr.bodyA]]){
@@ -406,6 +429,7 @@ function moveDraw(p){
   if(drawing.pending){ if(!blocked(p,p)){drawing={pts:[p],len:0};} return; }
   const a=drawing.pts[drawing.pts.length-1];
   let d=Math.hypot(p.x-a.x,p.y-a.y);if(d<SEG)return;
+  if(L.ink&&drawing.len+d>L.ink)return;   // インクの量が決まっている面
   if(blocked(a,p))return;
   drawing.pts.push(p);drawing.len+=d;
   if(drawing.len-lastDrawSfx>40){lastDrawSfx=drawing.len;sfx.draw();}
@@ -426,6 +450,7 @@ function endDraw(){
   // Matter は合体物の回りにくさ（慣性）を各部品の中心で足すだけなので、長い線が軽々と回ってしまう。重心からの距離を足して直す
   let I=0;for(const q of body.parts.slice(1))I+=q.inertia+q.mass*((q.position.x-body.position.x)**2+(q.position.y-body.position.y)**2);
   Body.setInertia(body,I);
+  lineKind(body);
   body.plugin.pts=pts;body.plugin.c0={x:body.position.x,y:body.position.y};body.plugin.len=dr.len;
   Composite.add(world,body);
   const cons=[];
@@ -441,6 +466,17 @@ function endDraw(){
   strokes.push({body,cons});sfx.drop();lastStroke={li,pts:pts.map(p=>({x:p.x,y:p.y}))};
   go();   // 指を離した瞬間に発進
 }
+/* 線の種類（面の line）。世界ごとに線の性質が変わる
+   rubber: 上に落ちた物（車・ボール・岩）がはね返る（線自体は柱の上で落ち着く）／ice: 上に乗った物（車・ボール・箱）だけすべる（地面の上では止まっている。坂をすべらせたい時は地面を ice にする）／fixed: 描いた所で止まって落ちない／float: 上へ浮く／heavy: 重い（5 倍） */
+const LINE_KIND={rubber:{name:"ゴムの線",col:["#a3164f","#ff7ab0"]},ice:{name:"氷の線",col:["#2a7fb8","#d8f4ff"]},
+  fixed:{name:"止まる線",col:["#2b2f36","#a9b2bd"]},float:{name:"浮く線",col:["#b87800","#ffe066"]},heavy:{name:"鉄の線",col:["#15171c","#5d6470"]}};
+function lineKind(body){const k=L.line;if(!LINE_KIND[k])return;body.plugin.kind=k;
+  if(k==="heavy"){Body.setMass(body,body.mass*5);Body.setInertia(body,body.inertia*5);}
+  if(k==="float"){body.frictionAir=.15;Body.setInertia(body,Infinity);} // 描いた傾きのまま回らない（エレベーターの床になる） // ゆっくり浮く（上向きの力は step で重さの 2 倍 = 差し引き 1 倍）
+  if(k==="fixed"){Body.setStatic(body,true);body.friction=.9;body.frictionStatic=2;body.restitution=0;}}
+// 浮く線に乗って上がっている間は、車はブレーキをかけて待つ（エレベーターと同じ）
+function floatRide(c){const fl=strokes.filter(st=>st.body.plugin.kind==="float"&&st.body.velocity.y<-.25).map(st=>st.body);
+  return fl.length>0&&Query.collides(c.wA,fl).concat(Query.collides(c.wB,fl)).length>0;}
 function segDist(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let t=l?((p.x-a.x)*dx+(p.y-a.y)*dy)/l:0;
   t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
 
@@ -527,14 +563,22 @@ function step(){
         if(!prev.waiting&&(prev.chassis.position.x-c.x0)*DIR>160*c.sz){c.waiting=false;c.startT=goT;
           Composite.add(world,[c.chassis,c.wA,c.wB,...c.cons]);sfx.go();}
         continue;}
-      if(MODE.driveOff()||(L.cars>1&&(c.chassis.position.x-L.goal[0])*DIR>150)){c.drive=0;if(L.nocar||MODE.has("guard")||!MODE.has("flag")){}else{motor(c.wA,0);motor(c.wB,0);}}else if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
+      if(MODE.driveOff()||(L.cars>1&&(c.chassis.position.x-L.goal[0])*DIR>150)||floatRide(c)){c.drive=0;if(L.nocar||MODE.has("guard")||!MODE.has("flag")){}else{motor(c.wA,0);motor(c.wB,0);}}else if(goT-(c.startT||0)>.45)c.drive=Math.min(.3/c.sz,c.drive+.01);   // ブオーンと吹かしてから走り出す（大きい車も同じ速さ）
       motor(c.wA,c.drive*DIR);motor(c.wB,c.drive*DIR);
+      // 段差の手助け（09-30 本人「車が最初に登れない」）: 前の車輪が線の端に下の方で当たって止まっていたら、持ち上げて乗せる
+      if(c.drive>.15&&strokes.length&&Math.abs(c.chassis.velocity.x)<1&&goT-(c.stepT||0)>.35){
+        const fw=(c.wB.position.x-c.wA.position.x)*DIR>0?c.wB:c.wA;
+        const hit=Query.collides(fw,strokes.map(s=>s.body)).find(h=>h.supports&&h.supports[0]&&h.supports[0].y>fw.position.y-2&&(h.supports[0].x-fw.position.x)*DIR>0);
+        if(hit){c.stepT=goT;for(const b of [fw,c.chassis])Body.setVelocity(b,{x:b.velocity.x+1.2*DIR,y:Math.min(b.velocity.y,-4.5*c.sz)});}}
       // ジャンプ台: 上を通ると前へ強く押し出される
       for(const [x0,x1,py] of (L.pads||[])){const p=c.chassis.position;
         if(p.x>x0&&p.x<x1&&Math.abs(p.y-(py-(WY+WR)*c.sz))<30){const v=(L.padV||13)*DIR;
           for(const b of [c.chassis,c.wA,c.wB])Body.setVelocity(b,{x:v,y:Math.min(b.velocity.y,-1.5)});if(!c.jumped){c.jumped=1;sfx.go();}}}
     }
   }
+  for(const st of strokes){const b=st.body;if(b.plugin.kind==="float"&&!b.isStatic)b.force.y-=b.mass*engine.gravity.y*engine.gravity.scale*2;}
+  // 折り返し: 車が L.turn の x を越えたら向きが逆になる（行って戻る面）
+  if(L.turn!==undefined&&state==="go"&&!turned&&(car.chassis.position.x-L.turn)*DIR>0){turned=true;DIR=-DIR;sfx.go();}
   if(mill){const d=Math.max(-.004,Math.min(.004,(mill.plugin.speed-mill.angularVelocity)*.3));mill.torque+=d*mill.inertia/(DT*DT);}
   if(boulder&&boulder.position.y>H+200){Composite.remove(world,boulder);boulder=null;}
   // 落石 L.rocks=[x0,x1,間隔(秒)]
@@ -551,7 +595,7 @@ function step(){
   for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.t-=DT/1000;if(p.t<=0)parts.splice(i,1);}
   stepBoom();
   for(const p of winFx){p.x+=p.vx;p.y+=p.vy;p.vy+=.25;p.vx*=.99;p.r+=.2;}
-  Engine.update(engine,DT);
+  Engine.update(engine,DT);rubberApply();
   if(state==="draw"||state==="go")MODE.step();
   // 落ちた線は捨てる
   for(let i=strokes.length-1;i>=0;i--)if(strokes[i].body.position.y>H+600){
@@ -566,13 +610,13 @@ function step(){
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
       if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
     if(state==="go"&&MODE.has("flag")){
-      const done=cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]);
+      const done=(L.turn===undefined||turned)&&cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]);
       if(done)winT+=DT/1000;else winT=0;
       MODE.flagDone(winT>.25);
       if(winT>.25){}
       else if(goT>30)finish(false,"時間切れ… 車が進めなかった");
       else{ // 動いている車が 1 台も無いまま 2.5 秒で失敗（穴や壁で詰まった時に待たせない）。動く足場で運ばれている時は動いている扱い
-        const pending=live.filter(c=>(c.chassis.position.x-L.goal[0])*DIR<0);
+        const pending=live.filter(c=>(L.turn!==undefined&&!turned)||(c.chassis.position.x-L.goal[0])*DIR<0);
         const moving=pending.some(c=>{const p=c.chassis.position,q=c.prevP||p;c.prevP={x:p.x,y:p.y};return Math.hypot(p.x-q.x,p.y-q.y)>=.25;});
         stuckT=(goT>1.5&&pending.length&&!moving&&!MODE.busy())?stuckT+DT/1000:0;
         if(stuckT>2.5)finish(false,"動けなくなっちゃった…");
@@ -647,6 +691,10 @@ function render(){
   for(let r=0;r<3;r++)for(let c=0;c<5;c++){ctx.fillStyle=(r+c)%2?"#222":"#fff";
     const w=Math.sin(time*5+c*.8)*3;ctx.fillRect(c*12,r*12+w,12,12);}
   ctx.restore();}
+  // 折り返しの看板（行って戻る面）
+  if(L.turn!==undefined){const tx=L.turn,ty=L.turnY||480;ctx.fillStyle="#555";ctx.fillRect(tx-3,ty-90,6,90);
+    ctx.fillStyle=turned?"#8a8":"#ffd23f";ctx.strokeStyle="#333";ctx.lineWidth=3;ctx.beginPath();ctx.arc(tx,ty-100,26,0,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle="#333";ctx.font="bold 30px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("↩",tx,ty-98);ctx.textAlign="left";ctx.textBaseline="alphabetic";}
   // 線
   ctx.lineCap="round";ctx.lineJoin="round";
   for(const s of strokes){const b=s.body,{pts,c0}=b.plugin;
@@ -654,6 +702,9 @@ function render(){
     if(pts.length===1){ctx.fillStyle="#2a2f45";ctx.beginPath();ctx.arc(0,0,T*.7,0,7);ctx.fill();}
     else{strokePath(pts,-c0.x,-c0.y);}
     ctx.restore();}
+  if(L.ink&&state==="draw"){const r=Math.max(0,1-(drawing?drawing.len:0)/L.ink); // インクの残り
+    ctx.fillStyle="#0006";ctx.fillRect(W/2-160,64,320,16);ctx.fillStyle=r>.2?"#3fa7ff":"#ff5a4e";ctx.fillRect(W/2-158,66,316*r,12);
+    ctx.fillStyle="#fff";ctx.font="bold 14px sans-serif";ctx.textAlign="center";ctx.fillText("インク",W/2,60);ctx.textAlign="left";}
   if(drawing&&drawing.pts.length){
     if(drawing.pts.length===1){ctx.fillStyle="#2a2f45aa";ctx.beginPath();ctx.arc(drawing.pts[0].x,drawing.pts[0].y,T*.7,0,7);ctx.fill();}
     else{ctx.globalAlpha=.7;strokePath(drawing.pts,0,0);ctx.globalAlpha=1;}
@@ -762,8 +813,9 @@ function drawFarDeco(th,ph){
 function strokePath(pts,ox,oy){
   ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x+ox,p.y+oy):ctx.moveTo(p.x+ox,p.y+oy));
   if(TH.glow){ctx.shadowColor=TH.line[0];ctx.shadowBlur=16;}
-  ctx.strokeStyle=TH.line[0];ctx.lineWidth=T+3;ctx.stroke();ctx.shadowBlur=0;
-  ctx.strokeStyle=TH.line[1];ctx.lineWidth=T-3;ctx.stroke();
+  const lc=(LINE_KIND[L&&L.line]||{}).col||TH.line;
+  ctx.strokeStyle=lc[0];ctx.lineWidth=T+3;ctx.stroke();ctx.shadowBlur=0;
+  ctx.strokeStyle=lc[1];ctx.lineWidth=Math.max(2,T-3);ctx.stroke();
 }
 function drawCar(cr){
   const c=cr.chassis,z=cr.sz,pal=cr===cars[1]?[TH.car[2]==="#556"?"#ffd23f":"#ffffff",TH.car[0],TH.car[2]]:TH.car;

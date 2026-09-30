@@ -5,7 +5,7 @@
      "ball"  ボールをカゴへ        "btn"  goal 印のボタンを全部押す
    L.objs: 部品の並び {k:種類, ...}。id を持つ部品は、ボタンの act で動き出す（門が開く・橋が出る・足場が動く・扇風機が回る・目覚ましが鳴る）
      btn gate bridge plat spin conv spring fan grav warp pool balloon domino ball box basket oji saw cannon guy bees lever
-     lever {x,y,len,dens,a0}: 真ん中をくぎで留めた板（てこ・シーソー）。btn の by:"thing" は線と車以外だけ。saw の free:1 は布団なし。warp の only:"car"/"ball" は車だけ／ボールだけ通す、stop:1 は出口で止まってまっすぐ落ちる
+     lever {x,y,len,dens,a0}: 真ん中をくぎで留めた板（てこ・シーソー）。btn の side:"d" は天井のボタン（下から押す）。oji の pass:1 は線が通りぬける（当たれば起きる）。btn の by:"thing" は線と車以外だけ。saw の free:1 は布団なし。warp の only:"car"/"ball" は車だけ／ボールだけ通す、stop:1 は出口で止まってまっすぐ落ちる
    古い形（L.mode と L.btns/gate/bridge/oji/saw/bed/cannon）は normalize で部品に直す */
 const MODE=(()=>{
   const M={};let FZ=[],P=[],G=[],byId={},flagDone=false,doneT=0,flashT=0,warpCD=new Map(),talkQ=[];
@@ -64,7 +64,7 @@ const MODE=(()=>{
       o.pin=Constraint.create({pointA:{x:o.x,y:o.y},bodyB:o.body,pointB:{x:0,y:0},length:0,stiffness:1});Composite.add(world,[o.body,o.pin]);},
     box(o){o.body=ST(Bodies.rectangle(o.x,o.y,o.w||50,o.h||50,{density:o.dens||.002,friction:.7}));},
     basket(o){const {x0,x1,y}=o;o.bodies=[ST(Bodies.rectangle((x0+x1)/2,y+6,x1-x0,12,{isStatic:true})),ST(Bodies.rectangle(x0,y-30,12,72,{isStatic:true})),ST(Bodies.rectangle(x1,y-30,12,72,{isStatic:true}))];o.done=0;},
-    oji(o){o.body=ST(Bodies.rectangle(o.x,o.y+(o.flip?15:-15),120,30,{isStatic:true,friction:.8}));o.body.plugin.oji=o;o.woke=0;o.on=true;},
+    oji(o){o.body=ST(Bodies.rectangle(o.x,o.y+(o.flip?15:-15),120,30,{isStatic:true,friction:.8,isSensor:!!o.pass}));o.body.plugin.oji=o;o.woke=0;o.on=true;},
     saw(o){const sd=o.dir||1;o.body=ST(Bodies.rectangle(o.x,o.y,o.len,14,{isStatic:true,friction:1,frictionStatic:3,collisionFilter:{category:0x0004}}));o.body.plugin.saw=o;
       const fx=o.x-sd*(o.len/2-26);
       o.rider=Body.create({parts:[Bodies.rectangle(fx,o.y-24,30,34),Bodies.circle(fx,o.y-52,14)],density:.0012,friction:1,frictionStatic:4,restitution:.05});
@@ -91,7 +91,7 @@ const MODE=(()=>{
   M.step=()=>{const d=dt();for(const [bs,o] of KICK)for(const b2 of bs)Body.setVelocity(b2,{x:b2.velocity.x+o.vx,y:-o.v});KICK.length=0;if(flashT>0)flashT-=d;
     const running=state==="go";
     for(const o of P){o.t+=d;
-      if(o.k==="btn"&&!o.down&&running){const bd=o.side==="l"?{min:{x:o.x-20,y:o.y-o.w/2},max:{x:o.x+2,y:o.y+o.w/2}}:{min:{x:o.x-o.w/2,y:o.y-20},max:{x:o.x+o.w/2,y:o.y+2}}; // side:"l" は壁の左面のボタン
+      if(o.k==="btn"&&!o.down&&running){const bd=o.side==="l"?{min:{x:o.x-20,y:o.y-o.w/2},max:{x:o.x+2,y:o.y+o.w/2}}:o.side==="d"?{min:{x:o.x-o.w/2,y:o.y-2},max:{x:o.x+o.w/2,y:o.y+20}}:{min:{x:o.x-o.w/2,y:o.y-20},max:{x:o.x+o.w/2,y:o.y+2}}; // side:"l" は壁の左面のボタン
         if(touching(o,bd,o.by)){o.down=true;tone(660,.1,"square",.08);tone(990,.15,"square",.08,0,.1);
           const grp=P.filter(q=>q.k==="btn"&&q.all&&q.act+""===o.act+"");
           if(!o.all||grp.every(q=>q.down))(o.act||[]).forEach(activate);}}
@@ -187,6 +187,7 @@ const MODE=(()=>{
   const arrow=(x,y,dx,dy,c)=>{const a=Math.atan2(dy,dx);ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-9);ctx.lineTo(-8,9);ctx.fill();ctx.restore();};
   const DRAW={
     btn(o){if(o.side==="l"){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(-Math.PI/2);ctx.translate(-o.x,-o.y);DRAW.btn({...o,side:0});ctx.restore();return;}
+      if(o.side==="d"){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(Math.PI);ctx.translate(-o.x,-o.y);DRAW.btn({...o,side:0});ctx.restore();return;} // 天井のボタン（下から押す）
       const h=o.down?5:14;ctx.fillStyle="#555";rr(o.x-o.w/2-6,o.y-8,o.w+12,8,3);ctx.fill();
       ctx.fillStyle=o.down?"#3ac060":o.goal?"#ff9a1a":"#ff3b3b";ctx.beginPath();ctx.ellipse(o.x,o.y-8,o.w/2-4,h,0,Math.PI,0);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.stroke();
       if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";
