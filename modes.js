@@ -5,7 +5,7 @@
      "ball"  ボールをカゴへ        "btn"  goal 印のボタンを全部押す
    L.objs: 部品の並び {k:種類, ...}。id を持つ部品は、ボタンの act で動き出す（門が開く・橋が出る・足場が動く・扇風機が回る・目覚ましが鳴る）
      btn gate bridge plat spin conv spring fan grav warp pool balloon domino ball box basket oji saw cannon guy bees lever
-     lever {x,y,len,dens,a0}: 真ん中をくぎで留めた板（てこ・シーソー）。btn の side:"d" は天井のボタン（下から押す）。oji の pass:1 は線が通りぬける（当たれば起きる）。btn の by:"thing" は線と車以外だけ。saw の free:1 は布団なし。warp の only:"car"/"ball" は車だけ／ボールだけ通す、stop:1 は出口で止まってまっすぐ落ちる
+     lever {x,y,len,dens,a0}: 真ん中をくぎで留めた板（てこ・シーソー）。btn の side:"d" は天井のボタン（下から押す）。oji の pass:1 は線が通りぬける（当たれば起きる）。btn の by:"thing" は線と車以外だけ、by:"car" は車だけ。saw の free:1 は布団なし。warp の only:"car"/"ball" は車だけ／ボールだけ通す、stop:1 は出口で止まってまっすぐ落ちる
    古い形（L.mode と L.btns/gate/bridge/oji/saw/bed/cannon）は normalize で部品に直す */
 const MODE=(()=>{
   const M={};let FZ=[],P=[],G=[],byId={},flagDone=false,doneT=0,flashT=0,warpCD=new Map(),talkQ=[];
@@ -64,6 +64,8 @@ const MODE=(()=>{
       o.pin=Constraint.create({pointA:{x:o.x,y:o.y},bodyB:o.body,pointB:{x:0,y:0},length:0,stiffness:1});Composite.add(world,[o.body,o.pin]);},
     box(o){o.body=ST(Bodies.rectangle(o.x,o.y,o.w||50,o.h||50,{density:o.dens||.002,friction:.7}));},
     basket(o){const {x0,x1,y}=o;o.bodies=[ST(Bodies.rectangle((x0+x1)/2,y+6,x1-x0,12,{isStatic:true})),ST(Bodies.rectangle(x0,y-30,12,72,{isStatic:true})),ST(Bodies.rectangle(x1,y-30,12,72,{isStatic:true}))];o.done=0;},
+    hit(o){o.w=o.w||(o.flip?120:160);if(o.flip)o.body=ST(Bodies.rectangle(o.x,o.y+15,o.w,30,{isStatic:true,friction:.8}));else{const a=o.w/2,t=a-36; // 床の台は両脇を坂にして車が乗りこえられるように
+        o.body=ST(Bodies.fromVertices(o.x,o.y-12,[[{x:-a,y:0},{x:a,y:0},{x:t,y:-30},{x:-t,y:-30}]],{isStatic:true,friction:.8}));Body.setPosition(o.body,{x:o.x,y:o.y-(o.body.bounds.max.y-o.body.bounds.min.y)/2});}o.body.plugin.hit=o;o.down=false;o.dt=0;}, // 当てるスイッチ台（物をぶつけると押せる）
     oji(o){o.body=ST(Bodies.rectangle(o.x,o.y+(o.flip?15:-15),120,30,{isStatic:true,friction:.8,isSensor:!!o.pass}));o.body.plugin.oji=o;o.woke=0;o.on=true;},
     saw(o){const sd=o.dir||1;o.body=ST(Bodies.rectangle(o.x,o.y,o.len,14,{isStatic:true,friction:1,frictionStatic:3,collisionFilter:{category:0x0004}}));o.body.plugin.saw=o;
       const fx=o.x-sd*(o.len/2-26);
@@ -77,7 +79,8 @@ const MODE=(()=>{
   };
   M.go=()=>{for(const b of FZ)Body.setStatic(b,false);FZ=[];}; // 線を離したら動き出す
   // ---------- 動かす ----------
-  function activate(id){if(id[0]==="!"){for(const o of (byId[id.slice(1)]||[]))o.on=false;tone(200,.3,"square",.05,80);return;} // "!id" は止める
+  function activate(id){if(id[0]==="!"){for(const o of (byId[id.slice(1)]||[])){o.on=false;if(o.k==="cannon")for(const b of rocks)if(b.plugin.shell)b.plugin.dead=true;} // 大砲が止まったら出ている弾も消える
+    tone(200,.3,"square",.05,80);return;} // "!id" は止める
     for(const o of (byId[id]||[])){if(o.on&&o.k!=="oji")continue;
     if(o.k==="oji"){if(!o.woke){o.woke=.001;o.alarm=1;tone(1400,.08,"square",.08);tone(1400,.08,"square",.08,0,.12);tone(1400,.08,"square",.08,0,.24);}continue;}
     o.on=true;o.t=0;tone(300,.4,"sawtooth",.05,600);}}
@@ -85,7 +88,7 @@ const MODE=(()=>{
   const carOf=b=>cars.find(c=>!c.waiting&&(b===c.chassis||b===c.wA||b===c.wB));
   function moveCar(c,dx,dy){for(const b of [c.chassis,c.wA,c.wB])Body.setPosition(b,{x:b.position.x+dx,y:b.position.y+dy});}
   function touching(o,bd,by){ // ボタンの上に何か乗っているか
-    for(const b of dyn()){if(by==="line"&&!strokes.some(s=>s.body===b))continue;if(by==="thing"&&(strokes.some(s=>s.body===b)||carOf(b)))continue;if(b.plugin&&(b.plugin.balloon))continue;
+    for(const b of dyn()){if(by==="line"&&!strokes.some(s=>s.body===b))continue;if(by==="thing"&&(strokes.some(s=>s.body===b)||carOf(b)))continue;if(by==="car"&&!carOf(b))continue;if(b.plugin&&(b.plugin.balloon))continue;
       const parts=b.parts.length>1?b.parts.slice(1):[b];if(Query.region(parts,bd).length)return true;}return false;}
   const KICK=[];
   M.step=()=>{const d=dt();for(const [bs,o] of KICK)for(const b2 of bs)Body.setVelocity(b2,{x:b2.velocity.x+o.vx,y:-o.v});KICK.length=0;if(flashT>0)flashT-=d;
@@ -127,7 +130,7 @@ const MODE=(()=>{
       if(o.k==="balloon"&&!o.popped){const k=Math.max(.2,Math.min(1.8,1+(o.ball.position.y-o.y)/40)); // 元の高さでふわふわ止まる
         Body.applyForce(o.ball,o.ball.position,{x:0,y:-k*(o.ball.mass+o.box.mass)*.001*engine.gravity.y});}
       if(o.k==="cannon"&&running&&o.on){o.cd-=d;if(o.cd<=0){o.cd=o.iv||1;flashT=.15;
-        const b=Bodies.circle(o.x,o.y,15,{density:.006,restitution:.2,friction:.3,frictionAir:0});b.plugin.rock=true;b.plugin.ball=true;Composite.add(world,b);
+        const b=Bodies.circle(o.x,o.y,15,{density:.006,restitution:.2,friction:.3,frictionAir:0});b.plugin.rock=true;b.plugin.ball=true;b.plugin.shell=true;Composite.add(world,b);
         let vy=o.vy;if(vy===null||vy===undefined){const tgt=car.chassis.position,t=Math.max(8,Math.abs((tgt.x-o.x)/o.vx)),g=engine.gravity.y*.001*DT*DT;vy=(tgt.y-10-o.y-.5*g*t*t)/t;}
         Body.setVelocity(b,{x:o.vx,y:vy});rocks.push(b);tone(120,.2,"square",.12,50);}}
       if(o.k==="oji"&&o.woke)o.woke+=d;
@@ -164,6 +167,9 @@ const MODE=(()=>{
     for(const [x,y] of [[A,B],[B,A]]){
       if(y.plugin.oji&&!x.isStatic&&!y.plugin.oji.woke&&!strokes.some(s=>s.body===x)){  // 線が当たっても起きない（物をぶつけて起こす）
         y.plugin.oji.woke=.001;tone(880,.15,"square",.1);tone(1320,.2,"square",.1,0,.12);}
+      if(y.plugin.hit&&!x.isStatic&&!y.plugin.hit.down&&!strokes.some(s=>s.body===x)&&(y.plugin.hit.by==="car"?carOf(x):!carOf(x))){const o=y.plugin.hit;o.down=true;o.dt=time;
+        tone(660,.1,"square",.08);tone(990,.15,"square",.08,0,.1);const grp=P.filter(q=>(q.k==="btn"||q.k==="hit")&&q.all&&q.act+""===o.act+"");
+        if(!o.all||grp.every(q=>q.down))(o.act||[]).forEach(activate);}
       if(y.plugin.saw&&strokes.some(s=>s.body===x)&&(x.position.x-y.plugin.saw.x)*(y.plugin.saw.dir||1)>0)fire(y.plugin.saw,x);
       if(y.plugin.spring&&!x.isStatic){const o=y.plugin.spring;if(x.position.y<o.y-4){o.sq=1;const c=carOf(x)||carOf(a)||null;
         if(!KICK.some(k=>k[0][0]===(c?c.chassis:x)))KICK.push([c?[c.chassis,c.wA,c.wB]:[x],o]);tone(300,.15,"sine",.1,900);}}
@@ -193,6 +199,12 @@ const MODE=(()=>{
       ctx.fillStyle=o.down?"#3ac060":o.goal?"#ff9a1a":"#ff3b3b";ctx.beginPath();ctx.ellipse(o.x,o.y-8,o.w/2-4,h,0,Math.PI,0);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.stroke();
       if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";
         ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText("おして ▼",o.x,o.y-34+bob);ctx.fillText("おして ▼",o.x,o.y-34+bob);ctx.textAlign="left";}},
+    hit(o){const {x,y}=o,w=o.w;ctx.save();if(o.flip){ctx.translate(0,2*y);ctx.scale(1,-1);}
+      const r=o.flip?0:36;ctx.fillStyle="#6b7280";ctx.beginPath();ctx.moveTo(x-w/2,y);ctx.lineTo(x+w/2,y);ctx.lineTo(x+w/2-r,y-30);ctx.lineTo(x-w/2+r,y-30);ctx.fill();ctx.fillStyle="#9aa3af";rr(x-w/2+38,y-30,w-76,6,3);ctx.fill();
+      ctx.fillStyle="#ffd23f";for(let i=0;i<Math.floor((w-40)/24);i++){ctx.beginPath();ctx.moveTo(x-w/2+26+i*24,y-4);ctx.lineTo(x-w/2+36+i*24,y-18);ctx.lineTo(x-w/2+42+i*24,y-18);ctx.lineTo(x-w/2+32+i*24,y-4);ctx.fill();}
+      const h=o.down?4:16;ctx.fillStyle=o.down?"#3ac060":"#ff3b3b";ctx.beginPath();ctx.ellipse(x,y-30,Math.max(12,w/2-40),h,0,Math.PI,0);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.stroke();ctx.restore();
+      if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5,ty=o.flip?y+62:y-58;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";
+        const t=o.by==="car"?"車で当てて！":"ぶつけて！";ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText(t,x,ty+bob);ctx.fillText(t,x,ty+bob);ctx.textAlign="left";}},
     gate(o){const p=o.body.position,h=o.bot-o.top;ctx.save();ctx.translate(p.x,p.y);ctx.beginPath();ctx.rect(-15,-h/2,30,h);ctx.clip();
       for(let y=-h/2-30;y<h/2;y+=30){ctx.fillStyle=(Math.round(y/30)%2)?"#222":"#ffd23f";ctx.beginPath();ctx.moveTo(-15,y);ctx.lineTo(15,y+15);ctx.lineTo(15,y+45);ctx.lineTo(-15,y+30);ctx.fill();}
       ctx.restore();ctx.strokeStyle="#222";ctx.lineWidth=3;ctx.strokeRect(p.x-15,p.y-h/2,30,h);},
