@@ -859,16 +859,80 @@ function failWord(msg){return msg.includes("起きなかった")?"ぐぅ…":msg
 function drawFailWord(f){if(!f.word)return;const k=Math.min(1,(time-f.t)*5),s=k<1?k*1.3:1;
   ctx.save();ctx.translate(f.x,Math.max(70,f.y-90));ctx.rotate(-.12);ctx.scale(s,s);ctx.font="900 64px 'Hiragino Maru Gothic ProN','Arial Black',sans-serif";ctx.textAlign="center";
   ctx.lineJoin="round";ctx.lineWidth=12;ctx.strokeStyle="#000";ctx.strokeText(f.word,0,0);ctx.fillStyle="#ffd23f";ctx.fillText(f.word,0,0);ctx.restore();ctx.textAlign="left";}
-// クリアした時の見物のおっさん（旗の向こうで拍手）
+// クリアした時の見物役（5 面ごとに入れかわる 20 種。旗の向こうで ひとこと）
 let winAt=0,talkAt=null;
-const CHEER=["おお〜！","ナイス！","天才か","やるやん","見事！","拍手〜！"];
-function drawCheer(){if(state!=="win"||!L)return;const k=Math.min(1,(time-winAt)*3),x=L.goal[0]-70*DIR,y=L.goal[1],c=Math.sin(time*18)*6;
-  ctx.save();ctx.translate(x,y+(1-k)*80);
-  ctx.strokeStyle="#4a3020";ctx.lineWidth=7;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(-4,-26);ctx.moveTo(6,0);ctx.lineTo(4,-26);ctx.stroke();
-  ctx.fillStyle="#e8dcc0";rr(-12,-34,24,12,4);ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(0,-48,15,18,0,0,7);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();
-  ctx.strokeStyle=SKIN;ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-12,-56);ctx.lineTo(-4+c,-72);ctx.moveTo(12,-56);ctx.lineTo(4-c,-72);ctx.stroke();
-  ojiHead(0,-78,.9,0);
-  const w=CHEER[li%CHEER.length];ctx.font="bold 20px sans-serif";const tw=ctx.measureText(w).width+20,bx=Math.max(-60,Math.min(60,(W/2-x)*.1));
+const _E=(x,y,rx,ry,col)=>{ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,7);ctx.fill();};
+const _L=(pts,col,w)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();};
+const _eyes=(x,y,g,r=2.6,col="#222")=>{_E(x-g,y,r,r,col);_E(x+g,y,r,r,col);};
+const _smile=(x,y,w,col="#222")=>{ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,w,.2,Math.PI-.2);ctx.stroke();};
+const CHEERS=[
+ {w:["おお〜！","やるやん","見事！"],d(c){_L([[-6,0],[-4,-26]],"#4a3020",7);_L([[6,0],[4,-26]],"#4a3020",7);ctx.fillStyle="#e8dcc0";rr(-12,-34,24,12,4);ctx.fill();
+   _E(0,-48,15,18,"#fff");_L([[-12,-56],[-4+c,-72]],SKIN,6);_L([[12,-56],[4-c,-72]],SKIN,6);ojiHead(0,-78,.9,0);}},
+ {w:["ワン！（訳：やるやん）","ワンダフル！","しっぽが止まらん"],d(c){_L([[-24,-24],[-40,-44+c*2]],"#b07a3a",6);_E(0,-22,26,15,"#c8894a");
+   for(const x of [-16,-6,8,18])_L([[x,-12],[x,0]],"#b07a3a",6);_E(20,-44,16,14,"#c8894a");_E(10,-52,6,11,"#7a4a20");_E(30,-52,6,11,"#7a4a20");
+   _eyes(20,-46,6);_E(20,-38,4,3,"#222");ctx.fillStyle="#ff7a9a";rr(17,-34,6,8+Math.abs(c)*.6,3);ctx.fill();}},
+ {w:["とけるほど感動","ひんやり拍手","夏まで見てたい"],d(c){_E(0,-22,22,22,"#fff");_E(0,-58,16,16,"#fff");ctx.strokeStyle="#9ab";ctx.lineWidth=1.5;
+   ctx.beginPath();ctx.arc(0,-22,22,0,7);ctx.stroke();ctx.beginPath();ctx.arc(0,-58,16,0,7);ctx.stroke();_eyes(0,-62,5);
+   ctx.fillStyle="#ff8c1a";ctx.beginPath();ctx.moveTo(0,-58);ctx.lineTo(14,-55);ctx.lineTo(0,-54);ctx.fill();
+   _L([[-18,-34],[-38,-50+c]],"#6a4020",3);_L([[18,-34],[38,-50-c]],"#6a4020",3);ctx.fillStyle="#d33";rr(-14,-76,28,6,2);ctx.fill();rr(-9,-92,18,16,2);ctx.fill();}},
+ {w:["チキュウジン、ヤルヤン","ホシ、ミッツ","ボスニ、ホウコクスル"],d(c){_L([[-8,-72],[-16,-92]],"#6c6",2);_L([[8,-72],[16,-92]],"#6c6",2);_E(-16,-93,4,4,"#ff0");_E(16,-93,4,4,"#ff0");
+   _E(0,-22,12,20,"#7d7");_L([[-10,-28],[-26,-44+c]],"#7d7",4);_L([[10,-28],[26,-44-c]],"#7d7",4);_E(0,-62,22,17,"#8e8");
+   ctx.fillStyle="#111";ctx.beginPath();ctx.ellipse(-9,-62,6,9,-.5,0,7);ctx.ellipse(9,-62,6,9,.5,0,7);ctx.fill();}},
+ {w:["あら〜上手やねぇ","飴ちゃんあげよ","うちの子にも見せたいわ"],d(c){_E(0,-24,17,24,"#ffcc33");for(const [x,y] of [[-8,-30],[6,-20],[-4,-12],[8,-36],[-10,-18]])_E(x,y,3,2.5,"#6a4000");
+   _L([[-14,-36],[-2+c,-50]],SKIN,6);_L([[14,-36],[2-c,-50]],SKIN,6);_E(0,-62,13,14,SKIN);
+   for(let a=0;a<9;a++)_E(Math.cos(a*.75+2.6)*15,-66+Math.sin(a*.75+2.6)*14,7,7,"#8a4fb0");_eyes(0,-62,5,2);_smile(0,-60,5);_E(-9,-57,3,2,"#f99");_E(9,-57,3,2,"#f99");}},
+ {w:["ポッポー（天才）","クルッポー！","パンくずよりええもん見た"],d(c){const h=c*.8;_L([[-4,0],[-4,-12]],"#e77",3);_L([[4,0],[4,-12]],"#e77",3);_E(0,-24,20,14,"#9aa0b0");
+   _E(-18,-28,12,7,"#7a8090");_E(12+h,-40,8,10,"#6a9");_E(14+h,-50,10,10,"#8a90a0");_E(17+h,-52,2.5,2.5,"#f60");_E(17+h,-52,1.2,1.2,"#000");
+   ctx.fillStyle="#fc6";ctx.beginPath();ctx.moveTo(23+h,-50);ctx.lineTo(31+h,-48);ctx.lineTo(23+h,-46);ctx.fill();}},
+ {w:["青です。どうぞ","ずっと青にしとくわ","信号無視はアカンで"],d(c){ctx.fillStyle="#888";rr(-4,-60,8,60,2);ctx.fill();ctx.fillStyle="#333";rr(-40,-86,80,28,8);ctx.fill();
+   _E(-24,-72,9,9,"#522");_E(0,-72,9,9,"#540");_E(24,-72,9,9,Math.sin(time*8)>0?"#3f6":"#1a4");_eyes(24,-74,3,1.5);_smile(24,-72,3);}},
+ {w:["うらめしや…やない、すごいや","成仏しそう","ぞくっとした"],d(c){const f=Math.sin(time*3)*6;ctx.save();ctx.globalAlpha=.9;ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-20,-20+f);
+   ctx.arc(0,-50+f,20,Math.PI,0);ctx.lineTo(20,-20+f);for(let i=0;i<4;i++)ctx.quadraticCurveTo(15-i*10,-10+f+(i%2?-6:6),10-i*10,-20+f);ctx.fill();ctx.restore();
+   _eyes(0,-52+f,7,3);_E(0,-42+f,4,5,"#222");_L([[-18,-40+f],[-30,-50+f+c]],"#fff",5);_L([[18,-40+f],[30,-50+f-c]],"#fff",5);}},
+ {w:["大根役者ちゃうで","おでんで待ってる","ほめたら太なった"],d(c){for(const a of [-.5,0,.5])_E(Math.sin(a)*14,-86+Math.abs(a)*6,5,16,"#4b3");_E(0,-40,15,36,"#f8f8f0");
+   for(const y of [-20,-8])_L([[-8,y],[6,y+2]],"#ccc",1);_eyes(0,-52,5);_smile(0,-48,5);_E(-9,-45,3,2,"#fbb");_E(9,-45,3,2,"#fbb");
+   _L([[-14,-38],[-28,-52+c]],"#eee",4);_L([[14,-38],[28,-52-c]],"#eee",4);}},
+ {w:["ピピ…ケイサンドオリ","ヤルヤン.exe","カンドウ ヲ 学習シタ"],d(c){_L([[-8,0],[-8,-14]],"#777",5);_L([[8,0],[8,-14]],"#777",5);ctx.fillStyle="#9aa4b0";rr(-18,-44,36,32,4);ctx.fill();
+   _L([[-18,-38],[-32,-50+c*1.5]],"#777",4);_L([[18,-38],[32,-50-c*1.5]],"#777",4);ctx.fillStyle="#b8c2cc";rr(-15,-72,30,26,4);ctx.fill();
+   ctx.fillStyle="#0ff";rr(-10,-64,7,7,1);ctx.fill();rr(3,-64,7,7,1);ctx.fill();_L([[0,-72],[0,-82]],"#555",2);_E(0,-84,4,4,Math.sin(time*10)>0?"#f33":"#700");
+   ctx.fillStyle="#333";rr(-8,-53,16,3,1);ctx.fill();}},
+ {w:["ペンッ！","飛べへんけど拍手","氷よりクール"],d(c){_E(0,-34,18,30,"#222");_E(0,-30,12,24,"#fff");_L([[-16,-40],[-28,-26+c]],"#222",6);_L([[16,-40],[28,-26-c]],"#222",6);
+   _eyes(0,-54,5,2.2);ctx.fillStyle="#fa2";ctx.beginPath();ctx.moveTo(-5,-49);ctx.lineTo(5,-49);ctx.lineTo(0,-43);ctx.fill();_E(-7,-3,7,3,"#fa2");_E(7,-3,7,3,"#fa2");}},
+ {w:["ごっつぁんです","押し出しで勝ち","ちゃんこ食べてく？"],d(c){_L([[-12,0],[-12,-14]],SKIN,10);_L([[12,0],[12,-14]],SKIN,10);_E(0,-34,26,24,SKIN);ctx.fillStyle="#335";rr(-26,-22,52,12,3);ctx.fill();
+   _L([[-22,-44],[-34,-30+c]],SKIN,9);_L([[22,-44],[34,-30-c]],SKIN,9);_E(0,-66,14,14,SKIN);ctx.fillStyle="#111";rr(-12,-82,24,6,3);ctx.fill();_E(0,-86,5,5,"#111");
+   _eyes(0,-66,5,2);_L([[-4,-59],[4,-59]],"#533",2);}},
+ {w:["トゲある拍手","水より嬉しい","痛いけどハイタッチ"],d(c){ctx.fillStyle="#c86a3a";ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(16,0);ctx.lineTo(20,-16);ctx.lineTo(-20,-16);ctx.fill();
+   ctx.fillStyle="#4a4";rr(-11,-76,22,62,10);ctx.fill();rr(-30,-54+c,12,24,6);ctx.fill();rr(-30,-38,20,10,5);ctx.fill();rr(18,-60-c,12,24,6);ctx.fill();rr(10,-44,20,10,5);ctx.fill();
+   _E(0,-80,6,5,"#f6a");_eyes(0,-54,4,2);_smile(0,-50,4);_L([[-11,-66],[-15,-68]],"#dfd",1);_L([[11,-40],[15,-42]],"#dfd",1);}},
+ {w:["……見事でござる","拙者、見ておった","ニンニン（拍手）"],d(c){_L([[-6,0],[-5,-24]],"#223",7);_L([[6,0],[5,-24]],"#223",7);_E(0,-42,14,20,"#2a2f45");
+   _L([[-12,-46],[8,-40]],"#2a2f45",6);_L([[12,-46],[-8,-38]],"#2a2f45",6);_E(0,-70,13,14,"#2a2f45");ctx.fillStyle=SKIN;rr(-10,-74,20,7,3);ctx.fill();_eyes(0,-70.5,4,1.6);
+   _L([[12,-72],[22,-68+c*.5]],"#c33",3);}},
+ {w:["アツい！","燃えてきた","ジュッとくる出来"],d(c){const f=t=>Math.sin(time*14+t)*3;_E(0,-30,20,24,"#ff5a1a");_E(f(1),-50,14,22,"#ff8a1a");_E(f(2),-64,8,14,"#ffd23f");_E(0,-26,13,16,"#ffd23f");
+   _eyes(0,-32,5,2.6,"#300");_smile(0,-28,5,"#300");}},
+ {w:["ケロッとクリア","ゲロうま","かえるころには伝説"],d(c){const h=-Math.abs(Math.sin(time*6))*14;ctx.save();ctx.translate(0,h);_E(0,-18,24,16,"#5c3");_E(-11,-34,8,8,"#5c3");_E(11,-34,8,8,"#5c3");
+   _E(-11,-35,5,5,"#fff");_E(11,-35,5,5,"#fff");_E(-11,-35,2.5,2.5,"#000");_E(11,-35,2.5,2.5,"#000");ctx.strokeStyle="#231";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-24,12,.3,Math.PI-.3);ctx.stroke();
+   _E(-18,-4,9,4,"#4a2");_E(18,-4,9,4,"#4a2");ctx.restore();}},
+ {w:["ぷるぷる感動","あまい勝利","カラメル級"],d(c){ctx.fillStyle="#eee";rr(-30,-4,60,6,3);ctx.fill();ctx.save();ctx.translate(0,-4);ctx.scale(1+Math.sin(time*16)*.06,1-Math.sin(time*16)*.06);
+   ctx.fillStyle="#ffdd66";ctx.beginPath();ctx.moveTo(-24,0);ctx.lineTo(24,0);ctx.lineTo(16,-40);ctx.lineTo(-16,-40);ctx.fill();ctx.fillStyle="#8a4a10";rr(-17,-44,34,10,5);ctx.fill();
+   _eyes(0,-22,6,2.2);_smile(0,-18,5);_E(-11,-15,3,2,"#f99");_E(11,-15,3,2,"#f99");ctx.restore();}},
+ {w:["8本で拍手","タコでもわかる天才","すみ吐くほど感動"],d(c){for(let i=0;i<6;i++){const x=-20+i*8;_L([[x,-26],[x+Math.sin(time*9+i)*6,-12],[x+Math.sin(time*9+i+1)*8,0]],"#e4533a",5);}
+   _E(0,-48,22,24,"#ff6a4a");ctx.fillStyle="#fff";rr(-22,-58,44,6,3);ctx.fill();_eyes(0,-44,7,3);_E(0,-34,4,4,"#c33");}},
+ {w:["もちつけ…いや、すごい","月までとどいた","ぺったん！"],d(c){_E(-7,-78,5,16,"#fff");_E(7,-80,5,16,"#fff");_E(-7,-78,2,11,"#fcc");_E(7,-80,2,11,"#fcc");_E(0,-30,16,24,"#fff");_E(0,-58,14,13,"#fff");
+   _eyes(0,-59,5,2.2,"#e22");_E(0,-54,2,1.5,"#f9a");ctx.save();ctx.translate(20,-40);ctx.rotate(-.6+c*.08);ctx.fillStyle="#b08050";rr(-2,-28,4,30,2);ctx.fill();rr(-10,-34,20,10,3);ctx.fill();ctx.restore();}},
+ {w:["話が長くなるので省略。えらい","校長先生も感心です","全校集会で発表します"],d(c){_L([[-6,0],[-5,-24]],"#333",7);_L([[6,0],[5,-24]],"#333",7);ctx.fillStyle="#333";rr(-15,-58,30,36,6);ctx.fill();
+   ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-5,-58);ctx.lineTo(5,-58);ctx.lineTo(0,-46);ctx.fill();_L([[0,-54],[0,-44]],"#c22",3);_L([[-14,-52],[-24,-40]],"#333",6);
+   _L([[14,-52],[24,-64]],"#333",6);ctx.fillStyle="#fff";rr(18,-78,18,14,1);ctx.fill();ojiHead(0,-78,.9,0);
+   ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.beginPath();ctx.arc(-6,-80,5,0,7);ctx.moveTo(11,-80);ctx.arc(6,-80,5,0,7);ctx.stroke();}},
+];
+// 旗のない面は、画面のはしの地面に立たせる（空中に浮かないように）
+let cheerPos=null;
+function cheerSpot(){if(L.goals&&!L.goals.includes("flag")||!L.goal){const ss=statics.filter(b=>!b.isSensor);
+    for(const x of [W-90,W-200,90,200,W/2]){for(let y=150;y<H-20;y+=4)if(Query.point(ss,{x,y}).length){if(!Query.point(ss,{x,y:y-100}).length)return [x,y];break;}}}
+  return [L.goal[0]-70*DIR,L.goal[1]];}
+function drawCheer(){if(state!=="win"||!L){cheerPos=null;return;}if(!cheerPos)cheerPos=cheerSpot();const k=Math.min(1,(time-winAt)*3),[x,y]=cheerPos,c=Math.sin(time*18)*6;
+  const ch=CHEERS[Math.floor(li/5)%CHEERS.length];
+  ctx.save();ctx.translate(x,y+(1-k)*80);ch.d(c);
+  const w=ch.w[li%5%ch.w.length];ctx.font="bold 20px sans-serif";const tw=ctx.measureText(w).width+20,bx=Math.max(-x+tw/2+8,Math.min(W-x-tw/2-8,Math.max(-60,Math.min(60,(W/2-x)*.1))));
   ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2;rr(bx-tw/2,-128,tw,32,12);ctx.fill();ctx.stroke();ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(w,bx,-106);ctx.textAlign="left";
   ctx.restore();}
 function drawTalk(c,z){const t=TALK[TH.rider];if(!t||state==="title")return;
