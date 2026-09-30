@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=91"></script>
-<script src="gen.js?v=91"></script>
-<script src="gen_table.js?v=91"></script><script src="looks.js?v=91"></script><script src="modes.js?v=91"></script><script src="stages.js?v=91"></script>
+<script src="matter.min.js?v=92"></script>
+<script src="gen.js?v=92"></script>
+<script src="gen_table.js?v=92"></script><script src="looks.js?v=92"></script><script src="modes.js?v=92"></script><script src="stages.js?v=92"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -138,8 +138,8 @@ const LEVELS=[
  {name:"大峡谷",hint:"とても長い谷。くぎを通して長い一本を。",
   ground:[cliffL(260,440),cliffR(1020,440)],car:[110,440],goal:[1140,440],pins:[[520,452],[760,452]]},
  /* ---- 11〜20 ---- */
- {name:"はね橋",hint:"谷の上には描けない。くぎから上へ線をのばせば、倒れて橋になる。",
-  ground:[cliffL(420,440),cliffR(660,440)],car:[140,440],goal:[1000,440],pins:[[428,424]],noDraw:[[455,0,205,600]]},
+ {name:"はね橋",hint:"谷の上には描けない。岸の出っぱりのうしろに高い線を立てれば、倒れて橋になる。",
+  ground:[cliffL(420,440),cliffR(660,440),rect(410,428,428,450)],car:[140,440],goal:[1000,440],noDraw:[[455,0,205,600]]},
  {name:"高い壁",hint:"大きな三角形で、壁の上まで。",
   ground:[rect(-60,W+60,480),rect(620,760,330)],car:[150,480],goal:[1080,480]},
  {name:"階段",hint:"段差は高すぎて登れない。角をまとめて一本の坂に。",
@@ -195,7 +195,7 @@ const HAND_SOLS=[
  [[340,440],[700,440],[890,398],[930,394]],
  [[250,430],[520,452],[1030,430]],
  
- [[426,430],[446,140]],
+ [[380,432],[440,100]],
  [[330,472],[606,340],[606,472],[350,472]],
  [[300,470],[906,288]],
  [[390,280],[760,512]],
