@@ -162,7 +162,8 @@ const MODE=(()=>{
   // 当たった時（a と b は部品。どちらも親をたどる）
   M.onHit=(a,b)=>{const A=a.parent,B=b.parent;if(state!=="go")return;
     for(const [x,y] of [[A,B],[B,A]]){
-      if(y.plugin.oji&&!x.isStatic&&!y.plugin.oji.woke){y.plugin.oji.woke=.001;tone(880,.15,"square",.1);tone(1320,.2,"square",.1,0,.12);}
+      if(y.plugin.oji&&!x.isStatic&&!y.plugin.oji.woke&&!strokes.some(s=>s.body===x)){  // 線が当たっても起きない（物をぶつけて起こす）
+        y.plugin.oji.woke=.001;tone(880,.15,"square",.1);tone(1320,.2,"square",.1,0,.12);}
       if(y.plugin.saw&&strokes.some(s=>s.body===x)&&(x.position.x-y.plugin.saw.x)*(y.plugin.saw.dir||1)>0)fire(y.plugin.saw,x);
       if(y.plugin.spring&&!x.isStatic){const o=y.plugin.spring;if(x.position.y<o.y-4){o.sq=1;const c=carOf(x)||carOf(a)||null;
         if(!KICK.some(k=>k[0][0]===(c?c.chassis:x)))KICK.push([c?[c.chassis,c.wA,c.wB]:[x],o]);tone(300,.15,"sine",.1,900);}}
