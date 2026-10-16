@@ -854,7 +854,7 @@ const TALK={bridge:["……","ふんっ！！","腰、無事！","腰がぁぁ�
   cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","潜航〜！","浮上成功","浸水〜！"],rover:["ピピ","小さな一歩！","人類の大きな一歩","ヒューストン…"],
   ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","正義は勝つ","マントが…"],futon:["zzz","むにゃ…","あと5分…","（まだ寝てる）"]};
 // 失敗の擬音
-function failWord(msg){return msg.includes("起きなかった")?"ぐぅ…":msg.includes("飛んでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
+function failWord(msg){return msg.includes("トゲ")?"プスッ！":msg.includes("起きなかった")?"ぐぅ…":msg.includes("飛んでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
   msg.includes("動けなく")||msg.includes("時間")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":TH.subway?"プァーン！":"ドボーン！";}
 function drawFailWord(f){if(!f.word)return;const k=Math.min(1,(time-f.t)*5),s=k<1?k*1.3:1;
   ctx.save();ctx.translate(f.x,Math.max(70,f.y-90));ctx.rotate(-.12);ctx.scale(s,s);ctx.font="900 64px 'Hiragino Maru Gothic ProN','Arial Black',sans-serif";ctx.textAlign="center";
@@ -1023,7 +1023,7 @@ function drawBoom(){
      "wake"  おっさんを全員起こす  "bed"  シーソーで飛ばしたおっさんを布団へ
      "ball"  ボールをカゴへ        "btn"  goal 印のボタンを全部押す
    L.objs: 部品の並び {k:種類, ...}。id を持つ部品は、ボタンの act で動き出す（門が開く・橋が出る・足場が動く・扇風機が回る・目覚ましが鳴る）
-     btn gate bridge plat spin conv spring fan grav warp pool balloon domino ball box basket oji saw cannon guy bees lever
+     btn gate bridge plat spin conv spring jump toge fan grav warp pool balloon domino ball box basket oji saw cannon guy bees lever
      lever {x,y,len,dens,a0}: 真ん中をくぎで留めた板（てこ・シーソー）。btn の side:"d" は天井のボタン（下から押す）。oji の pass:1 は線が通りぬける（当たれば起きる）。btn の by:"thing" は線と車以外だけ、by:"car" は車だけ。saw の free:1 は布団なし。warp の only:"car"/"ball" は車だけ／ボールだけ通す、stop:1 は出口で止まってまっすぐ落ちる
    古い形（L.mode と L.btns/gate/bridge/oji/saw/bed/cannon）は normalize で部品に直す */
 const MODE=(()=>{
@@ -1070,6 +1070,8 @@ const MODE=(()=>{
       const parts=[Bodies.rectangle(o.x,o.y,o.len,16)];if(o.cross)parts.push(Bodies.rectangle(o.x,o.y,16,o.len));
       o.body=ST(Body.create({parts,isStatic:true,friction:.6}));Body.setAngle(o.body,o.a0||0);},
     conv(o){o.body=ST(Bodies.rectangle((o.x0+o.x1)/2,o.y+10,o.x1-o.x0,20,{isStatic:true,friction:1,frictionStatic:3}));},
+    jump(o){o.carOnly=1;o.w=o.w||90;o.v=o.v||15;o.vx=o.vx||6;o.sq=0;o.body=ST(Bodies.rectangle(o.x,o.y-7,o.w,14,{isStatic:true,friction:.8}));o.body.plugin.spring=o;}, // ジャンプ台（車だけ跳ぶ）
+    toge(o){const w=o.x1-o.x0,dn=o.dir==="down";o.body=ST(Bodies.rectangle(o.x0+w/2,dn?o.y+9:o.y-9,w,18,{isStatic:true,friction:.6}));o.body.plugin.toge=o;}, // トゲ（車がさわると失敗。線でおおえば上を通れる）
     spring(o){o.w=o.w||70;o.v=o.v||17;o.vx=o.vx||0;o.sq=0;o.body=ST(Bodies.rectangle(o.x,o.y-7,o.w,14,{isStatic:true,friction:.8}));o.body.plugin.spring=o;},
     fan(o){},grav(o){},warp(o){o.r=o.r||36;},pool(o){},
     balloon(o){o.r=o.r||28;o.lift=o.lift||1.7;
@@ -1113,6 +1115,10 @@ const MODE=(()=>{
   M.step=()=>{const d=dt();for(const [bs,o] of KICK)for(const b2 of bs)Body.setVelocity(b2,{x:b2.velocity.x+o.vx,y:-o.v});KICK.length=0;if(flashT>0)flashT-=d;
     const running=state==="go";
     for(const o of P){o.t+=d;
+      if(o.k==="toge"&&running){const cs=cars.filter(c=>!c.waiting).flatMap(c=>[c.chassis,c.wA,c.wB]); // 少しのあいだ触れ続けたらささる（着地の一瞬のめりこみは見のがす）
+        const hit=cs.length?Query.collides(o.body,cs):[];if(hit.length){const cx=car.chassis.position.x;
+          const cover=Query.collides(o.body,strokes.map(st=>st.body)).some(c=>(c.supports||[]).some(p=>p&&Math.abs(p.x-cx)<90)); // すぐそばで線がトゲをおおっていれば見のがす
+          o.tc=cover?(o.tc||0)+d:9;}else o.tc=0;if(o.tc>.25){finish(false,"トゲにささっちゃった！");return;}}
       if(o.k==="btn"&&!o.down&&running){const bd=o.side==="l"?{min:{x:o.x-20,y:o.y-o.w/2},max:{x:o.x+2,y:o.y+o.w/2}}:o.side==="d"?{min:{x:o.x-o.w/2,y:o.y-2},max:{x:o.x+o.w/2,y:o.y+20}}:{min:{x:o.x-o.w/2,y:o.y-20},max:{x:o.x+o.w/2,y:o.y+2}}; // side:"l" は壁の左面のボタン
         if(touching(o,bd,o.by)){o.down=true;tone(660,.1,"square",.08);tone(990,.15,"square",.08,0,.1);
           const grp=P.filter(q=>q.k==="btn"&&q.all&&q.act+""===o.act+"");
@@ -1190,7 +1196,7 @@ const MODE=(()=>{
         tone(660,.1,"square",.08);tone(990,.15,"square",.08,0,.1);const grp=P.filter(q=>(q.k==="btn"||q.k==="hit")&&q.all&&q.act+""===o.act+"");
         if(!o.all||grp.every(q=>q.down))(o.act||[]).forEach(activate);}
       if(y.plugin.saw&&strokes.some(s=>s.body===x)&&(x.position.x-y.plugin.saw.x)*(y.plugin.saw.dir||1)>0)fire(y.plugin.saw,x);
-      if(y.plugin.spring&&!x.isStatic){const o=y.plugin.spring;if(x.position.y<o.y-4){o.sq=1;const c=carOf(x)||carOf(a)||null;
+      if(y.plugin.spring&&!x.isStatic&&(!y.plugin.spring.carOnly||carOf(x)||carOf(a))){const o=y.plugin.spring;if(x.position.y<o.y-4){o.sq=1;const c=carOf(x)||carOf(a)||null;
         if(!KICK.some(k=>k[0][0]===(c?c.chassis:x)))KICK.push([c?[c.chassis,c.wA,c.wB]:[x],o]);tone(300,.15,"sine",.1,900);}}
       if(y.plugin.balloon&&!y.plugin.balloon.popped&&x!==y.plugin.balloon.box&&!x.isStatic){const o=y.plugin.balloon;o.popped=true;
         Composite.remove(world,[o.ball,o.rope]);tone(1200,.08,"square",.1,200);for(let k=0;k<10;k++)parts.push({x:o.ball.position.x,y:o.ball.position.y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,t:.4,c:"#ff4a6a"});}}};
@@ -1241,6 +1247,11 @@ const MODE=(()=>{
       const s=(time*o.v*60*.5)%24;for(let x=o.x0+((s%24)+24)%24;x<o.x1-6;x+=24)ctx.fillRect(x,o.y+3,10,4);
       for(const x of [o.x0+10,o.x1-10]){ctx.fillStyle="#999";ctx.beginPath();ctx.arc(x,o.y+10,8,0,7);ctx.fill();}
       arrow(o.x0+w/2,o.y-14,o.v,0,"#ffd23f");},
+    jump(o){const w=o.w,sq=o.sq*6;ctx.fillStyle="#222";rr(o.x-w/2,o.y-14+sq,w,14-sq,4);ctx.fill();
+      for(let i=0;i<Math.floor(w/16);i++){ctx.fillStyle=i%2?"#ffd23f":"#222";ctx.fillRect(o.x-w/2+4+i*16,o.y-12+sq,8,10-sq);}
+      ctx.fillStyle="#ff5a1a";ctx.beginPath();ctx.moveTo(o.x,o.y-44+sq);ctx.lineTo(o.x+14,o.y-24+sq);ctx.lineTo(o.x+5,o.y-24+sq);ctx.lineTo(o.x+5,o.y-16+sq);ctx.lineTo(o.x-5,o.y-16+sq);ctx.lineTo(o.x-5,o.y-24+sq);ctx.lineTo(o.x-14,o.y-24+sq);ctx.fill();if(o.sq>0)o.sq=Math.max(0,o.sq-.05);},
+    toge(o){const dn=o.dir==="down",n=Math.max(1,Math.round((o.x1-o.x0)/18)),w=(o.x1-o.x0)/n,s=dn?1:-1;ctx.fillStyle="#cfd5dc";ctx.strokeStyle="#5a6470";ctx.lineWidth=2;
+      for(let i=0;i<n;i++){const x=o.x0+i*w;ctx.beginPath();ctx.moveTo(x,o.y);ctx.lineTo(x+w/2,o.y+s*20);ctx.lineTo(x+w,o.y);ctx.closePath();ctx.fill();ctx.stroke();}},
     spring(o){const h=16-o.sq*10;ctx.strokeStyle="#888";ctx.lineWidth=4;ctx.beginPath();for(let k=0;k<=6;k++){const x=o.x-o.w/2+8+k*(o.w-16)/6,y=o.y-(k%2?h:0);k?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
       ctx.fillStyle="#3ac0ff";rr(o.x-o.w/2,o.y-h-8,o.w,8,3);ctx.fill();},
     fan(o){const dx=o.fx||0,dy=o.fy||0,base=dy<0?[o.x+o.w/2,o.y+o.h]:dy>0?[o.x+o.w/2,o.y]:dx>0?[o.x,o.y+o.h/2]:[o.x+o.w,o.y+o.h/2];
@@ -1325,7 +1336,7 @@ window.STAGES=[
   ground:[R(-60,W+60,480),R(420,560,300,326)],car:[150,480],goal:[1100,480],
   objs:[{k:"gate",id:"g",x:820,top:0,bot:480},{k:"btn",x:490,y:300,act:["g"],by:"line"}],sol:[[445,250],[535,250]]},
  {"name":"ボールでボタン","hint":"岩の上にボタン。坂を作ってボールを転がそう。門が開いたら車が行く。","goals":["flag"],"ground":[[[-60,520],[1340,520],[1340,1000],[-60,1000]],[[640,340],[800,340],[800,1000],[640,1000]],[[-60,150],[300,150],[300,1000],[-60,1000]]],"objs":[{"k":"ball","x":360,"y":130,"r":18},{"k":"hit","x":720,"y":340,"act":["g"]},{"k":"gate","id":"g","x":1080,"top":410,"bot":520}],"sol":[[305,146],[650,332]],"car":[900,520],"goal":[1220,520]},
- {hand:2},
+ {"name":"トゲの下をくぐれ","hint":"谷の上に、トゲの台がういている。台の下をくぐる坂を作ろう。","ground":[[[-60,470],[440,470],[400,1000],[-60,1000]],[[740,380],[1340,380],[1340,1000],[780,1000]],[[560,240],[640,240],[640,290],[560,290]]],"car":[150,470],"goal":[1060,380],"sol":[[415,445],[765,355]],"idea":"ramp","goals":["flag"],"objs":[{"k":"toge","x0":560,"x1":640,"y":240},{"k":"toge","x0":560,"x1":640,"y":290,"dir":"down"}]},
  {name:"岩の雨",hint:"岩がふってくる！ 線で屋根を作って、5 秒守ろう。",goals:["guard"],guard:5,
   ground:[R(-60,W+60,480)],car:[640,480],goal:[640,440],rocks:[545,735,.25],sol:[[520,476],[640,300],[760,476]]},
  {hand:10},
@@ -1368,7 +1379,7 @@ window.STAGES=[
   ground:[[[-60,300],[420,300],[560,480],[720,480],[860,300],[W+60,300],[W+60,1000],[-60,1000]]],car:[640,480],goal:[640,440],
   objs:[{k:"cannon",x:80,y:250,vx:9,vy:null,iv:1.3,delay:.6},{k:"cannon",x:1200,y:250,vx:-9,vy:null,iv:1.3,delay:1.2}],
   sol:[[360,290],[920,290]]},
- {"name":"長い谷","hint":"長い谷。しっかり両岸にかかる橋を。","goals":["flag"],"ground":[[[-60,440],[460,440],[420,1000],[-60,1000]],[[780,440],[1340,440],[1340,1000],[820,1000]]],"car":[150,440],"goal":[1150,440],"objs":[],"sol":[[430,400],[800,400]]},
+ {"name":"ジャンプ台","hint":"ジャンプ台で谷をひとっとび！ でも着く所にトゲ。線をしいて、トゲをおおおう。","goals":["flag"],"ground":[[[-60,440],[420,440],[420,1000],[-60,1000]],[[760,440],[1340,440],[1340,1000],[760,1000]]],"car":[130,440],"goal":[1180,440],"objs":[{"k":"jump","x":360,"y":440},{"k":"toge","x0":770,"x1":1010,"y":440}],"sol":[[760,414],[1020,414]]},
 /* ===== 世界 3: はずむ・飛ぶ ===== */
  {name:"扇風機",hint:"扇風機の風で、線がふわっと流れる。棚の上のボタンまで運ぼう。",goals:["flag"],
   ground:[R(-60,W+60,480),R(900,1000,330,350)],car:[150,480],goal:[1150,480],
@@ -1395,7 +1406,7 @@ window.STAGES=[
   objs:[{k:"ball",x:330,y:280,r:18},{k:"spring",x:440,y:560,w:100,v:17,vx:7},{k:"basket",x0:880,x1:1040,y:560}],
   sol:[[184,280],[209,102]]},
  {"name":"大砲の坂","hint":"大砲の弾は、地面や坂に当たると消えてしまう。右の坂に線を敷けば、弾が転がってボタンへ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[900,480],[1340,200],[1340,1000],[900,1000]]],"objs":[{"k":"cannon","x":80,"y":420,"vx":14,"vy":-11,"iv":1.3,"delay":0.4,"id":"c","on":true},{"k":"hit","x":840,"y":480,"act":["g","!c"]},{"k":"gate","id":"g","x":700,"top":370,"bot":480}],"noDraw":[[600,280,300,200]],"sol":[[930,451],[1250,248]],"goal":[980,432],"car":[250,480]},
- {"name":"ついでに全部","hint":"橋をかけて旗へ。ついでにボールをカゴへ落として、中のおっさんも起こそう。","goals":["flag","ball"],"ground":[[[-60,440],[420,440],[380,1000],[-60,1000]],[[760,440],[1080,440],[1080,1000],[760,1000]]],"car":[130,440],"goal":[920,440],"objs":[{"k":"ball","x":830,"y":420,"r":18,"live":1},{"k":"basket","x0":1095,"x1":1265,"y":620}],"sol":[[400,400],[790,400]]},
+ {"name":"ハチのトンネル","hint":"ハチが車をねらってくる！ 左と右の屋根のあいだに、線で屋根をかけよう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[-60,320],[330,320],[330,340],[-60,340]],[[980,260],[1340,260],[1340,280],[980,280]],[[1220,280],[1240,280],[1240,480],[1220,480]]],"car":[150,480],"goal":[1150,480],"objs":[{"k":"bees","x":520,"y":90,"n":18,"iv":0.25,"delay":0.2,"sp":1.5,"max":6}],"sol":[[322,312],[988,252]]},
 /* ===== 世界 4: ピタゴラ（つながる仕掛け） ===== */
  {"name":"てこ","hint":"てこの端に線を落とすと、ボールが天井のボタンへ飛ぶ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[640,440],[660,440],[660,480],[640,480]],[[480,180],[780,180],[780,200],[480,200]]],"objs":[{"k":"lever","x":430,"y":400,"len":420,"a0":0.33,"dens":0.0006},{"k":"ball","x":600,"y":430,"r":18},{"k":"hit","x":620,"y":200,"act":["g"],"flip":1},{"k":"gate","id":"g","x":1080,"top":370,"bot":480}],"sol":[[190,150],[340,150]],"car":[900,480],"goal":[1220,480]},
  {"name":"ボタン2つ","hint":"ボタンは 2 つ。柱の上のボタンは線で、下のボタンはボールを転がして押そう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[340,300],[460,300],[460,1000],[340,1000]]],"objs":[{"k":"ball","x":560,"y":250,"r":18},{"k":"btn","x":400,"y":300,"w":60,"act":["g"],"by":"line","all":true},{"k":"hit","x":820,"y":480,"act":["g"],"all":true},{"k":"gate","id":"g","x":1100,"top":370,"bot":480}],"sol":[[350,292],[470,292],[680,472]],"car":[960,480],"goal":[1230,480]},
@@ -1444,11 +1455,8 @@ window.STAGES=[
  {name:"階段",hint:"2 段の台。1 本の線で、上の旗まで道を作ろう。",goals:["flag"],line:"fixed",
   ground:[R(-60,420,480),R(420,760,340),R(760,W+60,200)],car:[100,480],goal:[1150,200],
   sol:[[208,466],[423,324],[528,326],[763,186]]},
- {name:"下をくぐって",hint:"右の台から左下の旗へ。浮いた岩の下をくぐる坂を。",goals:["flag"],line:"fixed",dir:-1,
-  ground:[R(900,W+60,300),R(450,760,110,290),R(-60,300,560)],car:[1100,300],goal:[130,560],sol:[[895,292],[600,450],[310,552]]},
- {name:"空の道",hint:"浮いた台から、下の浮いた台へ。まん中のブロックをよけて。",goals:["flag"],line:"fixed",
-  ground:[R(-60,260,200,240),R(460,760,300,420),R(1000,W+60,560,600)],car:[100,200],goal:[1150,560],
-  sol:[[270,192],[800,280],[1010,552]]},
+ {"name":"とびすぎ注意の島","hint":"この世界の線は止まる。ジャンプ台で島へとぶけど、とびすぎる。線で壁を立てて止めよう。","goals":["flag"],"line":"fixed","land":1,"ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[700,420],[840,420],[840,1000],[700,1000]],[[-60,600],[1340,600],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[770,420],"objs":[{"k":"jump","x":250,"y":480,"v":17,"vx":8},{"k":"toge","x0":300,"x1":700,"y":600},{"k":"toge","x0":840,"x1":1320,"y":600}],"sol":[[850,300],[850,412]]},
+ {"name":"空中の足場","hint":"この世界の線は止まる。ジャンプ台でとんだ先に、空中の足場を作ってあげよう。下はトゲ。","goals":["flag"],"line":"fixed","ground":[[[-60,300],[240,300],[240,1000],[-60,1000]],[[1000,360],[1340,360],[1340,1000],[1000,1000]],[[-60,600],[1340,600],[1340,1000],[-60,1000]]],"car":[100,300],"goal":[1180,360],"objs":[{"k":"jump","x":190,"y":300},{"k":"toge","x0":240,"x1":1000,"y":600}],"sol":[[470,450],[1006,366]]},
 /* ===== 世界 6: 氷の線（上に乗った物がすべる） ===== */
  {name:"氷のすべり台",hint:"この世界の線は氷。車は上ではふんばれないけど、下り坂ならすべっていく。",goals:["flag"],line:"ice",
   ground:[R(-60,300,200),R(900,W+60,480)],car:[100,200],goal:[1150,480],sol:[[200,193],[305,193],[910,470]]},
@@ -1478,9 +1486,7 @@ window.STAGES=[
   sol:[[321,189],[641,468]]},
 /* ===== 世界 7: 浮く線（ゆっくり上へ） ===== */
  {"name":"箱を持ち上げろ","hint":"この世界の線は浮いていく。箱をのせて、天井のボタンまで持ち上げよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[500,40],[900,40],[900,80],[500,80]]],"objs":[{"k":"box","x":700,"y":300,"w":44,"h":44},{"k":"hit","x":700,"y":80,"act":["g"],"flip":1},{"k":"gate","id":"g","x":1080,"top":370,"bot":480}],"sol":[[640,420],[760,420]],"car":[900,480],"goal":[1220,480]},
- {name:"浮かぶ橋",hint:"谷の底に線を描くと、浮かんで谷のふちに引っかかる。",goals:["flag"],line:"float",
-  ground:[[[-60,480],[440,480],[440,500],[420,500],[420,1000],[-60,1000]],[[860,480],[W+60,480],[W+60,1000],[880,1000],[880,500],[860,500]]],
-  car:[150,480],goal:[1150,480],sol:[[436,560],[876,560]]},
+ {"name":"浮かぶ屋根","hint":"この世界の線は浮く。左と右の屋根の下まで浮かせて、ハチをふせぐ屋根にしよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[-60,290],[330,290],[330,310],[-60,310]],[[970,290],[1340,290],[1340,310],[970,310]]],"car":[150,480],"goal":[1150,480],"objs":[{"k":"bees","x":520,"y":80,"n":18,"iv":0.25,"delay":0.8,"sp":1.5,"max":6}],"sol":[[310,440],[990,440]]},
  {name:"天井のボタン",hint:"ボタンは天井にある。下から線を浮かせて押そう。",goals:["flag"],line:"float",
   ground:[R(-60,W+60,480),R(420,720,150,180)],car:[120,480],goal:[1150,480],
   objs:[{k:"btn",x:570,y:180,w:100,act:["g"],by:"line",side:"d"},{k:"gate",id:"g",x:950,top:0,bot:480}],sol:[[500,420],[640,420]]},
@@ -1565,9 +1571,7 @@ window.STAGES=[
  {name:"月の大岩",hint:"月の大岩がゆっくり転がってくる。線で止めて、おっさんを 8 秒守ろう。",goals:["guard"],guard:8,car:null,
   ground:[[[-60,480],[560,480],[W+60,140],[W+60,1000],[-60,1000]]],objs:[{k:"guy",x:440,y:480}],boulder:[1100,205,34],
   sol:[[800,367],[640,335],[640,437]]},
- {name:"UFO 2台と浮かぶ橋",hint:"UFO が 2 台。谷の底に浮く線を描くと、ふちに引っかかって橋になる。",goals:["flag"],line:"float",cars:2,
-  ground:[[[-60,440],[440,440],[440,460],[420,460],[420,1000],[-60,1000]],[[820,440],[W+60,440],[W+60,1000],[840,1000],[840,460],[820,460]]],
-  car:[120,440],goal:[1100,440],sol:[[436,540],[836,540]]},
+ {"name":"トゲの天井にふた","hint":"月ではジャンプが高すぎて、トゲの天井にささる！ 浮く線でトゲにふたをしよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[430,120],[920,120],[920,150],[430,150]]],"car":[130,480],"goal":[1180,480],"objs":[{"k":"jump","x":470,"y":480},{"k":"toge","x0":430,"x1":920,"y":150,"dir":"down"}],"sol":[[470,400],[900,400]]},
  {name:"宇宙のピタゴラ",hint:"線 → てこ → ボール → ボタン → 遮断機。",goals:["flag"],
   ground:[R(-60,W+60,480),[[655,420],[705,462],[765,462],[815,420],[815,480],[655,480]]],car:[900,480],goal:[1200,480],
   objs:[{k:"lever",x:430,y:400,len:420,a0:.33,dens:.0015},{k:"ball",x:600,y:430,r:18},{k:"btn",x:735,y:462,w:60,act:["g"],by:"thing"},{k:"gate",id:"g",x:1100,top:0,bot:480}],
@@ -2089,7 +2093,7 @@ function step(){
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
       if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
     if(state==="go"&&MODE.has("flag")){
-      const done=(L.turn===undefined||turned)&&cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]);
+      const done=(L.turn===undefined||turned)&&cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]&&(!L.land||Math.abs(c.chassis.velocity.y)<1.5&&c.chassis.position.y>L.goal[1]-90));  // land: 旗の所に着地してから
       if(done)winT+=DT/1000;else winT=0;
       MODE.flagDone(winT>.25);
       if(winT>.25){}

@@ -4,7 +4,7 @@
      "wake"  おっさんを全員起こす  "bed"  シーソーで飛ばしたおっさんを布団へ
      "ball"  ボールをカゴへ        "btn"  goal 印のボタンを全部押す
    L.objs: 部品の並び {k:種類, ...}。id を持つ部品は、ボタンの act で動き出す（門が開く・橋が出る・足場が動く・扇風機が回る・目覚ましが鳴る）
-     btn gate bridge plat spin conv spring fan grav warp pool balloon domino ball box basket oji saw cannon guy bees lever
+     btn gate bridge plat spin conv spring jump toge fan grav warp pool balloon domino ball box basket oji saw cannon guy bees lever
      lever {x,y,len,dens,a0}: 真ん中をくぎで留めた板（てこ・シーソー）。btn の side:"d" は天井のボタン（下から押す）。oji の pass:1 は線が通りぬける（当たれば起きる）。btn の by:"thing" は線と車以外だけ、by:"car" は車だけ。saw の free:1 は布団なし。warp の only:"car"/"ball" は車だけ／ボールだけ通す、stop:1 は出口で止まってまっすぐ落ちる
    古い形（L.mode と L.btns/gate/bridge/oji/saw/bed/cannon）は normalize で部品に直す */
 const MODE=(()=>{
@@ -51,6 +51,8 @@ const MODE=(()=>{
       const parts=[Bodies.rectangle(o.x,o.y,o.len,16)];if(o.cross)parts.push(Bodies.rectangle(o.x,o.y,16,o.len));
       o.body=ST(Body.create({parts,isStatic:true,friction:.6}));Body.setAngle(o.body,o.a0||0);},
     conv(o){o.body=ST(Bodies.rectangle((o.x0+o.x1)/2,o.y+10,o.x1-o.x0,20,{isStatic:true,friction:1,frictionStatic:3}));},
+    jump(o){o.carOnly=1;o.w=o.w||90;o.v=o.v||15;o.vx=o.vx||6;o.sq=0;o.body=ST(Bodies.rectangle(o.x,o.y-7,o.w,14,{isStatic:true,friction:.8}));o.body.plugin.spring=o;}, // ジャンプ台（車だけ跳ぶ）
+    toge(o){const w=o.x1-o.x0,dn=o.dir==="down";o.body=ST(Bodies.rectangle(o.x0+w/2,dn?o.y+9:o.y-9,w,18,{isStatic:true,friction:.6}));o.body.plugin.toge=o;}, // トゲ（車がさわると失敗。線でおおえば上を通れる）
     spring(o){o.w=o.w||70;o.v=o.v||17;o.vx=o.vx||0;o.sq=0;o.body=ST(Bodies.rectangle(o.x,o.y-7,o.w,14,{isStatic:true,friction:.8}));o.body.plugin.spring=o;},
     fan(o){},grav(o){},warp(o){o.r=o.r||36;},pool(o){},
     balloon(o){o.r=o.r||28;o.lift=o.lift||1.7;
@@ -94,6 +96,10 @@ const MODE=(()=>{
   M.step=()=>{const d=dt();for(const [bs,o] of KICK)for(const b2 of bs)Body.setVelocity(b2,{x:b2.velocity.x+o.vx,y:-o.v});KICK.length=0;if(flashT>0)flashT-=d;
     const running=state==="go";
     for(const o of P){o.t+=d;
+      if(o.k==="toge"&&running){const cs=cars.filter(c=>!c.waiting).flatMap(c=>[c.chassis,c.wA,c.wB]); // 少しのあいだ触れ続けたらささる（着地の一瞬のめりこみは見のがす）
+        const hit=cs.length?Query.collides(o.body,cs):[];if(hit.length){const cx=car.chassis.position.x;
+          const cover=Query.collides(o.body,strokes.map(st=>st.body)).some(c=>(c.supports||[]).some(p=>p&&Math.abs(p.x-cx)<90)); // すぐそばで線がトゲをおおっていれば見のがす
+          o.tc=cover?(o.tc||0)+d:9;}else o.tc=0;if(o.tc>.25){finish(false,"トゲにささっちゃった！");return;}}
       if(o.k==="btn"&&!o.down&&running){const bd=o.side==="l"?{min:{x:o.x-20,y:o.y-o.w/2},max:{x:o.x+2,y:o.y+o.w/2}}:o.side==="d"?{min:{x:o.x-o.w/2,y:o.y-2},max:{x:o.x+o.w/2,y:o.y+20}}:{min:{x:o.x-o.w/2,y:o.y-20},max:{x:o.x+o.w/2,y:o.y+2}}; // side:"l" は壁の左面のボタン
         if(touching(o,bd,o.by)){o.down=true;tone(660,.1,"square",.08);tone(990,.15,"square",.08,0,.1);
           const grp=P.filter(q=>q.k==="btn"&&q.all&&q.act+""===o.act+"");
@@ -171,7 +177,7 @@ const MODE=(()=>{
         tone(660,.1,"square",.08);tone(990,.15,"square",.08,0,.1);const grp=P.filter(q=>(q.k==="btn"||q.k==="hit")&&q.all&&q.act+""===o.act+"");
         if(!o.all||grp.every(q=>q.down))(o.act||[]).forEach(activate);}
       if(y.plugin.saw&&strokes.some(s=>s.body===x)&&(x.position.x-y.plugin.saw.x)*(y.plugin.saw.dir||1)>0)fire(y.plugin.saw,x);
-      if(y.plugin.spring&&!x.isStatic){const o=y.plugin.spring;if(x.position.y<o.y-4){o.sq=1;const c=carOf(x)||carOf(a)||null;
+      if(y.plugin.spring&&!x.isStatic&&(!y.plugin.spring.carOnly||carOf(x)||carOf(a))){const o=y.plugin.spring;if(x.position.y<o.y-4){o.sq=1;const c=carOf(x)||carOf(a)||null;
         if(!KICK.some(k=>k[0][0]===(c?c.chassis:x)))KICK.push([c?[c.chassis,c.wA,c.wB]:[x],o]);tone(300,.15,"sine",.1,900);}}
       if(y.plugin.balloon&&!y.plugin.balloon.popped&&x!==y.plugin.balloon.box&&!x.isStatic){const o=y.plugin.balloon;o.popped=true;
         Composite.remove(world,[o.ball,o.rope]);tone(1200,.08,"square",.1,200);for(let k=0;k<10;k++)parts.push({x:o.ball.position.x,y:o.ball.position.y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,t:.4,c:"#ff4a6a"});}}};
@@ -222,6 +228,11 @@ const MODE=(()=>{
       const s=(time*o.v*60*.5)%24;for(let x=o.x0+((s%24)+24)%24;x<o.x1-6;x+=24)ctx.fillRect(x,o.y+3,10,4);
       for(const x of [o.x0+10,o.x1-10]){ctx.fillStyle="#999";ctx.beginPath();ctx.arc(x,o.y+10,8,0,7);ctx.fill();}
       arrow(o.x0+w/2,o.y-14,o.v,0,"#ffd23f");},
+    jump(o){const w=o.w,sq=o.sq*6;ctx.fillStyle="#222";rr(o.x-w/2,o.y-14+sq,w,14-sq,4);ctx.fill();
+      for(let i=0;i<Math.floor(w/16);i++){ctx.fillStyle=i%2?"#ffd23f":"#222";ctx.fillRect(o.x-w/2+4+i*16,o.y-12+sq,8,10-sq);}
+      ctx.fillStyle="#ff5a1a";ctx.beginPath();ctx.moveTo(o.x,o.y-44+sq);ctx.lineTo(o.x+14,o.y-24+sq);ctx.lineTo(o.x+5,o.y-24+sq);ctx.lineTo(o.x+5,o.y-16+sq);ctx.lineTo(o.x-5,o.y-16+sq);ctx.lineTo(o.x-5,o.y-24+sq);ctx.lineTo(o.x-14,o.y-24+sq);ctx.fill();if(o.sq>0)o.sq=Math.max(0,o.sq-.05);},
+    toge(o){const dn=o.dir==="down",n=Math.max(1,Math.round((o.x1-o.x0)/18)),w=(o.x1-o.x0)/n,s=dn?1:-1;ctx.fillStyle="#cfd5dc";ctx.strokeStyle="#5a6470";ctx.lineWidth=2;
+      for(let i=0;i<n;i++){const x=o.x0+i*w;ctx.beginPath();ctx.moveTo(x,o.y);ctx.lineTo(x+w/2,o.y+s*20);ctx.lineTo(x+w,o.y);ctx.closePath();ctx.fill();ctx.stroke();}},
     spring(o){const h=16-o.sq*10;ctx.strokeStyle="#888";ctx.lineWidth=4;ctx.beginPath();for(let k=0;k<=6;k++){const x=o.x-o.w/2+8+k*(o.w-16)/6,y=o.y-(k%2?h:0);k?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
       ctx.fillStyle="#3ac0ff";rr(o.x-o.w/2,o.y-h-8,o.w,8,3);ctx.fill();},
     fan(o){const dx=o.fx||0,dy=o.fy||0,base=dy<0?[o.x+o.w/2,o.y+o.h]:dy>0?[o.x+o.w/2,o.y]:dx>0?[o.x,o.y+o.h/2]:[o.x+o.w,o.y+o.h/2];

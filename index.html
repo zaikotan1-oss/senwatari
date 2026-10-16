@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=104"></script>
-<script src="gen.js?v=104"></script>
-<script src="gen_table.js?v=104"></script><script src="looks.js?v=104"></script><script src="modes.js?v=104"></script><script src="stages.js?v=104"></script>
+<script src="matter.min.js?v=109"></script>
+<script src="gen.js?v=109"></script>
+<script src="gen_table.js?v=109"></script><script src="looks.js?v=109"></script><script src="modes.js?v=109"></script><script src="stages.js?v=109"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -610,7 +610,7 @@ function step(){
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
       if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
     if(state==="go"&&MODE.has("flag")){
-      const done=(L.turn===undefined||turned)&&cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]);
+      const done=(L.turn===undefined||turned)&&cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]&&(!L.land||Math.abs(c.chassis.velocity.y)<1.5&&c.chassis.position.y>L.goal[1]-90));  // land: 旗の所に着地してから
       if(done)winT+=DT/1000;else winT=0;
       MODE.flagDone(winT>.25);
       if(winT>.25){}
