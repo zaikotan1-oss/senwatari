@@ -95,9 +95,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">横向きにしてあそんでね</div>
 
-<script src="matter.min.js?v=109"></script>
-<script src="gen.js?v=109"></script>
-<script src="gen_table.js?v=109"></script><script src="looks.js?v=109"></script><script src="modes.js?v=109"></script><script src="stages.js?v=109"></script>
+<script src="matter.min.js?v=111"></script>
+<script src="gen.js?v=111"></script>
+<script src="gen_table.js?v=111"></script><script src="looks.js?v=111"></script><script src="modes.js?v=111"></script><script src="stages.js?v=111"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -226,7 +226,7 @@ HAND_IDEA.forEach((d,i)=>{if(LEVELS[i])LEVELS[i].idea=d;});
 const HAND=LEVELS.splice(0,LEVELS.length);
 // 100 面の並びは gen_table.js。"hand" は上の手作り面（穴越え）、それ以外は gen.js の自動生成
 // 手で設計した面（stages.js）。作り終わっていない所は前の自動生成の面で埋める
-for(let k=0;k<100;k++){const st=window.STAGES&&STAGES[k];
+for(let k=0;k<Math.max(100,(window.STAGES||[]).length);k++){const st=window.STAGES&&STAGES[k];
   if(st){LEVELS.push(st.hand!==undefined?{...HAND[st.hand]}:st);continue;}
   const e=GEN_TABLE[k];if(e&&e.t==="hand")LEVELS.push({...HAND[e.s]});else{const o=GEN.genLevel(k);if(o)LEVELS.push(o);}}
 

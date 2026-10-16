@@ -1,4 +1,4 @@
-/* 絵柄 20 種（5 面ごとにガラッと変わる）と、走る物の見た目
+/* 絵柄 24 種（5 面ごとにガラッと変わる）と、走る物の見た目
    ・ふつうの絵柄: 空→遠くの山→遠景の飾り→水 を index.html の render が描く
    ・bg を持つ絵柄: 背景を丸ごと BG[bg] が描く（描き方そのものが違う: 落書き・ドット絵・設計図…）
    ・rider: 走る物（当たり判定は車と同じ。車体 -48..48 × -13..13、車輪は ±32, +20, 半径 19）
@@ -46,6 +46,14 @@ const THEMES=[
   water:["#1a1030","#08040f"],line:["#ffffff","#b0d0ff"],car:["#e8e8f0","#c8a040","#404050"],deco:"moon",gravity:.45,space:true,rider:"rover"},
  {name:"銀河",bg:"galaxy",ground:["#4a2a7a","#1a0a3a"],grass:["#40f0ff","#2090c0"],noStripe:1,gpat:"crystal",edge:"#d0a0ff",edgeW:3,glow:"#b070ff",
   water:["#000000","#000000"],line:["#40f0ff","#e0ffff"],car:["#b8c4d8","#80ff90","#40485a"],deco:"galaxy",gravity:.45,space:true,rider:"ufo",wheel:"orb"},
+ {name:"そらのしま",sky:["#7fd0ff","#f4fbff"],hill:["#ffffff","#e6f4ff"],ground:["#8fcf6a","#5a9a40"],grass:["#b8f07a","#8ad050"],edge:"#3a6a28",
+  water:["#e8f6ff","#c8e8ff"],line:["#1a3a5a","#4a7aa8"],car:["#ff8a3a","#e86a1a","#8a3a0a"],deco:"clouds",rider:"buggy"},
+ {name:"ハチのもり",sky:["#a8e0a0","#f0ffe0"],hill:["#6aa860","#4f9048"],ground:["#7a5a30","#4a3418"],grass:["#4a9a38","#367a28"],edge:"#2a1a0a",
+  water:["#3a7a40","#1a4a20"],line:["#2a1a0a","#6a4a20"],car:["#ffd23f","#f0b400","#5a4000"],deco:"autumn",rider:"boar"},
+ {name:"こうじげんば",sky:["#9fd3ff","#fff4d8"],hill:["#c8c0b0","#b0a898"],ground:["#c8a060","#8a6a38"],grass:["#f0c020","#c89a10"],edge:"#3a2a10",
+  water:["#5a5a60","#2a2a30"],line:["#1a1a20","#ffd23f"],car:["#f0a020","#c87a10","#3a2a10"],deco:"desert",rider:"cart"},
+ {name:"ゆうやけの空",sky:["#ff9a5a","#ffe0a0"],hill:["#d0705a","#b85a48"],ground:["#7a4a5a","#4a2a3a"],grass:["#ffb07a","#e8905a"],edge:"#2a141a",
+  water:["#ffd0a0","#ffb080"],line:["#2a0a1a","#7a3a5a"],car:["#5a3aa0","#ffffff","#2a1a50"],deco:"sunset",rider:"sports"},
 ];
 
 /* ---------- 背景（bg を持つ絵柄） ---------- */
