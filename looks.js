@@ -6,45 +6,45 @@
    ・gravity: 91〜100 面（月・銀河）は重力が弱い。面の合格はこの重力で確かめてある */
 // sky:空 hill:遠くの山 ground:土(上,下) grass:表面 edge:ふち water:水 line:描いた線 car:本体,屋根,ふち
 const THEMES=[
- {name:"みどりの谷",sky:["#5fb8ff","#d9f1ff"],hill:["#9cc9e8","#86bcdf"],ground:["#b07a45","#6e4526"],grass:["#5cc443","#46a834"],edge:"#4a2e18",
+ {name:"みどりの たに",sky:["#5fb8ff","#d9f1ff"],hill:["#9cc9e8","#86bcdf"],ground:["#b07a45","#6e4526"],grass:["#5cc443","#46a834"],edge:"#4a2e18",
   water:["#2d8fe0","#1552a0"],line:["#151827","#3a4166"],car:["#ff5a4e","#e8412f","#9c2518"],deco:"clouds",rider:"car"},
- {name:"ノートの落書き",bg:"sketch",ground:["#eee6cf","#e4dbc0"],grass:["#fbf8ef","#fbf8ef"],noGrass:1,noStripe:1,edge:"#2a2a2a",edgeW:3,rough:1,gpat:"hatch",
+ {name:"ノートの らくがき",bg:"sketch",ground:["#eee6cf","#e4dbc0"],grass:["#fbf8ef","#fbf8ef"],noGrass:1,noStripe:1,edge:"#2a2a2a",edgeW:3,rough:1,gpat:"hatch",
   water:["#fbf8ef","#fbf8ef"],line:["#1a3a9a","#5a88f0"],car:["#ffc4d0","#ff9ab4","#2a2a2a"],deco:"sketch",rider:"pig",wheel:"sketch"},
- {name:"地下鉄",bg:"subway",ground:["#a8a8ae","#6a6a72"],grass:["#f0d020","#c8a810"],gtop:"tactile",edge:"#2a2a30",
+ {name:"ちかてつ",bg:"subway",ground:["#a8a8ae","#6a6a72"],grass:["#f0d020","#c8a810"],gtop:"tactile",edge:"#2a2a30",
   water:["#1a1a1e","#0a0a0c"],line:["#1a1a2a","#e0e0f0"],car:["#f0a020","#c87a10","#3a2a10"],deco:"subway",subway:true,rider:"bridge"},
- {name:"ドット絵の国",bg:"pixel",ground:["#c84c0c","#c84c0c"],grass:["#00a800","#006800"],noStripe:1,gpat:"brick",edge:"#000000",edgeW:4,
+ {name:"ドットえの くに",bg:"pixel",ground:["#c84c0c","#c84c0c"],grass:["#00a800","#006800"],noStripe:1,gpat:"brick",edge:"#000000",edgeW:4,
   water:["#3050f8","#2038a8"],line:["#000000","#fcfcfc"],car:["#00a800","#006800","#003800"],deco:"pixel",rider:"tank",post:"pixel"},
  {name:"さばく",sky:["#6cc8ff","#fff3c4"],hill:["#f2c77a","#e0b060"],ground:["#e0a860","#a8743a"],grass:["#f7dc98","#e6c47a"],edge:"#7a5020",
   water:["#35c9c0","#1a8a90"],line:["#3a2410","#7a5030"],car:["#ffd23f","#f0b400","#8a6400"],deco:"desert",rider:"buggy"},
- {name:"設計図",bg:"blue",ground:["#3474c8","#2a66b8"],grass:["#ffffff","#1d56a8"],noGrass:1,noStripe:1,gpat:"xhatch",edge:"#ffffff",edgeW:2.5,
+ {name:"せっけいず",bg:"blue",ground:["#3474c8","#2a66b8"],grass:["#ffffff","#1d56a8"],noGrass:1,noStripe:1,gpat:"xhatch",edge:"#ffffff",edgeW:2.5,
   water:["#1d56a8","#1d56a8"],line:["#ffffff","#9fd0ff"],car:["#1d56a8","#2a64b8","#ffffff"],deco:"blue",rider:"loco",wheel:"line"},
- {name:"雪山",sky:["#8cc8f5","#f0f8ff"],hill:["#dbe9f7","#c2d6ec"],ground:["#8a9bb0","#56657a"],grass:["#ffffff","#dfe9f5"],edge:"#3a4658",
+ {name:"ゆきやま",sky:["#8cc8f5","#f0f8ff"],hill:["#dbe9f7","#c2d6ec"],ground:["#8a9bb0","#56657a"],grass:["#ffffff","#dfe9f5"],edge:"#3a4658",
   water:["#7ec8e8","#3f7fb0"],line:["#1a2440","#40507a"],car:["#2a2a38","#ffffff","#10101a"],deco:"snow",rider:"penguin"},
- {name:"ネオン街道",bg:"neon",ground:["#120020","#07000f"],grass:["#ff2a9a","#7a0a5a"],noStripe:1,gpat:"neongrid",edge:"#00f0ff",edgeW:3,glow:"#00f0ff",
+ {name:"ネオンかいどう",bg:"neon",ground:["#120020","#07000f"],grass:["#ff2a9a","#7a0a5a"],noStripe:1,gpat:"neongrid",edge:"#00f0ff",edgeW:3,glow:"#00f0ff",
   water:["#0a0018","#000000"],line:["#ff2a9a","#ffd0f0"],car:["#1a0030","#ff2a9a","#00f0ff"],deco:"neon",rider:"sports",wheel:"neon"},
- {name:"夜の町",sky:["#0b1a3a","#2a3f75"],hill:["#1f2f55","#18264a"],ground:["#4a3a5a","#241a30"],grass:["#3a8a5a","#2a6a44"],edge:"#120c1a",
+ {name:"よるの まち",sky:["#0b1a3a","#2a3f75"],hill:["#1f2f55","#18264a"],ground:["#4a3a5a","#241a30"],grass:["#3a8a5a","#2a6a44"],edge:"#120c1a",
   water:["#1a3a7a","#0a1a40"],line:["#fff4c0","#ffd860"],car:["#ffffff","#16161e","#556"],deco:"night",rider:"kotatsu"},
- {name:"黒板",bg:"chalk",ground:["#4a6a58","#3e5c4a"],grass:["#f4f4ec","#2e4a3a"],noGrass:1,noStripe:1,gpat:"chalk",edge:"#f4f4ec",edgeW:3,rough:1,
+ {name:"こくばん",bg:"chalk",ground:["#4a6a58","#3e5c4a"],grass:["#f4f4ec","#2e4a3a"],noGrass:1,noStripe:1,gpat:"chalk",edge:"#f4f4ec",edgeW:3,rough:1,
   water:["#2e4a3a","#2e4a3a"],line:["#fff6a0","#ffffff"],car:["#2e4a3a","#ffb0d0","#f4f4ec"],deco:"chalk",rider:"cat",wheel:"chalk"},
- {name:"秋の森",sky:["#9fd3ff","#fff0d8"],hill:["#e0a070","#c8805a"],ground:["#9a5a30","#5a3018"],grass:["#d9822b","#b8661e"],edge:"#3a1e0c",
+ {name:"あきの もり",sky:["#9fd3ff","#fff0d8"],hill:["#e0a070","#c8805a"],ground:["#9a5a30","#5a3018"],grass:["#d9822b","#b8661e"],edge:"#3a1e0c",
   water:["#3a9ad0","#1a5a90"],line:["#20140a","#5a3a20"],car:["#8a5a3a","#6a3e22","#2a160a"],deco:"autumn",rider:"boar"},
- {name:"浮世絵",bg:"ukiyo",ground:["#7a5a3a","#4a3420"],grass:["#4a7a50","#2f5a38"],noStripe:1,gpat:"wood",edge:"#1a1410",edgeW:4,
+ {name:"うきよえ",bg:"ukiyo",ground:["#7a5a3a","#4a3420"],grass:["#4a7a50","#2f5a38"],noStripe:1,gpat:"wood",edge:"#1a1410",edgeW:4,
   water:["#1f3a6a","#0f2448"],line:["#1a1410","#c8392b"],car:["#c8392b","#1f3a6a","#1a1410"],deco:"ukiyo",rider:"rickshaw"},
- {name:"南の島",sky:["#3fbfff","#c9f3ff"],hill:["#7fd8c8","#5cc0b0"],ground:["#f0d090","#c8a060"],grass:["#63d471","#48b858"],edge:"#8a6a30",
+ {name:"みなみの しま",sky:["#3fbfff","#c9f3ff"],hill:["#7fd8c8","#5cc0b0"],ground:["#f0d090","#c8a060"],grass:["#63d471","#48b858"],edge:"#8a6a30",
   water:["#1fc8d8","#0a7fb0"],line:["#0a2a40","#2a5a80"],car:["#48b858","#2e8a40","#145a24"],deco:"island",rider:"bath"},
  {name:"アメコミ",bg:"comic",ground:["#ffd23f","#f0a800"],grass:["#ff3b3b","#c81e1e"],noStripe:1,gpat:"dots",edge:"#000000",edgeW:6,
   water:["#1e6ae0","#1e6ae0"],line:["#000000","#ffffff"],car:["#ff3b3b","#ffffff","#000000"],deco:"comic",rider:"superoji",wheel:"comic"},
- {name:"火山",sky:["#2a0a0a","#a0381e"],hill:["#4a1a14","#3a120e"],ground:["#4a3434","#1e1212"],grass:["#6a5a5a","#4a3a3a"],edge:"#0a0404",
+ {name:"かざん",sky:["#2a0a0a","#a0381e"],hill:["#4a1a14","#3a120e"],ground:["#4a3434","#1e1212"],grass:["#6a5a5a","#4a3a3a"],edge:"#0a0404",
   water:["#ff8a00","#c01e00"],line:["#fff0d0","#ffc070"],car:["#8a8a90","#5a5a60","#222"],deco:"volcano",lava:true,rider:"cart"},
  {name:"ゲームボーイ",bg:"pixel",ground:["#306230","#306230"],grass:["#8bac0f","#0f380f"],noStripe:1,gpat:"brick",edge:"#0f380f",edgeW:4,
   water:["#306230","#0f380f"],line:["#0f380f","#9bbc0f"],car:["#8bac0f","#306230","#0f380f"],deco:"pixel",rider:"futon",post:"gb"},
- {name:"おかしの国",sky:["#ffb6e1","#fff0fa"],hill:["#ffd0ea","#f7b8dc"],ground:["#8a5230","#5a3018"],grass:["#ff8ac8","#ff6ab4"],edge:"#3a1a0a",
+ {name:"おかしの くに",sky:["#ffb6e1","#fff0fa"],hill:["#ffd0ea","#f7b8dc"],ground:["#8a5230","#5a3018"],grass:["#ff8ac8","#ff6ab4"],edge:"#3a1a0a",
   water:["#b0e8ff","#70c0f0"],line:["#5a2a10","#8a5030"],car:["#fff4e0","#ff6ab4","#8a5230"],deco:"candy",rider:"cake"},
- {name:"海の底",bg:"sea",ground:["#d8c090","#8a7048"],grass:["#ff7a8a","#d84a6a"],noStripe:1,gpat:"sand",edge:"#4a3a20",
+ {name:"うみの そこ",bg:"sea",ground:["#d8c090","#8a7048"],grass:["#ff7a8a","#d84a6a"],noStripe:1,gpat:"sand",edge:"#4a3a20",
   water:["#020a1a","#000308"],line:["#fff4a0","#ffd040"],car:["#ffd23f","#f0b400","#6a4a00"],deco:"sea",rider:"sub"},
- {name:"月",sky:["#05040f","#1a1440"],hill:["#2a2a3a","#20202e"],ground:["#9a9aa4","#5a5a66"],grass:["#d0d0d8","#b0b0bc"],edge:"#303038",
+ {name:"つき",sky:["#05040f","#1a1440"],hill:["#2a2a3a","#20202e"],ground:["#9a9aa4","#5a5a66"],grass:["#d0d0d8","#b0b0bc"],edge:"#303038",
   water:["#1a1030","#08040f"],line:["#ffffff","#b0d0ff"],car:["#e8e8f0","#c8a040","#404050"],deco:"moon",gravity:.45,space:true,rider:"rover"},
- {name:"銀河",bg:"galaxy",ground:["#4a2a7a","#1a0a3a"],grass:["#40f0ff","#2090c0"],noStripe:1,gpat:"crystal",edge:"#d0a0ff",edgeW:3,glow:"#b070ff",
+ {name:"ぎんが",bg:"galaxy",ground:["#4a2a7a","#1a0a3a"],grass:["#40f0ff","#2090c0"],noStripe:1,gpat:"crystal",edge:"#d0a0ff",edgeW:3,glow:"#b070ff",
   water:["#000000","#000000"],line:["#40f0ff","#e0ffff"],car:["#b8c4d8","#80ff90","#40485a"],deco:"galaxy",gravity:.45,space:true,rider:"ufo",wheel:"orb"},
  {name:"そらのしま",sky:["#7fd0ff","#f4fbff"],hill:["#ffffff","#e6f4ff"],ground:["#8fcf6a","#5a9a40"],grass:["#b8f07a","#8ad050"],edge:"#3a6a28",
   water:["#e8f6ff","#c8e8ff"],line:["#1a3a5a","#4a7aa8"],car:["#ff8a3a","#e86a1a","#8a3a0a"],deco:"clouds",rider:"buggy"},
@@ -52,7 +52,7 @@ const THEMES=[
   water:["#3a7a40","#1a4a20"],line:["#2a1a0a","#6a4a20"],car:["#ffd23f","#f0b400","#5a4000"],deco:"autumn",rider:"boar"},
  {name:"こうじげんば",sky:["#9fd3ff","#fff4d8"],hill:["#c8c0b0","#b0a898"],ground:["#c8a060","#8a6a38"],grass:["#f0c020","#c89a10"],edge:"#3a2a10",
   water:["#5a5a60","#2a2a30"],line:["#1a1a20","#ffd23f"],car:["#f0a020","#c87a10","#3a2a10"],deco:"desert",rider:"cart"},
- {name:"ゆうやけの空",sky:["#ff9a5a","#ffe0a0"],hill:["#d0705a","#b85a48"],ground:["#7a4a5a","#4a2a3a"],grass:["#ffb07a","#e8905a"],edge:"#2a141a",
+ {name:"ゆうやけの そら",sky:["#ff9a5a","#ffe0a0"],hill:["#d0705a","#b85a48"],ground:["#7a4a5a","#4a2a3a"],grass:["#ffb07a","#e8905a"],edge:"#2a141a",
   water:["#ffd0a0","#ffb080"],line:["#2a0a1a","#7a3a5a"],car:["#5a3aa0","#ffffff","#2a1a50"],deco:"sunset",rider:"sports"},
 ];
 
@@ -74,7 +74,7 @@ const BG={
       ctx.fillStyle="#ffffff30";for(let w=0;w<4;w++){ctx.beginPath();ctx.arc(x+60+w*96,380,12,0,7);ctx.fill();}}
     ctx.strokeStyle="#0003";ctx.lineWidth=3;for(let k=0;k<6;k++){const y=310+k*28;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}}
   else{for(let x=110;x<W;x+=300){ctx.fillStyle="#1a3a8a";rr(x,150,180,50,6);ctx.fill(); // 駅名の看板
-    ctx.fillStyle="#fff";ctx.font="bold 24px sans-serif";ctx.textAlign="center";ctx.fillText(["せんわたり","つぎは かわむこう","←のりば","出口 ↗"][(x/300|0)%4],x+90,184);ctx.textAlign="left";}}
+    ctx.fillStyle="#fff";ctx.font="bold 24px sans-serif";ctx.textAlign="center";ctx.fillText(["せんわたり","つぎは かわむこう","←のりば","でぐち ↗"][(x/300|0)%4],x+90,184);ctx.textAlign="left";}}
   ctx.fillStyle="#5a5a64";for(let x=0;x<W;x+=320){ctx.fillRect(x+280,90,30,430);} // 柱
   ctx.fillStyle="#1a1a1e";ctx.fillRect(0,WATER_Y,W,H-WATER_Y); // 線路
   ctx.fillStyle="#4a3a2a";for(let x=-20;x<W;x+=36)ctx.fillRect(x,WATER_Y+46,22,16);
@@ -118,7 +118,7 @@ const BG={
   for(let y=0;y<=H;y+=160){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
   ctx.strokeStyle="#ffffffaa";ctx.fillStyle="#ffffffcc";ctx.lineWidth=1.5;ctx.font="16px monospace"; // 寸法線
   ctx.beginPath();ctx.moveTo(40,40);ctx.lineTo(W-40,40);ctx.moveTo(40,32);ctx.lineTo(40,48);ctx.moveTo(W-40,32);ctx.lineTo(W-40,48);ctx.stroke();
-  ctx.fillText("1200",W/2-20,34);ctx.fillText(`図番 SW-${String(li+1).padStart(3,"0")}`,W-190,H-18);
+  ctx.fillText("1200",W/2-20,34);ctx.fillText(`ずばん SW-${String(li+1).padStart(3,"0")}`,W-190,H-18);
   ctx.strokeStyle="#ffffff30";ctx.lineWidth=2;ctx.beginPath();ctx.arc(160,150,70,0,7);ctx.moveTo(60,150);ctx.lineTo(260,150);ctx.moveTo(160,50);ctx.lineTo(160,250);ctx.stroke(); // 歯車の下書き
   for(let k=0;k<12;k++){const a=k/12*6.28+time*.2;ctx.beginPath();ctx.moveTo(160+Math.cos(a)*70,150+Math.sin(a)*70);ctx.lineTo(160+Math.cos(a)*86,150+Math.sin(a)*86);ctx.stroke();}
   ctx.save();ctx.beginPath();ctx.rect(0,WATER_Y,W,H-WATER_Y);ctx.clip();ctx.strokeStyle="#ffffff50";ctx.lineWidth=2; // 水＝斜線
@@ -385,17 +385,24 @@ Object.assign(RIDERS,{
   ctx.fillStyle="#fff";for(let x=-46;x<28;x+=16)for(let y=-16;y<6;y+=12){ctx.beginPath();ctx.arc(x+(y%24?8:0),y,3,0,7);ctx.fill();}
   ctx.fillStyle="#223";ctx.font="bold 18px sans-serif";for(let k=0;k<3;k++){const t=(time*.7+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",44+k*6+t*20,-50-t*40);}ctx.globalAlpha=1;},
 });
+// 読みがな: "{漢字|よみ}" と書くと、漢字の上に小さく よみを のせる（かなだけだと変な言葉だけに使う）
+const RUBY=/\{([^|}]+)\|([^}]+)\}/g;
+const rbPlain=s=>String(s).replace(RUBY,"$1"),rbHTML=s=>String(s).replace(RUBY,"<ruby>$1<rt>$2</rt></ruby>"),hasRb=s=>String(s).includes("{");
+function fillRuby(s,x,y,size){const tw=ctx.measureText(rbPlain(s)).width,f=ctx.font;let cx=x-tw/2;ctx.textAlign="left";
+  for(const p of String(s).split(/(\{[^|}]+\|[^}]+\})/)){if(!p)continue;const m=p.match(/^\{([^|}]+)\|([^}]+)\}$/);
+    if(m){const w=ctx.measureText(m[1]).width;ctx.fillText(m[1],cx,y);ctx.font=`bold ${Math.round(size*.5)}px sans-serif`;ctx.textAlign="center";ctx.fillText(m[2],cx+w/2,y-size*.92);ctx.font=f;ctx.textAlign="left";cx+=w;}
+    else{ctx.fillText(p,cx,y);cx+=ctx.measureText(p).width;}}}
 // しゃべる乗り物（待ち・走る・クリア・失敗）
-const TALK={bridge:["……","ふんっ！！","腰、無事！","腰がぁぁ！"],kotatsu:["出たくない…","出たくないぃ","みかん、うまし","こたつごと〜！"],
-  bath:["ふぅ〜","いい湯だな〜","ととのった","あちちちっ"],pig:["ブヒ","ブヒー！","ブヒヒッ♪","ブヒィ…"],cat:["にゃ","にゃーっ！","にゃふん","ふにゃ〜"],
-  car:["いくぞ","ブオーン！","よっしゃ！","うそーん"],tank:["……","前進！","制圧完了","撤退〜！"],buggy:["砂あつい","ヒャッホー！","最高かよ","砂がぁ"],
-  loco:["シュッ","シュッポッポ！","定刻どおり","脱線〜！"],penguin:["さむ","すべる〜！","ペンッ！","ひぇ〜"],sports:["……","フゥーーッ！","イケてる","ダサッ"],
-  boar:["フゴ","猪突猛進！","フゴフゴ♪","フゴォ…"],rickshaw:["へい","へいらっしゃい！","毎度あり！","お代はいらねぇ…"],cart:["あつ","熱っ熱っ！","お宝ゲット","もえつきた…"],
-  cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","潜航〜！","浮上成功","浸水〜！"],rover:["ピピ","小さな一歩！","人類の大きな一歩","ヒューストン…"],
-  ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","正義は勝つ","マントが…"],futon:["zzz","むにゃ…","あと5分…","（まだ寝てる）"]};
+const TALK={bridge:["……","ふんっ！！","こし、ぶじ！","こしがぁぁ！"],kotatsu:["でたくない…","でたくないぃ","みかん、うまし","こたつごと〜！"],
+  bath:["ふぅ〜","いい ゆだな〜","ととのった","あちちちっ"],pig:["ブヒ","ブヒー！","ブヒヒッ♪","ブヒィ…"],cat:["にゃ","にゃーっ！","にゃふん","ふにゃ〜"],
+  car:["いくぞ","ブオーン！","よっしゃ！","うそーん"],tank:["……","ぜんしん！","せいあつ かんりょう","てったい〜！"],buggy:["すな あつい","ヒャッホー！","さいこうかよ","すながぁ"],
+  loco:["シュッ","シュッポッポ！","ていこく どおり","だっせん〜！"],penguin:["さむ","すべる〜！","ペンッ！","ひぇ〜"],sports:["……","フゥーーッ！","イケてる","ダサッ"],
+  boar:["フゴ","{猪突猛進|ちょとつもうしん}！","フゴフゴ♪","フゴォ…"],rickshaw:["へい","へいらっしゃい！","まいど あり！","おだいは いらねぇ…"],cart:["あつ","あつっ あつっ！","おたから ゲット","もえつきた…"],
+  cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","せんこう〜！","ふじょう せいこう","しんすい〜！"],rover:["ピピ","ちいさな いっぽ！","じんるいの おおきな いっぽ","ヒューストン…"],
+  ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","せいぎは かつ","マントが…"],futon:["zzz","むにゃ…","あと 5ふん…","（まだ ねてる）"]};
 // 失敗の擬音
-function failWord(msg){return msg.includes("トゲ")?"プスッ！":msg.includes("起きなかった")?"ぐぅ…":msg.includes("飛んでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
-  msg.includes("動けなく")||msg.includes("時間")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":TH.subway?"プァーン！":"ドボーン！";}
+function failWord(msg){return msg.includes("トゲ")?"プスッ！":msg.includes("おきなかった")?"ぐぅ…":msg.includes("とんでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("おおいわ")?"ドガーン！":msg.includes("いしが")?"ゴンッ！":msg.includes("にもつ")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
+  msg.includes("うごけなく")||msg.includes("じかん")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":TH.subway?"プァーン！":"ドボーン！";}
 function drawFailWord(f){if(!f.word)return;const k=Math.min(1,(time-f.t)*5),s=k<1?k*1.3:1;
   ctx.save();ctx.translate(f.x,Math.max(70,f.y-90));ctx.rotate(-.12);ctx.scale(s,s);ctx.font="900 64px 'Hiragino Maru Gothic ProN','Arial Black',sans-serif";ctx.textAlign="center";
   ctx.lineJoin="round";ctx.lineWidth=12;ctx.strokeStyle="#000";ctx.strokeText(f.word,0,0);ctx.fillStyle="#ffd23f";ctx.fillText(f.word,0,0);ctx.restore();ctx.textAlign="left";}
@@ -406,60 +413,60 @@ const _L=(pts,col,w)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap="round";c
 const _eyes=(x,y,g,r=2.6,col="#222")=>{_E(x-g,y,r,r,col);_E(x+g,y,r,r,col);};
 const _smile=(x,y,w,col="#222")=>{ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,w,.2,Math.PI-.2);ctx.stroke();};
 const CHEERS=[
- {w:["おお〜！","やるやん","見事！"],d(c){_L([[-6,0],[-4,-26]],"#4a3020",7);_L([[6,0],[4,-26]],"#4a3020",7);ctx.fillStyle="#e8dcc0";rr(-12,-34,24,12,4);ctx.fill();
+ {w:["おお〜！","やるやん","おみごと！"],d(c){_L([[-6,0],[-4,-26]],"#4a3020",7);_L([[6,0],[4,-26]],"#4a3020",7);ctx.fillStyle="#e8dcc0";rr(-12,-34,24,12,4);ctx.fill();
    _E(0,-48,15,18,"#fff");_L([[-12,-56],[-4+c,-72]],SKIN,6);_L([[12,-56],[4-c,-72]],SKIN,6);ojiHead(0,-78,.9,0);}},
- {w:["ワン！（訳：やるやん）","ワンダフル！","しっぽが止まらん"],d(c){_L([[-24,-24],[-40,-44+c*2]],"#b07a3a",6);_E(0,-22,26,15,"#c8894a");
+ {w:["ワン！（やく：やるやん）","ワンダフル！","しっぽが とまらん"],d(c){_L([[-24,-24],[-40,-44+c*2]],"#b07a3a",6);_E(0,-22,26,15,"#c8894a");
    for(const x of [-16,-6,8,18])_L([[x,-12],[x,0]],"#b07a3a",6);_E(20,-44,16,14,"#c8894a");_E(10,-52,6,11,"#7a4a20");_E(30,-52,6,11,"#7a4a20");
    _eyes(20,-46,6);_E(20,-38,4,3,"#222");ctx.fillStyle="#ff7a9a";rr(17,-34,6,8+Math.abs(c)*.6,3);ctx.fill();}},
- {w:["とけるほど感動","ひんやり拍手","夏まで見てたい"],d(c){_E(0,-22,22,22,"#fff");_E(0,-58,16,16,"#fff");ctx.strokeStyle="#9ab";ctx.lineWidth=1.5;
+ {w:["とけるほど かんどう","ひんやり はくしゅ","なつまで みてたい"],d(c){_E(0,-22,22,22,"#fff");_E(0,-58,16,16,"#fff");ctx.strokeStyle="#9ab";ctx.lineWidth=1.5;
    ctx.beginPath();ctx.arc(0,-22,22,0,7);ctx.stroke();ctx.beginPath();ctx.arc(0,-58,16,0,7);ctx.stroke();_eyes(0,-62,5);
    ctx.fillStyle="#ff8c1a";ctx.beginPath();ctx.moveTo(0,-58);ctx.lineTo(14,-55);ctx.lineTo(0,-54);ctx.fill();
    _L([[-18,-34],[-38,-50+c]],"#6a4020",3);_L([[18,-34],[38,-50-c]],"#6a4020",3);ctx.fillStyle="#d33";rr(-14,-76,28,6,2);ctx.fill();rr(-9,-92,18,16,2);ctx.fill();}},
  {w:["チキュウジン、ヤルヤン","ホシ、ミッツ","ボスニ、ホウコクスル"],d(c){_L([[-8,-72],[-16,-92]],"#6c6",2);_L([[8,-72],[16,-92]],"#6c6",2);_E(-16,-93,4,4,"#ff0");_E(16,-93,4,4,"#ff0");
    _E(0,-22,12,20,"#7d7");_L([[-10,-28],[-26,-44+c]],"#7d7",4);_L([[10,-28],[26,-44-c]],"#7d7",4);_E(0,-62,22,17,"#8e8");
    ctx.fillStyle="#111";ctx.beginPath();ctx.ellipse(-9,-62,6,9,-.5,0,7);ctx.ellipse(9,-62,6,9,.5,0,7);ctx.fill();}},
- {w:["あら〜上手やねぇ","飴ちゃんあげよ","うちの子にも見せたいわ"],d(c){_E(0,-24,17,24,"#ffcc33");for(const [x,y] of [[-8,-30],[6,-20],[-4,-12],[8,-36],[-10,-18]])_E(x,y,3,2.5,"#6a4000");
+ {w:["あら〜 じょうずやねぇ","アメちゃん あげよ","うちの こにも みせたいわ"],d(c){_E(0,-24,17,24,"#ffcc33");for(const [x,y] of [[-8,-30],[6,-20],[-4,-12],[8,-36],[-10,-18]])_E(x,y,3,2.5,"#6a4000");
    _L([[-14,-36],[-2+c,-50]],SKIN,6);_L([[14,-36],[2-c,-50]],SKIN,6);_E(0,-62,13,14,SKIN);
    for(let a=0;a<9;a++)_E(Math.cos(a*.75+2.6)*15,-66+Math.sin(a*.75+2.6)*14,7,7,"#8a4fb0");_eyes(0,-62,5,2);_smile(0,-60,5);_E(-9,-57,3,2,"#f99");_E(9,-57,3,2,"#f99");}},
- {w:["ポッポー（天才）","クルッポー！","パンくずよりええもん見た"],d(c){const h=c*.8;_L([[-4,0],[-4,-12]],"#e77",3);_L([[4,0],[4,-12]],"#e77",3);_E(0,-24,20,14,"#9aa0b0");
+ {w:["ポッポー（てんさい）","クルッポー！","パンくずより ええもん みた"],d(c){const h=c*.8;_L([[-4,0],[-4,-12]],"#e77",3);_L([[4,0],[4,-12]],"#e77",3);_E(0,-24,20,14,"#9aa0b0");
    _E(-18,-28,12,7,"#7a8090");_E(12+h,-40,8,10,"#6a9");_E(14+h,-50,10,10,"#8a90a0");_E(17+h,-52,2.5,2.5,"#f60");_E(17+h,-52,1.2,1.2,"#000");
    ctx.fillStyle="#fc6";ctx.beginPath();ctx.moveTo(23+h,-50);ctx.lineTo(31+h,-48);ctx.lineTo(23+h,-46);ctx.fill();}},
- {w:["青です。どうぞ","ずっと青にしとくわ","信号無視はアカンで"],d(c){ctx.fillStyle="#888";rr(-4,-60,8,60,2);ctx.fill();ctx.fillStyle="#333";rr(-40,-86,80,28,8);ctx.fill();
+ {w:["あおです。どうぞ","ずっと あおに しとくわ","しんごうむしは アカンで"],d(c){ctx.fillStyle="#888";rr(-4,-60,8,60,2);ctx.fill();ctx.fillStyle="#333";rr(-40,-86,80,28,8);ctx.fill();
    _E(-24,-72,9,9,"#522");_E(0,-72,9,9,"#540");_E(24,-72,9,9,Math.sin(time*8)>0?"#3f6":"#1a4");_eyes(24,-74,3,1.5);_smile(24,-72,3);}},
- {w:["うらめしや…やない、すごいや","成仏しそう","ぞくっとした"],d(c){const f=Math.sin(time*3)*6;ctx.save();ctx.globalAlpha=.9;ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-20,-20+f);
+ {w:["うらめしや…やない、すごいや","じょうぶつ しそう","ぞくっとした"],d(c){const f=Math.sin(time*3)*6;ctx.save();ctx.globalAlpha=.9;ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-20,-20+f);
    ctx.arc(0,-50+f,20,Math.PI,0);ctx.lineTo(20,-20+f);for(let i=0;i<4;i++)ctx.quadraticCurveTo(15-i*10,-10+f+(i%2?-6:6),10-i*10,-20+f);ctx.fill();ctx.restore();
    _eyes(0,-52+f,7,3);_E(0,-42+f,4,5,"#222");_L([[-18,-40+f],[-30,-50+f+c]],"#fff",5);_L([[18,-40+f],[30,-50+f-c]],"#fff",5);}},
- {w:["大根役者ちゃうで","おでんで待ってる","ほめたら太なった"],d(c){for(const a of [-.5,0,.5])_E(Math.sin(a)*14,-86+Math.abs(a)*6,5,16,"#4b3");_E(0,-40,15,36,"#f8f8f0");
+ {w:["{大根役者|だいこんやくしゃ}ちゃうで","おでんで まってる","ほめたら ふとなった"],d(c){for(const a of [-.5,0,.5])_E(Math.sin(a)*14,-86+Math.abs(a)*6,5,16,"#4b3");_E(0,-40,15,36,"#f8f8f0");
    for(const y of [-20,-8])_L([[-8,y],[6,y+2]],"#ccc",1);_eyes(0,-52,5);_smile(0,-48,5);_E(-9,-45,3,2,"#fbb");_E(9,-45,3,2,"#fbb");
    _L([[-14,-38],[-28,-52+c]],"#eee",4);_L([[14,-38],[28,-52-c]],"#eee",4);}},
- {w:["ピピ…ケイサンドオリ","ヤルヤン.exe","カンドウ ヲ 学習シタ"],d(c){_L([[-8,0],[-8,-14]],"#777",5);_L([[8,0],[8,-14]],"#777",5);ctx.fillStyle="#9aa4b0";rr(-18,-44,36,32,4);ctx.fill();
+ {w:["ピピ…ケイサンドオリ","ヤルヤン.exe","カンドウ ヲ ガクシュウ シタ"],d(c){_L([[-8,0],[-8,-14]],"#777",5);_L([[8,0],[8,-14]],"#777",5);ctx.fillStyle="#9aa4b0";rr(-18,-44,36,32,4);ctx.fill();
    _L([[-18,-38],[-32,-50+c*1.5]],"#777",4);_L([[18,-38],[32,-50-c*1.5]],"#777",4);ctx.fillStyle="#b8c2cc";rr(-15,-72,30,26,4);ctx.fill();
    ctx.fillStyle="#0ff";rr(-10,-64,7,7,1);ctx.fill();rr(3,-64,7,7,1);ctx.fill();_L([[0,-72],[0,-82]],"#555",2);_E(0,-84,4,4,Math.sin(time*10)>0?"#f33":"#700");
    ctx.fillStyle="#333";rr(-8,-53,16,3,1);ctx.fill();}},
- {w:["ペンッ！","飛べへんけど拍手","氷よりクール"],d(c){_E(0,-34,18,30,"#222");_E(0,-30,12,24,"#fff");_L([[-16,-40],[-28,-26+c]],"#222",6);_L([[16,-40],[28,-26-c]],"#222",6);
+ {w:["ペンッ！","とべへんけど はくしゅ","こおりより クール"],d(c){_E(0,-34,18,30,"#222");_E(0,-30,12,24,"#fff");_L([[-16,-40],[-28,-26+c]],"#222",6);_L([[16,-40],[28,-26-c]],"#222",6);
    _eyes(0,-54,5,2.2);ctx.fillStyle="#fa2";ctx.beginPath();ctx.moveTo(-5,-49);ctx.lineTo(5,-49);ctx.lineTo(0,-43);ctx.fill();_E(-7,-3,7,3,"#fa2");_E(7,-3,7,3,"#fa2");}},
- {w:["ごっつぁんです","押し出しで勝ち","ちゃんこ食べてく？"],d(c){_L([[-12,0],[-12,-14]],SKIN,10);_L([[12,0],[12,-14]],SKIN,10);_E(0,-34,26,24,SKIN);ctx.fillStyle="#335";rr(-26,-22,52,12,3);ctx.fill();
+ {w:["ごっつぁんです","おしだしで かち","ちゃんこ たべてく？"],d(c){_L([[-12,0],[-12,-14]],SKIN,10);_L([[12,0],[12,-14]],SKIN,10);_E(0,-34,26,24,SKIN);ctx.fillStyle="#335";rr(-26,-22,52,12,3);ctx.fill();
    _L([[-22,-44],[-34,-30+c]],SKIN,9);_L([[22,-44],[34,-30-c]],SKIN,9);_E(0,-66,14,14,SKIN);ctx.fillStyle="#111";rr(-12,-82,24,6,3);ctx.fill();_E(0,-86,5,5,"#111");
    _eyes(0,-66,5,2);_L([[-4,-59],[4,-59]],"#533",2);}},
- {w:["トゲある拍手","水より嬉しい","痛いけどハイタッチ"],d(c){ctx.fillStyle="#c86a3a";ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(16,0);ctx.lineTo(20,-16);ctx.lineTo(-20,-16);ctx.fill();
+ {w:["トゲある はくしゅ","みずより うれしい","いたいけど ハイタッチ"],d(c){ctx.fillStyle="#c86a3a";ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(16,0);ctx.lineTo(20,-16);ctx.lineTo(-20,-16);ctx.fill();
    ctx.fillStyle="#4a4";rr(-11,-76,22,62,10);ctx.fill();rr(-30,-54+c,12,24,6);ctx.fill();rr(-30,-38,20,10,5);ctx.fill();rr(18,-60-c,12,24,6);ctx.fill();rr(10,-44,20,10,5);ctx.fill();
    _E(0,-80,6,5,"#f6a");_eyes(0,-54,4,2);_smile(0,-50,4);_L([[-11,-66],[-15,-68]],"#dfd",1);_L([[11,-40],[15,-42]],"#dfd",1);}},
- {w:["……見事でござる","拙者、見ておった","ニンニン（拍手）"],d(c){_L([[-6,0],[-5,-24]],"#223",7);_L([[6,0],[5,-24]],"#223",7);_E(0,-42,14,20,"#2a2f45");
+ {w:["……みごとで ござる","{拙者|せっしゃ}、みておった","ニンニン（はくしゅ）"],d(c){_L([[-6,0],[-5,-24]],"#223",7);_L([[6,0],[5,-24]],"#223",7);_E(0,-42,14,20,"#2a2f45");
    _L([[-12,-46],[8,-40]],"#2a2f45",6);_L([[12,-46],[-8,-38]],"#2a2f45",6);_E(0,-70,13,14,"#2a2f45");ctx.fillStyle=SKIN;rr(-10,-74,20,7,3);ctx.fill();_eyes(0,-70.5,4,1.6);
    _L([[12,-72],[22,-68+c*.5]],"#c33",3);}},
- {w:["アツい！","燃えてきた","ジュッとくる出来"],d(c){const f=t=>Math.sin(time*14+t)*3;_E(0,-30,20,24,"#ff5a1a");_E(f(1),-50,14,22,"#ff8a1a");_E(f(2),-64,8,14,"#ffd23f");_E(0,-26,13,16,"#ffd23f");
+ {w:["アツい！","もえてきた","ジュッとくる でき"],d(c){const f=t=>Math.sin(time*14+t)*3;_E(0,-30,20,24,"#ff5a1a");_E(f(1),-50,14,22,"#ff8a1a");_E(f(2),-64,8,14,"#ffd23f");_E(0,-26,13,16,"#ffd23f");
    _eyes(0,-32,5,2.6,"#300");_smile(0,-28,5,"#300");}},
- {w:["ケロッとクリア","ゲロうま","かえるころには伝説"],d(c){const h=-Math.abs(Math.sin(time*6))*14;ctx.save();ctx.translate(0,h);_E(0,-18,24,16,"#5c3");_E(-11,-34,8,8,"#5c3");_E(11,-34,8,8,"#5c3");
+ {w:["ケロッとクリア","ゲロうま","かえる ころには でんせつ"],d(c){const h=-Math.abs(Math.sin(time*6))*14;ctx.save();ctx.translate(0,h);_E(0,-18,24,16,"#5c3");_E(-11,-34,8,8,"#5c3");_E(11,-34,8,8,"#5c3");
    _E(-11,-35,5,5,"#fff");_E(11,-35,5,5,"#fff");_E(-11,-35,2.5,2.5,"#000");_E(11,-35,2.5,2.5,"#000");ctx.strokeStyle="#231";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-24,12,.3,Math.PI-.3);ctx.stroke();
    _E(-18,-4,9,4,"#4a2");_E(18,-4,9,4,"#4a2");ctx.restore();}},
- {w:["ぷるぷる感動","あまい勝利","カラメル級"],d(c){ctx.fillStyle="#eee";rr(-30,-4,60,6,3);ctx.fill();ctx.save();ctx.translate(0,-4);ctx.scale(1+Math.sin(time*16)*.06,1-Math.sin(time*16)*.06);
+ {w:["ぷるぷる かんどう","あまい しょうり","カラメルきゅう"],d(c){ctx.fillStyle="#eee";rr(-30,-4,60,6,3);ctx.fill();ctx.save();ctx.translate(0,-4);ctx.scale(1+Math.sin(time*16)*.06,1-Math.sin(time*16)*.06);
    ctx.fillStyle="#ffdd66";ctx.beginPath();ctx.moveTo(-24,0);ctx.lineTo(24,0);ctx.lineTo(16,-40);ctx.lineTo(-16,-40);ctx.fill();ctx.fillStyle="#8a4a10";rr(-17,-44,34,10,5);ctx.fill();
    _eyes(0,-22,6,2.2);_smile(0,-18,5);_E(-11,-15,3,2,"#f99");_E(11,-15,3,2,"#f99");ctx.restore();}},
- {w:["8本で拍手","タコでもわかる天才","すみ吐くほど感動"],d(c){for(let i=0;i<6;i++){const x=-20+i*8;_L([[x,-26],[x+Math.sin(time*9+i)*6,-12],[x+Math.sin(time*9+i+1)*8,0]],"#e4533a",5);}
+ {w:["8ほんで はくしゅ","タコでも わかる てんさい","すみ はくほど かんどう"],d(c){for(let i=0;i<6;i++){const x=-20+i*8;_L([[x,-26],[x+Math.sin(time*9+i)*6,-12],[x+Math.sin(time*9+i+1)*8,0]],"#e4533a",5);}
    _E(0,-48,22,24,"#ff6a4a");ctx.fillStyle="#fff";rr(-22,-58,44,6,3);ctx.fill();_eyes(0,-44,7,3);_E(0,-34,4,4,"#c33");}},
- {w:["もちつけ…いや、すごい","月までとどいた","ぺったん！"],d(c){_E(-7,-78,5,16,"#fff");_E(7,-80,5,16,"#fff");_E(-7,-78,2,11,"#fcc");_E(7,-80,2,11,"#fcc");_E(0,-30,16,24,"#fff");_E(0,-58,14,13,"#fff");
+ {w:["もちつけ…いや、すごい","つきまで とどいた","ぺったん！"],d(c){_E(-7,-78,5,16,"#fff");_E(7,-80,5,16,"#fff");_E(-7,-78,2,11,"#fcc");_E(7,-80,2,11,"#fcc");_E(0,-30,16,24,"#fff");_E(0,-58,14,13,"#fff");
    _eyes(0,-59,5,2.2,"#e22");_E(0,-54,2,1.5,"#f9a");ctx.save();ctx.translate(20,-40);ctx.rotate(-.6+c*.08);ctx.fillStyle="#b08050";rr(-2,-28,4,30,2);ctx.fill();rr(-10,-34,20,10,3);ctx.fill();ctx.restore();}},
- {w:["話が長くなるので省略。えらい","校長先生も感心です","全校集会で発表します"],d(c){_L([[-6,0],[-5,-24]],"#333",7);_L([[6,0],[5,-24]],"#333",7);ctx.fillStyle="#333";rr(-15,-58,30,36,6);ctx.fill();
+ {w:["はなしが ながく なるので しょうりゃく。えらい","こうちょう せんせいも かんしんです","ぜんこう しゅうかいで はっぴょうします"],d(c){_L([[-6,0],[-5,-24]],"#333",7);_L([[6,0],[5,-24]],"#333",7);ctx.fillStyle="#333";rr(-15,-58,30,36,6);ctx.fill();
    ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-5,-58);ctx.lineTo(5,-58);ctx.lineTo(0,-46);ctx.fill();_L([[0,-54],[0,-44]],"#c22",3);_L([[-14,-52],[-24,-40]],"#333",6);
    _L([[14,-52],[24,-64]],"#333",6);ctx.fillStyle="#fff";rr(18,-78,18,14,1);ctx.fill();ojiHead(0,-78,.9,0);
    ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.beginPath();ctx.arc(-6,-80,5,0,7);ctx.moveTo(11,-80);ctx.arc(6,-80,5,0,7);ctx.stroke();}},
@@ -472,15 +479,15 @@ function cheerSpot(){if(L.goals&&!L.goals.includes("flag")||!L.goal){const ss=st
 function drawCheer(){if(state!=="win"||!L){cheerPos=null;return;}if(!cheerPos)cheerPos=cheerSpot();const k=Math.min(1,(time-winAt)*3),[x,y]=cheerPos,c=Math.sin(time*18)*6;
   const ch=CHEERS[Math.floor(li/5)%CHEERS.length];
   ctx.save();ctx.translate(x,y+(1-k)*80);ch.d(c);
-  const w=ch.w[li%5%ch.w.length];ctx.font="bold 20px sans-serif";const tw=ctx.measureText(w).width+20,bx=Math.max(-x+tw/2+8,Math.min(W-x-tw/2-8,Math.max(-60,Math.min(60,(W/2-x)*.1))));
-  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2;rr(bx-tw/2,-128,tw,32,12);ctx.fill();ctx.stroke();ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(w,bx,-106);ctx.textAlign="left";
+  const w=ch.w[li%5%ch.w.length],r=hasRb(w)?12:0;ctx.font="bold 20px sans-serif";const tw=ctx.measureText(rbPlain(w)).width+20,bx=Math.max(-x+tw/2+8,Math.min(W-x-tw/2-8,Math.max(-60,Math.min(60,(W/2-x)*.1))));
+  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2;rr(bx-tw/2,-128-r,tw,32+r,12);ctx.fill();ctx.stroke();ctx.fillStyle="#222";fillRuby(w,bx,-106,20);
   ctx.restore();}
 function drawTalk(c,z){const t=TALK[TH.rider];if(!t||state==="title")return;
   const k=state==="win"?2:state==="fail"?3:state==="go"?1:0,s=t[k],x=c.position.x,y=c.position.y-(TH.rider==="bridge"?120:92)*z;
-  ctx.font="bold 22px sans-serif";const w=ctx.measureText(s).width+24;
-  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20,w,36,14);ctx.fill();ctx.stroke();
+  ctx.font="bold 22px sans-serif";const w=ctx.measureText(rbPlain(s)).width+24,r=hasRb(s)?12:0;
+  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20-r,w,36+r,14);ctx.fill();ctx.stroke();
   ctx.beginPath();ctx.moveTo(x-6,y+16);ctx.lineTo(x,y+28);ctx.lineTo(x+6,y+16);ctx.fill();
-  ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(s,x,y+6);ctx.textAlign="left";}
+  ctx.fillStyle="#222";fillRuby(s,x,y+6,22);}
 // 車輪の描き方
 function drawWheel(w,z){
   ctx.save();ctx.translate(w.position.x,w.position.y);ctx.rotate(w.angle);ctx.scale(z,z);
@@ -505,11 +512,12 @@ function postFx(kind){
   const f=kind==="gb"?4:3,w=Math.round(W/f),h=Math.round(H/f);
   if(!postCv){postCv=document.createElement("canvas");postCtx=postCv.getContext("2d",{willReadFrequently:true});}
   if(postCv.width!==w){postCv.width=w;postCv.height=h;}
-  postCtx.imageSmoothingEnabled=true;postCtx.drawImage(cv,0,0,w,h);
+  const rw=Math.min(cv.width,Math.round(W*K)),rh=Math.min(cv.height,Math.round(H*K)); // 小さな絵（ステージえらび）の時は左上だけ
+  postCtx.imageSmoothingEnabled=true;postCtx.drawImage(cv,0,0,rw,rh,0,0,w,h);
   if(kind==="gb"){const im=postCtx.getImageData(0,0,w,h),d=im.data;
     for(let i=0;i<d.length;i+=4){const l=(d[i]*.3+d[i+1]*.59+d[i+2]*.11)/256,c=GB[Math.min(3,Math.floor(l*4.2))];d[i]=c[0];d[i+1]=c[1];d[i+2]=c[2];}
     postCtx.putImageData(im,0,0);}
-  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(postCv,0,0,cv.width,cv.height);ctx.restore();ctx.imageSmoothingEnabled=true;
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(postCv,0,0,rw,rh);ctx.restore();ctx.imageSmoothingEnabled=true;
 }
 
 /* ---------- 失敗したら爆発 ---------- */

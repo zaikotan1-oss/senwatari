@@ -150,11 +150,11 @@ const MODE=(()=>{
       if(o.k==="saw"){if(o.fired){o.a=Math.min(1,(time-o.fired)/.12)*.35*(o.dir||1);Body.setAngle(o.body,o.a);}
         if(running&&!o.rider.isStatic){const p=o.rider.position,[x0,x1,y]=o.bed;const inBed=p.x>x0&&p.x<x1&&p.y<y&&p.y>y-90;
           o.landT=inBed?o.landT+d:0;o.still=!inBed&&Math.hypot(o.rider.velocity.x,o.rider.velocity.y)<.25?o.still+d:0;
-          if(p.y>WATER_Y+40||p.x<-80||p.x>W+80)return finish(false,"おっさんが飛んでいっちゃった…");
+          if(p.y>WATER_Y+40||p.x<-80||p.x>W+80)return finish(false,"おっさんが とんでいっちゃった…");
           if(o.still>.7&&!o.landed&&!o.free)return finish(false,"とどかなかった…"); // free: 布団なし（飛んだ先でボタン等を押す）
           if(o.landT>.35)o.landed=true;}}
       if(o.k==="basket"){const inB=P.filter(q=>q.k==="ball"&&q.body.position.x>o.x0&&q.body.position.x<o.x1&&q.body.position.y<o.y&&q.body.position.y>o.y-70).length>=(o.need||1);o.done=inB?o.done+d:0;}
-      if(o.k==="ball"&&running&&o.body.position.y>WATER_Y+80&&!o.lost){o.lost=1;if(M.has("ball"))return finish(false,"ボールが落ちちゃった…");}
+      if(o.k==="ball"&&running&&o.body.position.y>WATER_Y+80&&!o.lost){o.lost=1;if(M.has("ball"))return finish(false,"ボールが おちちゃった…");}
     }
     if(!running)return;
     // クリアの判定（全部そろったら）
@@ -162,7 +162,7 @@ const MODE=(()=>{
       bed:()=>P.filter(o=>o.k==="saw").every(o=>o.landed),ball:()=>P.filter(o=>o.k==="basket").every(o=>o.done>.3),
       btn:()=>P.filter(o=>o.k==="btn"&&o.goal).every(o=>o.down)};
     if(L.goals.every(g=>ok[g]&&ok[g]())){doneT+=d;if(doneT>.15)finish(true);}else doneT=0;
-    if(goT>(L.limit||(M.has("guard")?L.guard+3:M.has("flag")?24:14))&&state==="go")finish(false,M.has("wake")?"起きなかった… ぐっすり":"時間切れ…");
+    if(goT>(L.limit||(M.has("guard")?L.guard+3:M.has("flag")?24:14))&&state==="go")finish(false,M.has("wake")?"おきなかった… ぐっすり":"じかんぎれ…");
   };
   function fire(o,stroke){if(o.fired)return;o.fired=time;const pts=stroke.plugin.pts;let len=0;for(let i=1;i<pts.length;i++)len+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);
     const v=(o.k2||.72)*Math.sqrt(len*(TH.gravity||1)),an=(o.ang||55)*Math.PI/180,r=o.rider,sd=o.dir||1;
@@ -193,7 +193,7 @@ const MODE=(()=>{
       ctx.font="bold 40px sans-serif";ctx.textAlign="center";ctx.lineWidth=8;ctx.strokeStyle="#fff";ctx.fillStyle=left<1.5?"#ff3b3b":"#222";
       const s=`あと ${left.toFixed(1)} びょう まもれ！`;ctx.strokeText(s,W/2,60);ctx.fillText(s,W/2,60);ctx.textAlign="left";}
     if(L.goals.length>1&&state==="draw"){ // 条件が 2 つ以上の時は、左上に並べて見せる
-      const JP={flag:"🏁 旗まで",guard:"🛡 守れ",wake:"⏰ 起こせ",bed:"🛏 布団へ",ball:"⚽ カゴへ",btn:"🔴 ボタン"};
+      const JP={flag:"🏁 はたまで",guard:"🛡 まもれ",wake:"⏰ おこせ",bed:"🛏 ふとんへ",ball:"⚽ カゴへ",btn:"🔴 ボタン"};
       ctx.font="bold 22px sans-serif";let y=100;for(const g of L.goals){const s=JP[g];const w=ctx.measureText(s).width+20;
         ctx.fillStyle="#fffffff0";rr(18,y-24,w,32,10);ctx.fill();ctx.fillStyle="#222";ctx.fillText(s,28,y);y+=38;}}
   };
@@ -210,7 +210,7 @@ const MODE=(()=>{
       ctx.fillStyle="#ffd23f";for(let i=0;i<Math.floor((w-40)/24);i++){ctx.beginPath();ctx.moveTo(x-w/2+26+i*24,y-4);ctx.lineTo(x-w/2+36+i*24,y-18);ctx.lineTo(x-w/2+42+i*24,y-18);ctx.lineTo(x-w/2+32+i*24,y-4);ctx.fill();}
       const h=o.down?4:16;ctx.fillStyle=o.down?"#3ac060":"#ff3b3b";ctx.beginPath();ctx.ellipse(x,y-30,Math.max(12,w/2-40),h,0,Math.PI,0);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.stroke();ctx.restore();
       if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5,ty=o.flip?y+62:y-58;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";
-        const t=o.by==="car"?"車で当てて！":"ぶつけて！";ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText(t,x,ty+bob);ctx.fillText(t,x,ty+bob);ctx.textAlign="left";}},
+        const t=o.by==="car"?"くるまで あてて！":"ぶつけて！";ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText(t,x,ty+bob);ctx.fillText(t,x,ty+bob);ctx.textAlign="left";}},
     gate(o){const p=o.body.position,h=o.bot-o.top;ctx.save();ctx.translate(p.x,p.y);ctx.beginPath();ctx.rect(-15,-h/2,30,h);ctx.clip();
       for(let y=-h/2-30;y<h/2;y+=30){ctx.fillStyle=(Math.round(y/30)%2)?"#222":"#ffd23f";ctx.beginPath();ctx.moveTo(-15,y);ctx.lineTo(15,y+15);ctx.lineTo(15,y+45);ctx.lineTo(-15,y+30);ctx.fill();}
       ctx.restore();ctx.strokeStyle="#222";ctx.lineWidth=3;ctx.strokeRect(p.x-15,p.y-h/2,30,h);},
@@ -268,16 +268,16 @@ const MODE=(()=>{
       if(o.woke){const j=Math.min(1,o.woke*6)*26;ojiHead(x+50,y-30-j,1,0);ctx.restore();talk(x+50,y-110*sy,o.alarm?"うるさっ！":"はっ！！");}
       else{ojiHead(x+52,y-26,.95,-.4,true);ctx.restore();ctx.fillStyle="#223";ctx.font="bold 22px sans-serif";
         for(let k=0;k<3;k++){const t=(time*.6+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",x+64+k*8+t*24,y-(56+t*50)*sy);}ctx.globalAlpha=1;
-        if(state==="draw"&&!o.quiet)talk(x+(x<W-300?200:-200),y-110*sy,"ぐぅ…（起こして）");}},
+        if(state==="draw"&&!o.quiet)talk(x+(x<W-300?200:-200),y-110*sy,"ぐぅ…（おこして）");}},
     saw(o){const pl=o.body;ctx.fillStyle="#6a5a4a";ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x-26,o.y+46);ctx.lineTo(o.x+26,o.y+46);ctx.fill();
       ctx.save();ctx.translate(pl.position.x,pl.position.y);ctx.rotate(pl.angle);ctx.fillStyle="#c8904a";ctx.fillRect(-o.len/2,-7,o.len,14);ctx.strokeStyle="#5a3a1a";ctx.lineWidth=3;ctx.strokeRect(-o.len/2,-7,o.len,14);ctx.restore();
       const [x0,x1,y]=o.bed;ctx.fillStyle="#6a8ad0";rr(x0+6,y-16,x1-x0-12,20,6);ctx.fill();ctx.fillStyle="#fff";rr(x1-44,y-26,34,14,6);ctx.fill();
       ctx.fillStyle="#8a6a4a";ctx.fillRect(x0-7,y-44,14,50);ctx.fillRect(x1-7,y-44,14,50);ctx.fillRect(x0,y,x1-x0,12);
-      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";ctx.fillText("ここに着地",(x0+x1)/2,y-58);ctx.textAlign="left";}
+      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";ctx.fillText("ここに ちゃくち",(x0+x1)/2,y-58);ctx.textAlign="left";}
       const r=o.rider,p=r.position;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(r.angle);
       ctx.fillStyle="#fff";rr(-16,-16,32,24,6);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle="#e0d4b0";ctx.fillRect(-16,4,32,12);ctx.restore();
       if(r.parts[2])ojiHead(r.parts[2].position.x,r.parts[2].position.y,1,r.angle);
-      const s=state==="win"?"ナイス着地！":state==="fail"?"うそやろ〜":state==="go"?(r.velocity.y<-2?"ぎゃあああ":"え？"):"…なにするの？";talk(p.x,p.y-90,s);},
+      const s=state==="win"?"ナイス ちゃくち！":state==="fail"?"うそやろ〜":state==="go"?(r.velocity.y<-2?"ぎゃあああ":"え？"):"…なにするの？";talk(p.x,p.y-90,s);},
     guy(o){const {x,y}=o,sh=state==="fail"?Math.sin(time*40)*3:0;ctx.strokeStyle="#4a3020";ctx.lineWidth=7;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(x-8+sh,y);ctx.lineTo(x-6,y-30);ctx.moveTo(x+8+sh,y);ctx.lineTo(x+6,y-30);ctx.stroke();
       ctx.fillStyle="#e8dcc0";rr(x-16,y-40,32,14,4);ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(x,y-56,18,20,0,0,7);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();
       ctx.strokeStyle=SKIN;ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x-14,y-62);ctx.lineTo(x-24,y-40+sh);ctx.moveTo(x+14,y-62);ctx.lineTo(x+24,y-40-sh);ctx.stroke();

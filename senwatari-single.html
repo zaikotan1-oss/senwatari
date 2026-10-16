@@ -42,9 +42,26 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 .card .btn.sub{background:#e4e8f0}
 #pager{display:flex;align-items:center;justify-content:center;gap:18px;font-size:24px;font-weight:bold;color:#556}
 #pager .btn{width:64px;height:52px;padding:0;margin:0;font-size:32px}
-#grid{display:grid;grid-template-columns:repeat(5,110px);gap:14px;margin:14px 0 20px;justify-content:center}
-#grid .btn{height:100px;font-size:36px;background:var(--wc,#8fd3ff);color:#fff;text-shadow:0 2px 0 #0005;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#grid .btn span{font-size:18px;color:#fff;text-shadow:0 2px 0 #3a7}
+/* ステージえらび: 本物の面を小さく描いたタイルを 20 面ずつ。横にスワイプ */
+#selCard{padding:16px 22px 12px;width:1180px;box-sizing:border-box}
+#selHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#selHead h2{margin:0;font-size:32px}
+#selHead #selBack{margin:0;font-size:22px;padding:10px 22px}
+#pager{min-width:330px;justify-content:flex-end}
+#pgLabel{font-size:20px;min-width:180px}
+#pages{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;touch-action:pan-x;scrollbar-width:none;margin:10px 0 4px;-webkit-overflow-scrolling:touch}
+#pages::-webkit-scrollbar{display:none}
+#pages.drag{scroll-snap-type:none}
+.page{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:repeat(5,208px);gap:12px;justify-content:center;padding:4px 0}
+.tile{position:relative;width:208px;height:117px;border-radius:14px;overflow:hidden;border:3px solid #fff;box-shadow:0 3px 0 #0003;padding:0;margin:0;background:var(--wc,#8fd3ff);cursor:pointer;box-sizing:content-box}
+.tile canvas{width:100%;height:100%;display:block}
+.tile .no{position:absolute;left:5px;top:4px;font-size:13px;font-weight:bold;background:#0006;color:#fff;border-radius:8px;padding:0 6px;line-height:19px}
+.tile .ok{position:absolute;right:4px;top:2px;font-size:18px;text-shadow:0 1px 2px #0008}
+.tile.done{border-color:#ffd23f}
+.tile:active{transform:scale(.96)}
+#dots{display:flex;justify-content:center;gap:8px;height:16px}
+#dots i{width:12px;height:12px;border-radius:6px;background:#d4dae6;cursor:pointer}
+#dots i.on{background:#ff5a4e}
 #titleOv{background:linear-gradient(#58b8ff,#c9ecff)}
 #titleOv h1{font-size:96px;color:#fff;text-shadow:0 6px 0 #2f6fd0,0 10px 20px #0004;margin:0}
 #titleOv p{font-size:26px;color:#2b4a7a;font-weight:bold}
@@ -59,11 +76,11 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 <div id="wrap">
   <canvas id="cv"></canvas>
   <div class="hud" id="top">
-    <div id="stage">STAGE 1<small>はじめの一本</small></div>
+    <div id="stage">STAGE 1<small>はじめの いっぽん</small></div>
     <div id="tools">
       <button class="btn" id="hintBtn" title="ヒント">💡</button>
-      <button class="btn" id="retryBtn" title="やり直し">↻</button>
-      <button class="btn" id="menuBtn" title="ステージ選択">☰</button>
+      <button class="btn" id="retryBtn" title="やりなおし">↻</button>
+      <button class="btn" id="menuBtn" title="ステージを えらぶ">☰</button>
     </div>
   </div>
   <div class="hud" id="hint"></div>
@@ -71,28 +88,28 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
   <div id="toast"></div>
 
   <div class="ov show" id="titleOv"><div style="text-align:center">
-    <h1>線でわたれ！</h1>
-    <p>線は一本だけ。指を離した瞬間、線は落ちて車が走り出す。<br>うまく橋をかけて、車を向こう岸まで送りとどけよう。</p>
+    <h1><ruby>線<rt>せん</rt></ruby>でわたれ！</h1>
+    <p>せんは いっぽんだけ。ゆびを はなした しゅんかん、せんは おちて くるまが はしりだす。<br>うまく はしを かけて、くるまを むこうぎしまで おくりとどけよう。</p>
     <button class="btn" id="startBtn">あそぶ</button>
   </div></div>
 
-  <div class="ov" id="selOv"><div class="card">
-    <h2>ステージをえらぶ</h2>
-    <div id="pager"><button class="btn sub" id="pgPrev">‹</button><span id="pgLabel"></span><button class="btn sub" id="pgNext">›</button></div>
-    <div id="grid"></div>
-    <button class="btn sub" id="selBack">もどる</button>
+  <div class="ov" id="selOv"><div class="card" id="selCard">
+    <div id="selHead"><button class="btn sub" id="selBack">もどる</button><h2>ステージをえらぶ</h2>
+      <div id="pager"><button class="btn sub" id="pgPrev">‹</button><span id="pgLabel"></span><button class="btn sub" id="pgNext">›</button></div></div>
+    <div id="pages"></div>
+    <div id="dots"></div>
   </div></div>
 
   <div class="ov" id="resOv"><div class="card">
     <h1 id="resTitle">クリア！</h1>
         <p id="resMsg"></p>
     <div>
-      <button class="btn sub" id="resRetry">もう一回</button>
-      <button class="btn" id="resNext">次へ ▶</button>
+      <button class="btn sub" id="resRetry">もう いっかい</button>
+      <button class="btn" id="resNext">つぎへ ▶</button>
     </div>
   </div></div>
 </div>
-<div id="rotate">横向きにしてあそんでね</div>
+<div id="rotate">よこむきに して あそんでね</div>
 
 <script>
 /*!
@@ -474,45 +491,45 @@ window.GEN_TABLE=[
    ・gravity: 91〜100 面（月・銀河）は重力が弱い。面の合格はこの重力で確かめてある */
 // sky:空 hill:遠くの山 ground:土(上,下) grass:表面 edge:ふち water:水 line:描いた線 car:本体,屋根,ふち
 const THEMES=[
- {name:"みどりの谷",sky:["#5fb8ff","#d9f1ff"],hill:["#9cc9e8","#86bcdf"],ground:["#b07a45","#6e4526"],grass:["#5cc443","#46a834"],edge:"#4a2e18",
+ {name:"みどりの たに",sky:["#5fb8ff","#d9f1ff"],hill:["#9cc9e8","#86bcdf"],ground:["#b07a45","#6e4526"],grass:["#5cc443","#46a834"],edge:"#4a2e18",
   water:["#2d8fe0","#1552a0"],line:["#151827","#3a4166"],car:["#ff5a4e","#e8412f","#9c2518"],deco:"clouds",rider:"car"},
- {name:"ノートの落書き",bg:"sketch",ground:["#eee6cf","#e4dbc0"],grass:["#fbf8ef","#fbf8ef"],noGrass:1,noStripe:1,edge:"#2a2a2a",edgeW:3,rough:1,gpat:"hatch",
+ {name:"ノートの らくがき",bg:"sketch",ground:["#eee6cf","#e4dbc0"],grass:["#fbf8ef","#fbf8ef"],noGrass:1,noStripe:1,edge:"#2a2a2a",edgeW:3,rough:1,gpat:"hatch",
   water:["#fbf8ef","#fbf8ef"],line:["#1a3a9a","#5a88f0"],car:["#ffc4d0","#ff9ab4","#2a2a2a"],deco:"sketch",rider:"pig",wheel:"sketch"},
- {name:"地下鉄",bg:"subway",ground:["#a8a8ae","#6a6a72"],grass:["#f0d020","#c8a810"],gtop:"tactile",edge:"#2a2a30",
+ {name:"ちかてつ",bg:"subway",ground:["#a8a8ae","#6a6a72"],grass:["#f0d020","#c8a810"],gtop:"tactile",edge:"#2a2a30",
   water:["#1a1a1e","#0a0a0c"],line:["#1a1a2a","#e0e0f0"],car:["#f0a020","#c87a10","#3a2a10"],deco:"subway",subway:true,rider:"bridge"},
- {name:"ドット絵の国",bg:"pixel",ground:["#c84c0c","#c84c0c"],grass:["#00a800","#006800"],noStripe:1,gpat:"brick",edge:"#000000",edgeW:4,
+ {name:"ドットえの くに",bg:"pixel",ground:["#c84c0c","#c84c0c"],grass:["#00a800","#006800"],noStripe:1,gpat:"brick",edge:"#000000",edgeW:4,
   water:["#3050f8","#2038a8"],line:["#000000","#fcfcfc"],car:["#00a800","#006800","#003800"],deco:"pixel",rider:"tank",post:"pixel"},
  {name:"さばく",sky:["#6cc8ff","#fff3c4"],hill:["#f2c77a","#e0b060"],ground:["#e0a860","#a8743a"],grass:["#f7dc98","#e6c47a"],edge:"#7a5020",
   water:["#35c9c0","#1a8a90"],line:["#3a2410","#7a5030"],car:["#ffd23f","#f0b400","#8a6400"],deco:"desert",rider:"buggy"},
- {name:"設計図",bg:"blue",ground:["#3474c8","#2a66b8"],grass:["#ffffff","#1d56a8"],noGrass:1,noStripe:1,gpat:"xhatch",edge:"#ffffff",edgeW:2.5,
+ {name:"せっけいず",bg:"blue",ground:["#3474c8","#2a66b8"],grass:["#ffffff","#1d56a8"],noGrass:1,noStripe:1,gpat:"xhatch",edge:"#ffffff",edgeW:2.5,
   water:["#1d56a8","#1d56a8"],line:["#ffffff","#9fd0ff"],car:["#1d56a8","#2a64b8","#ffffff"],deco:"blue",rider:"loco",wheel:"line"},
- {name:"雪山",sky:["#8cc8f5","#f0f8ff"],hill:["#dbe9f7","#c2d6ec"],ground:["#8a9bb0","#56657a"],grass:["#ffffff","#dfe9f5"],edge:"#3a4658",
+ {name:"ゆきやま",sky:["#8cc8f5","#f0f8ff"],hill:["#dbe9f7","#c2d6ec"],ground:["#8a9bb0","#56657a"],grass:["#ffffff","#dfe9f5"],edge:"#3a4658",
   water:["#7ec8e8","#3f7fb0"],line:["#1a2440","#40507a"],car:["#2a2a38","#ffffff","#10101a"],deco:"snow",rider:"penguin"},
- {name:"ネオン街道",bg:"neon",ground:["#120020","#07000f"],grass:["#ff2a9a","#7a0a5a"],noStripe:1,gpat:"neongrid",edge:"#00f0ff",edgeW:3,glow:"#00f0ff",
+ {name:"ネオンかいどう",bg:"neon",ground:["#120020","#07000f"],grass:["#ff2a9a","#7a0a5a"],noStripe:1,gpat:"neongrid",edge:"#00f0ff",edgeW:3,glow:"#00f0ff",
   water:["#0a0018","#000000"],line:["#ff2a9a","#ffd0f0"],car:["#1a0030","#ff2a9a","#00f0ff"],deco:"neon",rider:"sports",wheel:"neon"},
- {name:"夜の町",sky:["#0b1a3a","#2a3f75"],hill:["#1f2f55","#18264a"],ground:["#4a3a5a","#241a30"],grass:["#3a8a5a","#2a6a44"],edge:"#120c1a",
+ {name:"よるの まち",sky:["#0b1a3a","#2a3f75"],hill:["#1f2f55","#18264a"],ground:["#4a3a5a","#241a30"],grass:["#3a8a5a","#2a6a44"],edge:"#120c1a",
   water:["#1a3a7a","#0a1a40"],line:["#fff4c0","#ffd860"],car:["#ffffff","#16161e","#556"],deco:"night",rider:"kotatsu"},
- {name:"黒板",bg:"chalk",ground:["#4a6a58","#3e5c4a"],grass:["#f4f4ec","#2e4a3a"],noGrass:1,noStripe:1,gpat:"chalk",edge:"#f4f4ec",edgeW:3,rough:1,
+ {name:"こくばん",bg:"chalk",ground:["#4a6a58","#3e5c4a"],grass:["#f4f4ec","#2e4a3a"],noGrass:1,noStripe:1,gpat:"chalk",edge:"#f4f4ec",edgeW:3,rough:1,
   water:["#2e4a3a","#2e4a3a"],line:["#fff6a0","#ffffff"],car:["#2e4a3a","#ffb0d0","#f4f4ec"],deco:"chalk",rider:"cat",wheel:"chalk"},
- {name:"秋の森",sky:["#9fd3ff","#fff0d8"],hill:["#e0a070","#c8805a"],ground:["#9a5a30","#5a3018"],grass:["#d9822b","#b8661e"],edge:"#3a1e0c",
+ {name:"あきの もり",sky:["#9fd3ff","#fff0d8"],hill:["#e0a070","#c8805a"],ground:["#9a5a30","#5a3018"],grass:["#d9822b","#b8661e"],edge:"#3a1e0c",
   water:["#3a9ad0","#1a5a90"],line:["#20140a","#5a3a20"],car:["#8a5a3a","#6a3e22","#2a160a"],deco:"autumn",rider:"boar"},
- {name:"浮世絵",bg:"ukiyo",ground:["#7a5a3a","#4a3420"],grass:["#4a7a50","#2f5a38"],noStripe:1,gpat:"wood",edge:"#1a1410",edgeW:4,
+ {name:"うきよえ",bg:"ukiyo",ground:["#7a5a3a","#4a3420"],grass:["#4a7a50","#2f5a38"],noStripe:1,gpat:"wood",edge:"#1a1410",edgeW:4,
   water:["#1f3a6a","#0f2448"],line:["#1a1410","#c8392b"],car:["#c8392b","#1f3a6a","#1a1410"],deco:"ukiyo",rider:"rickshaw"},
- {name:"南の島",sky:["#3fbfff","#c9f3ff"],hill:["#7fd8c8","#5cc0b0"],ground:["#f0d090","#c8a060"],grass:["#63d471","#48b858"],edge:"#8a6a30",
+ {name:"みなみの しま",sky:["#3fbfff","#c9f3ff"],hill:["#7fd8c8","#5cc0b0"],ground:["#f0d090","#c8a060"],grass:["#63d471","#48b858"],edge:"#8a6a30",
   water:["#1fc8d8","#0a7fb0"],line:["#0a2a40","#2a5a80"],car:["#48b858","#2e8a40","#145a24"],deco:"island",rider:"bath"},
  {name:"アメコミ",bg:"comic",ground:["#ffd23f","#f0a800"],grass:["#ff3b3b","#c81e1e"],noStripe:1,gpat:"dots",edge:"#000000",edgeW:6,
   water:["#1e6ae0","#1e6ae0"],line:["#000000","#ffffff"],car:["#ff3b3b","#ffffff","#000000"],deco:"comic",rider:"superoji",wheel:"comic"},
- {name:"火山",sky:["#2a0a0a","#a0381e"],hill:["#4a1a14","#3a120e"],ground:["#4a3434","#1e1212"],grass:["#6a5a5a","#4a3a3a"],edge:"#0a0404",
+ {name:"かざん",sky:["#2a0a0a","#a0381e"],hill:["#4a1a14","#3a120e"],ground:["#4a3434","#1e1212"],grass:["#6a5a5a","#4a3a3a"],edge:"#0a0404",
   water:["#ff8a00","#c01e00"],line:["#fff0d0","#ffc070"],car:["#8a8a90","#5a5a60","#222"],deco:"volcano",lava:true,rider:"cart"},
  {name:"ゲームボーイ",bg:"pixel",ground:["#306230","#306230"],grass:["#8bac0f","#0f380f"],noStripe:1,gpat:"brick",edge:"#0f380f",edgeW:4,
   water:["#306230","#0f380f"],line:["#0f380f","#9bbc0f"],car:["#8bac0f","#306230","#0f380f"],deco:"pixel",rider:"futon",post:"gb"},
- {name:"おかしの国",sky:["#ffb6e1","#fff0fa"],hill:["#ffd0ea","#f7b8dc"],ground:["#8a5230","#5a3018"],grass:["#ff8ac8","#ff6ab4"],edge:"#3a1a0a",
+ {name:"おかしの くに",sky:["#ffb6e1","#fff0fa"],hill:["#ffd0ea","#f7b8dc"],ground:["#8a5230","#5a3018"],grass:["#ff8ac8","#ff6ab4"],edge:"#3a1a0a",
   water:["#b0e8ff","#70c0f0"],line:["#5a2a10","#8a5030"],car:["#fff4e0","#ff6ab4","#8a5230"],deco:"candy",rider:"cake"},
- {name:"海の底",bg:"sea",ground:["#d8c090","#8a7048"],grass:["#ff7a8a","#d84a6a"],noStripe:1,gpat:"sand",edge:"#4a3a20",
+ {name:"うみの そこ",bg:"sea",ground:["#d8c090","#8a7048"],grass:["#ff7a8a","#d84a6a"],noStripe:1,gpat:"sand",edge:"#4a3a20",
   water:["#020a1a","#000308"],line:["#fff4a0","#ffd040"],car:["#ffd23f","#f0b400","#6a4a00"],deco:"sea",rider:"sub"},
- {name:"月",sky:["#05040f","#1a1440"],hill:["#2a2a3a","#20202e"],ground:["#9a9aa4","#5a5a66"],grass:["#d0d0d8","#b0b0bc"],edge:"#303038",
+ {name:"つき",sky:["#05040f","#1a1440"],hill:["#2a2a3a","#20202e"],ground:["#9a9aa4","#5a5a66"],grass:["#d0d0d8","#b0b0bc"],edge:"#303038",
   water:["#1a1030","#08040f"],line:["#ffffff","#b0d0ff"],car:["#e8e8f0","#c8a040","#404050"],deco:"moon",gravity:.45,space:true,rider:"rover"},
- {name:"銀河",bg:"galaxy",ground:["#4a2a7a","#1a0a3a"],grass:["#40f0ff","#2090c0"],noStripe:1,gpat:"crystal",edge:"#d0a0ff",edgeW:3,glow:"#b070ff",
+ {name:"ぎんが",bg:"galaxy",ground:["#4a2a7a","#1a0a3a"],grass:["#40f0ff","#2090c0"],noStripe:1,gpat:"crystal",edge:"#d0a0ff",edgeW:3,glow:"#b070ff",
   water:["#000000","#000000"],line:["#40f0ff","#e0ffff"],car:["#b8c4d8","#80ff90","#40485a"],deco:"galaxy",gravity:.45,space:true,rider:"ufo",wheel:"orb"},
  {name:"そらのしま",sky:["#7fd0ff","#f4fbff"],hill:["#ffffff","#e6f4ff"],ground:["#8fcf6a","#5a9a40"],grass:["#b8f07a","#8ad050"],edge:"#3a6a28",
   water:["#e8f6ff","#c8e8ff"],line:["#1a3a5a","#4a7aa8"],car:["#ff8a3a","#e86a1a","#8a3a0a"],deco:"clouds",rider:"buggy"},
@@ -520,7 +537,7 @@ const THEMES=[
   water:["#3a7a40","#1a4a20"],line:["#2a1a0a","#6a4a20"],car:["#ffd23f","#f0b400","#5a4000"],deco:"autumn",rider:"boar"},
  {name:"こうじげんば",sky:["#9fd3ff","#fff4d8"],hill:["#c8c0b0","#b0a898"],ground:["#c8a060","#8a6a38"],grass:["#f0c020","#c89a10"],edge:"#3a2a10",
   water:["#5a5a60","#2a2a30"],line:["#1a1a20","#ffd23f"],car:["#f0a020","#c87a10","#3a2a10"],deco:"desert",rider:"cart"},
- {name:"ゆうやけの空",sky:["#ff9a5a","#ffe0a0"],hill:["#d0705a","#b85a48"],ground:["#7a4a5a","#4a2a3a"],grass:["#ffb07a","#e8905a"],edge:"#2a141a",
+ {name:"ゆうやけの そら",sky:["#ff9a5a","#ffe0a0"],hill:["#d0705a","#b85a48"],ground:["#7a4a5a","#4a2a3a"],grass:["#ffb07a","#e8905a"],edge:"#2a141a",
   water:["#ffd0a0","#ffb080"],line:["#2a0a1a","#7a3a5a"],car:["#5a3aa0","#ffffff","#2a1a50"],deco:"sunset",rider:"sports"},
 ];
 
@@ -542,7 +559,7 @@ const BG={
       ctx.fillStyle="#ffffff30";for(let w=0;w<4;w++){ctx.beginPath();ctx.arc(x+60+w*96,380,12,0,7);ctx.fill();}}
     ctx.strokeStyle="#0003";ctx.lineWidth=3;for(let k=0;k<6;k++){const y=310+k*28;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}}
   else{for(let x=110;x<W;x+=300){ctx.fillStyle="#1a3a8a";rr(x,150,180,50,6);ctx.fill(); // 駅名の看板
-    ctx.fillStyle="#fff";ctx.font="bold 24px sans-serif";ctx.textAlign="center";ctx.fillText(["せんわたり","つぎは かわむこう","←のりば","出口 ↗"][(x/300|0)%4],x+90,184);ctx.textAlign="left";}}
+    ctx.fillStyle="#fff";ctx.font="bold 24px sans-serif";ctx.textAlign="center";ctx.fillText(["せんわたり","つぎは かわむこう","←のりば","でぐち ↗"][(x/300|0)%4],x+90,184);ctx.textAlign="left";}}
   ctx.fillStyle="#5a5a64";for(let x=0;x<W;x+=320){ctx.fillRect(x+280,90,30,430);} // 柱
   ctx.fillStyle="#1a1a1e";ctx.fillRect(0,WATER_Y,W,H-WATER_Y); // 線路
   ctx.fillStyle="#4a3a2a";for(let x=-20;x<W;x+=36)ctx.fillRect(x,WATER_Y+46,22,16);
@@ -586,7 +603,7 @@ const BG={
   for(let y=0;y<=H;y+=160){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
   ctx.strokeStyle="#ffffffaa";ctx.fillStyle="#ffffffcc";ctx.lineWidth=1.5;ctx.font="16px monospace"; // 寸法線
   ctx.beginPath();ctx.moveTo(40,40);ctx.lineTo(W-40,40);ctx.moveTo(40,32);ctx.lineTo(40,48);ctx.moveTo(W-40,32);ctx.lineTo(W-40,48);ctx.stroke();
-  ctx.fillText("1200",W/2-20,34);ctx.fillText(`図番 SW-${String(li+1).padStart(3,"0")}`,W-190,H-18);
+  ctx.fillText("1200",W/2-20,34);ctx.fillText(`ずばん SW-${String(li+1).padStart(3,"0")}`,W-190,H-18);
   ctx.strokeStyle="#ffffff30";ctx.lineWidth=2;ctx.beginPath();ctx.arc(160,150,70,0,7);ctx.moveTo(60,150);ctx.lineTo(260,150);ctx.moveTo(160,50);ctx.lineTo(160,250);ctx.stroke(); // 歯車の下書き
   for(let k=0;k<12;k++){const a=k/12*6.28+time*.2;ctx.beginPath();ctx.moveTo(160+Math.cos(a)*70,150+Math.sin(a)*70);ctx.lineTo(160+Math.cos(a)*86,150+Math.sin(a)*86);ctx.stroke();}
   ctx.save();ctx.beginPath();ctx.rect(0,WATER_Y,W,H-WATER_Y);ctx.clip();ctx.strokeStyle="#ffffff50";ctx.lineWidth=2; // 水＝斜線
@@ -853,17 +870,24 @@ Object.assign(RIDERS,{
   ctx.fillStyle="#fff";for(let x=-46;x<28;x+=16)for(let y=-16;y<6;y+=12){ctx.beginPath();ctx.arc(x+(y%24?8:0),y,3,0,7);ctx.fill();}
   ctx.fillStyle="#223";ctx.font="bold 18px sans-serif";for(let k=0;k<3;k++){const t=(time*.7+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",44+k*6+t*20,-50-t*40);}ctx.globalAlpha=1;},
 });
+// 読みがな: "{漢字|よみ}" と書くと、漢字の上に小さく よみを のせる（かなだけだと変な言葉だけに使う）
+const RUBY=/\{([^|}]+)\|([^}]+)\}/g;
+const rbPlain=s=>String(s).replace(RUBY,"$1"),rbHTML=s=>String(s).replace(RUBY,"<ruby>$1<rt>$2</rt></ruby>"),hasRb=s=>String(s).includes("{");
+function fillRuby(s,x,y,size){const tw=ctx.measureText(rbPlain(s)).width,f=ctx.font;let cx=x-tw/2;ctx.textAlign="left";
+  for(const p of String(s).split(/(\{[^|}]+\|[^}]+\})/)){if(!p)continue;const m=p.match(/^\{([^|}]+)\|([^}]+)\}$/);
+    if(m){const w=ctx.measureText(m[1]).width;ctx.fillText(m[1],cx,y);ctx.font=`bold ${Math.round(size*.5)}px sans-serif`;ctx.textAlign="center";ctx.fillText(m[2],cx+w/2,y-size*.92);ctx.font=f;ctx.textAlign="left";cx+=w;}
+    else{ctx.fillText(p,cx,y);cx+=ctx.measureText(p).width;}}}
 // しゃべる乗り物（待ち・走る・クリア・失敗）
-const TALK={bridge:["……","ふんっ！！","腰、無事！","腰がぁぁ！"],kotatsu:["出たくない…","出たくないぃ","みかん、うまし","こたつごと〜！"],
-  bath:["ふぅ〜","いい湯だな〜","ととのった","あちちちっ"],pig:["ブヒ","ブヒー！","ブヒヒッ♪","ブヒィ…"],cat:["にゃ","にゃーっ！","にゃふん","ふにゃ〜"],
-  car:["いくぞ","ブオーン！","よっしゃ！","うそーん"],tank:["……","前進！","制圧完了","撤退〜！"],buggy:["砂あつい","ヒャッホー！","最高かよ","砂がぁ"],
-  loco:["シュッ","シュッポッポ！","定刻どおり","脱線〜！"],penguin:["さむ","すべる〜！","ペンッ！","ひぇ〜"],sports:["……","フゥーーッ！","イケてる","ダサッ"],
-  boar:["フゴ","猪突猛進！","フゴフゴ♪","フゴォ…"],rickshaw:["へい","へいらっしゃい！","毎度あり！","お代はいらねぇ…"],cart:["あつ","熱っ熱っ！","お宝ゲット","もえつきた…"],
-  cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","潜航〜！","浮上成功","浸水〜！"],rover:["ピピ","小さな一歩！","人類の大きな一歩","ヒューストン…"],
-  ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","正義は勝つ","マントが…"],futon:["zzz","むにゃ…","あと5分…","（まだ寝てる）"]};
+const TALK={bridge:["……","ふんっ！！","こし、ぶじ！","こしがぁぁ！"],kotatsu:["でたくない…","でたくないぃ","みかん、うまし","こたつごと〜！"],
+  bath:["ふぅ〜","いい ゆだな〜","ととのった","あちちちっ"],pig:["ブヒ","ブヒー！","ブヒヒッ♪","ブヒィ…"],cat:["にゃ","にゃーっ！","にゃふん","ふにゃ〜"],
+  car:["いくぞ","ブオーン！","よっしゃ！","うそーん"],tank:["……","ぜんしん！","せいあつ かんりょう","てったい〜！"],buggy:["すな あつい","ヒャッホー！","さいこうかよ","すながぁ"],
+  loco:["シュッ","シュッポッポ！","ていこく どおり","だっせん〜！"],penguin:["さむ","すべる〜！","ペンッ！","ひぇ〜"],sports:["……","フゥーーッ！","イケてる","ダサッ"],
+  boar:["フゴ","{猪突猛進|ちょとつもうしん}！","フゴフゴ♪","フゴォ…"],rickshaw:["へい","へいらっしゃい！","まいど あり！","おだいは いらねぇ…"],cart:["あつ","あつっ あつっ！","おたから ゲット","もえつきた…"],
+  cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","せんこう〜！","ふじょう せいこう","しんすい〜！"],rover:["ピピ","ちいさな いっぽ！","じんるいの おおきな いっぽ","ヒューストン…"],
+  ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","せいぎは かつ","マントが…"],futon:["zzz","むにゃ…","あと 5ふん…","（まだ ねてる）"]};
 // 失敗の擬音
-function failWord(msg){return msg.includes("トゲ")?"プスッ！":msg.includes("起きなかった")?"ぐぅ…":msg.includes("飛んでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("大岩")?"ドガーン！":msg.includes("落石")?"ゴンッ！":msg.includes("荷物")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
-  msg.includes("動けなく")||msg.includes("時間")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":TH.subway?"プァーン！":"ドボーン！";}
+function failWord(msg){return msg.includes("トゲ")?"プスッ！":msg.includes("おきなかった")?"ぐぅ…":msg.includes("とんでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("おおいわ")?"ドガーン！":msg.includes("いしが")?"ゴンッ！":msg.includes("にもつ")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
+  msg.includes("うごけなく")||msg.includes("じかん")?"シーン…":TH.lava?"ジュッ！":TH.space?"さよなら〜":TH.subway?"プァーン！":"ドボーン！";}
 function drawFailWord(f){if(!f.word)return;const k=Math.min(1,(time-f.t)*5),s=k<1?k*1.3:1;
   ctx.save();ctx.translate(f.x,Math.max(70,f.y-90));ctx.rotate(-.12);ctx.scale(s,s);ctx.font="900 64px 'Hiragino Maru Gothic ProN','Arial Black',sans-serif";ctx.textAlign="center";
   ctx.lineJoin="round";ctx.lineWidth=12;ctx.strokeStyle="#000";ctx.strokeText(f.word,0,0);ctx.fillStyle="#ffd23f";ctx.fillText(f.word,0,0);ctx.restore();ctx.textAlign="left";}
@@ -874,60 +898,60 @@ const _L=(pts,col,w)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap="round";c
 const _eyes=(x,y,g,r=2.6,col="#222")=>{_E(x-g,y,r,r,col);_E(x+g,y,r,r,col);};
 const _smile=(x,y,w,col="#222")=>{ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,w,.2,Math.PI-.2);ctx.stroke();};
 const CHEERS=[
- {w:["おお〜！","やるやん","見事！"],d(c){_L([[-6,0],[-4,-26]],"#4a3020",7);_L([[6,0],[4,-26]],"#4a3020",7);ctx.fillStyle="#e8dcc0";rr(-12,-34,24,12,4);ctx.fill();
+ {w:["おお〜！","やるやん","おみごと！"],d(c){_L([[-6,0],[-4,-26]],"#4a3020",7);_L([[6,0],[4,-26]],"#4a3020",7);ctx.fillStyle="#e8dcc0";rr(-12,-34,24,12,4);ctx.fill();
    _E(0,-48,15,18,"#fff");_L([[-12,-56],[-4+c,-72]],SKIN,6);_L([[12,-56],[4-c,-72]],SKIN,6);ojiHead(0,-78,.9,0);}},
- {w:["ワン！（訳：やるやん）","ワンダフル！","しっぽが止まらん"],d(c){_L([[-24,-24],[-40,-44+c*2]],"#b07a3a",6);_E(0,-22,26,15,"#c8894a");
+ {w:["ワン！（やく：やるやん）","ワンダフル！","しっぽが とまらん"],d(c){_L([[-24,-24],[-40,-44+c*2]],"#b07a3a",6);_E(0,-22,26,15,"#c8894a");
    for(const x of [-16,-6,8,18])_L([[x,-12],[x,0]],"#b07a3a",6);_E(20,-44,16,14,"#c8894a");_E(10,-52,6,11,"#7a4a20");_E(30,-52,6,11,"#7a4a20");
    _eyes(20,-46,6);_E(20,-38,4,3,"#222");ctx.fillStyle="#ff7a9a";rr(17,-34,6,8+Math.abs(c)*.6,3);ctx.fill();}},
- {w:["とけるほど感動","ひんやり拍手","夏まで見てたい"],d(c){_E(0,-22,22,22,"#fff");_E(0,-58,16,16,"#fff");ctx.strokeStyle="#9ab";ctx.lineWidth=1.5;
+ {w:["とけるほど かんどう","ひんやり はくしゅ","なつまで みてたい"],d(c){_E(0,-22,22,22,"#fff");_E(0,-58,16,16,"#fff");ctx.strokeStyle="#9ab";ctx.lineWidth=1.5;
    ctx.beginPath();ctx.arc(0,-22,22,0,7);ctx.stroke();ctx.beginPath();ctx.arc(0,-58,16,0,7);ctx.stroke();_eyes(0,-62,5);
    ctx.fillStyle="#ff8c1a";ctx.beginPath();ctx.moveTo(0,-58);ctx.lineTo(14,-55);ctx.lineTo(0,-54);ctx.fill();
    _L([[-18,-34],[-38,-50+c]],"#6a4020",3);_L([[18,-34],[38,-50-c]],"#6a4020",3);ctx.fillStyle="#d33";rr(-14,-76,28,6,2);ctx.fill();rr(-9,-92,18,16,2);ctx.fill();}},
  {w:["チキュウジン、ヤルヤン","ホシ、ミッツ","ボスニ、ホウコクスル"],d(c){_L([[-8,-72],[-16,-92]],"#6c6",2);_L([[8,-72],[16,-92]],"#6c6",2);_E(-16,-93,4,4,"#ff0");_E(16,-93,4,4,"#ff0");
    _E(0,-22,12,20,"#7d7");_L([[-10,-28],[-26,-44+c]],"#7d7",4);_L([[10,-28],[26,-44-c]],"#7d7",4);_E(0,-62,22,17,"#8e8");
    ctx.fillStyle="#111";ctx.beginPath();ctx.ellipse(-9,-62,6,9,-.5,0,7);ctx.ellipse(9,-62,6,9,.5,0,7);ctx.fill();}},
- {w:["あら〜上手やねぇ","飴ちゃんあげよ","うちの子にも見せたいわ"],d(c){_E(0,-24,17,24,"#ffcc33");for(const [x,y] of [[-8,-30],[6,-20],[-4,-12],[8,-36],[-10,-18]])_E(x,y,3,2.5,"#6a4000");
+ {w:["あら〜 じょうずやねぇ","アメちゃん あげよ","うちの こにも みせたいわ"],d(c){_E(0,-24,17,24,"#ffcc33");for(const [x,y] of [[-8,-30],[6,-20],[-4,-12],[8,-36],[-10,-18]])_E(x,y,3,2.5,"#6a4000");
    _L([[-14,-36],[-2+c,-50]],SKIN,6);_L([[14,-36],[2-c,-50]],SKIN,6);_E(0,-62,13,14,SKIN);
    for(let a=0;a<9;a++)_E(Math.cos(a*.75+2.6)*15,-66+Math.sin(a*.75+2.6)*14,7,7,"#8a4fb0");_eyes(0,-62,5,2);_smile(0,-60,5);_E(-9,-57,3,2,"#f99");_E(9,-57,3,2,"#f99");}},
- {w:["ポッポー（天才）","クルッポー！","パンくずよりええもん見た"],d(c){const h=c*.8;_L([[-4,0],[-4,-12]],"#e77",3);_L([[4,0],[4,-12]],"#e77",3);_E(0,-24,20,14,"#9aa0b0");
+ {w:["ポッポー（てんさい）","クルッポー！","パンくずより ええもん みた"],d(c){const h=c*.8;_L([[-4,0],[-4,-12]],"#e77",3);_L([[4,0],[4,-12]],"#e77",3);_E(0,-24,20,14,"#9aa0b0");
    _E(-18,-28,12,7,"#7a8090");_E(12+h,-40,8,10,"#6a9");_E(14+h,-50,10,10,"#8a90a0");_E(17+h,-52,2.5,2.5,"#f60");_E(17+h,-52,1.2,1.2,"#000");
    ctx.fillStyle="#fc6";ctx.beginPath();ctx.moveTo(23+h,-50);ctx.lineTo(31+h,-48);ctx.lineTo(23+h,-46);ctx.fill();}},
- {w:["青です。どうぞ","ずっと青にしとくわ","信号無視はアカンで"],d(c){ctx.fillStyle="#888";rr(-4,-60,8,60,2);ctx.fill();ctx.fillStyle="#333";rr(-40,-86,80,28,8);ctx.fill();
+ {w:["あおです。どうぞ","ずっと あおに しとくわ","しんごうむしは アカンで"],d(c){ctx.fillStyle="#888";rr(-4,-60,8,60,2);ctx.fill();ctx.fillStyle="#333";rr(-40,-86,80,28,8);ctx.fill();
    _E(-24,-72,9,9,"#522");_E(0,-72,9,9,"#540");_E(24,-72,9,9,Math.sin(time*8)>0?"#3f6":"#1a4");_eyes(24,-74,3,1.5);_smile(24,-72,3);}},
- {w:["うらめしや…やない、すごいや","成仏しそう","ぞくっとした"],d(c){const f=Math.sin(time*3)*6;ctx.save();ctx.globalAlpha=.9;ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-20,-20+f);
+ {w:["うらめしや…やない、すごいや","じょうぶつ しそう","ぞくっとした"],d(c){const f=Math.sin(time*3)*6;ctx.save();ctx.globalAlpha=.9;ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-20,-20+f);
    ctx.arc(0,-50+f,20,Math.PI,0);ctx.lineTo(20,-20+f);for(let i=0;i<4;i++)ctx.quadraticCurveTo(15-i*10,-10+f+(i%2?-6:6),10-i*10,-20+f);ctx.fill();ctx.restore();
    _eyes(0,-52+f,7,3);_E(0,-42+f,4,5,"#222");_L([[-18,-40+f],[-30,-50+f+c]],"#fff",5);_L([[18,-40+f],[30,-50+f-c]],"#fff",5);}},
- {w:["大根役者ちゃうで","おでんで待ってる","ほめたら太なった"],d(c){for(const a of [-.5,0,.5])_E(Math.sin(a)*14,-86+Math.abs(a)*6,5,16,"#4b3");_E(0,-40,15,36,"#f8f8f0");
+ {w:["{大根役者|だいこんやくしゃ}ちゃうで","おでんで まってる","ほめたら ふとなった"],d(c){for(const a of [-.5,0,.5])_E(Math.sin(a)*14,-86+Math.abs(a)*6,5,16,"#4b3");_E(0,-40,15,36,"#f8f8f0");
    for(const y of [-20,-8])_L([[-8,y],[6,y+2]],"#ccc",1);_eyes(0,-52,5);_smile(0,-48,5);_E(-9,-45,3,2,"#fbb");_E(9,-45,3,2,"#fbb");
    _L([[-14,-38],[-28,-52+c]],"#eee",4);_L([[14,-38],[28,-52-c]],"#eee",4);}},
- {w:["ピピ…ケイサンドオリ","ヤルヤン.exe","カンドウ ヲ 学習シタ"],d(c){_L([[-8,0],[-8,-14]],"#777",5);_L([[8,0],[8,-14]],"#777",5);ctx.fillStyle="#9aa4b0";rr(-18,-44,36,32,4);ctx.fill();
+ {w:["ピピ…ケイサンドオリ","ヤルヤン.exe","カンドウ ヲ ガクシュウ シタ"],d(c){_L([[-8,0],[-8,-14]],"#777",5);_L([[8,0],[8,-14]],"#777",5);ctx.fillStyle="#9aa4b0";rr(-18,-44,36,32,4);ctx.fill();
    _L([[-18,-38],[-32,-50+c*1.5]],"#777",4);_L([[18,-38],[32,-50-c*1.5]],"#777",4);ctx.fillStyle="#b8c2cc";rr(-15,-72,30,26,4);ctx.fill();
    ctx.fillStyle="#0ff";rr(-10,-64,7,7,1);ctx.fill();rr(3,-64,7,7,1);ctx.fill();_L([[0,-72],[0,-82]],"#555",2);_E(0,-84,4,4,Math.sin(time*10)>0?"#f33":"#700");
    ctx.fillStyle="#333";rr(-8,-53,16,3,1);ctx.fill();}},
- {w:["ペンッ！","飛べへんけど拍手","氷よりクール"],d(c){_E(0,-34,18,30,"#222");_E(0,-30,12,24,"#fff");_L([[-16,-40],[-28,-26+c]],"#222",6);_L([[16,-40],[28,-26-c]],"#222",6);
+ {w:["ペンッ！","とべへんけど はくしゅ","こおりより クール"],d(c){_E(0,-34,18,30,"#222");_E(0,-30,12,24,"#fff");_L([[-16,-40],[-28,-26+c]],"#222",6);_L([[16,-40],[28,-26-c]],"#222",6);
    _eyes(0,-54,5,2.2);ctx.fillStyle="#fa2";ctx.beginPath();ctx.moveTo(-5,-49);ctx.lineTo(5,-49);ctx.lineTo(0,-43);ctx.fill();_E(-7,-3,7,3,"#fa2");_E(7,-3,7,3,"#fa2");}},
- {w:["ごっつぁんです","押し出しで勝ち","ちゃんこ食べてく？"],d(c){_L([[-12,0],[-12,-14]],SKIN,10);_L([[12,0],[12,-14]],SKIN,10);_E(0,-34,26,24,SKIN);ctx.fillStyle="#335";rr(-26,-22,52,12,3);ctx.fill();
+ {w:["ごっつぁんです","おしだしで かち","ちゃんこ たべてく？"],d(c){_L([[-12,0],[-12,-14]],SKIN,10);_L([[12,0],[12,-14]],SKIN,10);_E(0,-34,26,24,SKIN);ctx.fillStyle="#335";rr(-26,-22,52,12,3);ctx.fill();
    _L([[-22,-44],[-34,-30+c]],SKIN,9);_L([[22,-44],[34,-30-c]],SKIN,9);_E(0,-66,14,14,SKIN);ctx.fillStyle="#111";rr(-12,-82,24,6,3);ctx.fill();_E(0,-86,5,5,"#111");
    _eyes(0,-66,5,2);_L([[-4,-59],[4,-59]],"#533",2);}},
- {w:["トゲある拍手","水より嬉しい","痛いけどハイタッチ"],d(c){ctx.fillStyle="#c86a3a";ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(16,0);ctx.lineTo(20,-16);ctx.lineTo(-20,-16);ctx.fill();
+ {w:["トゲある はくしゅ","みずより うれしい","いたいけど ハイタッチ"],d(c){ctx.fillStyle="#c86a3a";ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(16,0);ctx.lineTo(20,-16);ctx.lineTo(-20,-16);ctx.fill();
    ctx.fillStyle="#4a4";rr(-11,-76,22,62,10);ctx.fill();rr(-30,-54+c,12,24,6);ctx.fill();rr(-30,-38,20,10,5);ctx.fill();rr(18,-60-c,12,24,6);ctx.fill();rr(10,-44,20,10,5);ctx.fill();
    _E(0,-80,6,5,"#f6a");_eyes(0,-54,4,2);_smile(0,-50,4);_L([[-11,-66],[-15,-68]],"#dfd",1);_L([[11,-40],[15,-42]],"#dfd",1);}},
- {w:["……見事でござる","拙者、見ておった","ニンニン（拍手）"],d(c){_L([[-6,0],[-5,-24]],"#223",7);_L([[6,0],[5,-24]],"#223",7);_E(0,-42,14,20,"#2a2f45");
+ {w:["……みごとで ござる","{拙者|せっしゃ}、みておった","ニンニン（はくしゅ）"],d(c){_L([[-6,0],[-5,-24]],"#223",7);_L([[6,0],[5,-24]],"#223",7);_E(0,-42,14,20,"#2a2f45");
    _L([[-12,-46],[8,-40]],"#2a2f45",6);_L([[12,-46],[-8,-38]],"#2a2f45",6);_E(0,-70,13,14,"#2a2f45");ctx.fillStyle=SKIN;rr(-10,-74,20,7,3);ctx.fill();_eyes(0,-70.5,4,1.6);
    _L([[12,-72],[22,-68+c*.5]],"#c33",3);}},
- {w:["アツい！","燃えてきた","ジュッとくる出来"],d(c){const f=t=>Math.sin(time*14+t)*3;_E(0,-30,20,24,"#ff5a1a");_E(f(1),-50,14,22,"#ff8a1a");_E(f(2),-64,8,14,"#ffd23f");_E(0,-26,13,16,"#ffd23f");
+ {w:["アツい！","もえてきた","ジュッとくる でき"],d(c){const f=t=>Math.sin(time*14+t)*3;_E(0,-30,20,24,"#ff5a1a");_E(f(1),-50,14,22,"#ff8a1a");_E(f(2),-64,8,14,"#ffd23f");_E(0,-26,13,16,"#ffd23f");
    _eyes(0,-32,5,2.6,"#300");_smile(0,-28,5,"#300");}},
- {w:["ケロッとクリア","ゲロうま","かえるころには伝説"],d(c){const h=-Math.abs(Math.sin(time*6))*14;ctx.save();ctx.translate(0,h);_E(0,-18,24,16,"#5c3");_E(-11,-34,8,8,"#5c3");_E(11,-34,8,8,"#5c3");
+ {w:["ケロッとクリア","ゲロうま","かえる ころには でんせつ"],d(c){const h=-Math.abs(Math.sin(time*6))*14;ctx.save();ctx.translate(0,h);_E(0,-18,24,16,"#5c3");_E(-11,-34,8,8,"#5c3");_E(11,-34,8,8,"#5c3");
    _E(-11,-35,5,5,"#fff");_E(11,-35,5,5,"#fff");_E(-11,-35,2.5,2.5,"#000");_E(11,-35,2.5,2.5,"#000");ctx.strokeStyle="#231";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-24,12,.3,Math.PI-.3);ctx.stroke();
    _E(-18,-4,9,4,"#4a2");_E(18,-4,9,4,"#4a2");ctx.restore();}},
- {w:["ぷるぷる感動","あまい勝利","カラメル級"],d(c){ctx.fillStyle="#eee";rr(-30,-4,60,6,3);ctx.fill();ctx.save();ctx.translate(0,-4);ctx.scale(1+Math.sin(time*16)*.06,1-Math.sin(time*16)*.06);
+ {w:["ぷるぷる かんどう","あまい しょうり","カラメルきゅう"],d(c){ctx.fillStyle="#eee";rr(-30,-4,60,6,3);ctx.fill();ctx.save();ctx.translate(0,-4);ctx.scale(1+Math.sin(time*16)*.06,1-Math.sin(time*16)*.06);
    ctx.fillStyle="#ffdd66";ctx.beginPath();ctx.moveTo(-24,0);ctx.lineTo(24,0);ctx.lineTo(16,-40);ctx.lineTo(-16,-40);ctx.fill();ctx.fillStyle="#8a4a10";rr(-17,-44,34,10,5);ctx.fill();
    _eyes(0,-22,6,2.2);_smile(0,-18,5);_E(-11,-15,3,2,"#f99");_E(11,-15,3,2,"#f99");ctx.restore();}},
- {w:["8本で拍手","タコでもわかる天才","すみ吐くほど感動"],d(c){for(let i=0;i<6;i++){const x=-20+i*8;_L([[x,-26],[x+Math.sin(time*9+i)*6,-12],[x+Math.sin(time*9+i+1)*8,0]],"#e4533a",5);}
+ {w:["8ほんで はくしゅ","タコでも わかる てんさい","すみ はくほど かんどう"],d(c){for(let i=0;i<6;i++){const x=-20+i*8;_L([[x,-26],[x+Math.sin(time*9+i)*6,-12],[x+Math.sin(time*9+i+1)*8,0]],"#e4533a",5);}
    _E(0,-48,22,24,"#ff6a4a");ctx.fillStyle="#fff";rr(-22,-58,44,6,3);ctx.fill();_eyes(0,-44,7,3);_E(0,-34,4,4,"#c33");}},
- {w:["もちつけ…いや、すごい","月までとどいた","ぺったん！"],d(c){_E(-7,-78,5,16,"#fff");_E(7,-80,5,16,"#fff");_E(-7,-78,2,11,"#fcc");_E(7,-80,2,11,"#fcc");_E(0,-30,16,24,"#fff");_E(0,-58,14,13,"#fff");
+ {w:["もちつけ…いや、すごい","つきまで とどいた","ぺったん！"],d(c){_E(-7,-78,5,16,"#fff");_E(7,-80,5,16,"#fff");_E(-7,-78,2,11,"#fcc");_E(7,-80,2,11,"#fcc");_E(0,-30,16,24,"#fff");_E(0,-58,14,13,"#fff");
    _eyes(0,-59,5,2.2,"#e22");_E(0,-54,2,1.5,"#f9a");ctx.save();ctx.translate(20,-40);ctx.rotate(-.6+c*.08);ctx.fillStyle="#b08050";rr(-2,-28,4,30,2);ctx.fill();rr(-10,-34,20,10,3);ctx.fill();ctx.restore();}},
- {w:["話が長くなるので省略。えらい","校長先生も感心です","全校集会で発表します"],d(c){_L([[-6,0],[-5,-24]],"#333",7);_L([[6,0],[5,-24]],"#333",7);ctx.fillStyle="#333";rr(-15,-58,30,36,6);ctx.fill();
+ {w:["はなしが ながく なるので しょうりゃく。えらい","こうちょう せんせいも かんしんです","ぜんこう しゅうかいで はっぴょうします"],d(c){_L([[-6,0],[-5,-24]],"#333",7);_L([[6,0],[5,-24]],"#333",7);ctx.fillStyle="#333";rr(-15,-58,30,36,6);ctx.fill();
    ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-5,-58);ctx.lineTo(5,-58);ctx.lineTo(0,-46);ctx.fill();_L([[0,-54],[0,-44]],"#c22",3);_L([[-14,-52],[-24,-40]],"#333",6);
    _L([[14,-52],[24,-64]],"#333",6);ctx.fillStyle="#fff";rr(18,-78,18,14,1);ctx.fill();ojiHead(0,-78,.9,0);
    ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.beginPath();ctx.arc(-6,-80,5,0,7);ctx.moveTo(11,-80);ctx.arc(6,-80,5,0,7);ctx.stroke();}},
@@ -940,15 +964,15 @@ function cheerSpot(){if(L.goals&&!L.goals.includes("flag")||!L.goal){const ss=st
 function drawCheer(){if(state!=="win"||!L){cheerPos=null;return;}if(!cheerPos)cheerPos=cheerSpot();const k=Math.min(1,(time-winAt)*3),[x,y]=cheerPos,c=Math.sin(time*18)*6;
   const ch=CHEERS[Math.floor(li/5)%CHEERS.length];
   ctx.save();ctx.translate(x,y+(1-k)*80);ch.d(c);
-  const w=ch.w[li%5%ch.w.length];ctx.font="bold 20px sans-serif";const tw=ctx.measureText(w).width+20,bx=Math.max(-x+tw/2+8,Math.min(W-x-tw/2-8,Math.max(-60,Math.min(60,(W/2-x)*.1))));
-  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2;rr(bx-tw/2,-128,tw,32,12);ctx.fill();ctx.stroke();ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(w,bx,-106);ctx.textAlign="left";
+  const w=ch.w[li%5%ch.w.length],r=hasRb(w)?12:0;ctx.font="bold 20px sans-serif";const tw=ctx.measureText(rbPlain(w)).width+20,bx=Math.max(-x+tw/2+8,Math.min(W-x-tw/2-8,Math.max(-60,Math.min(60,(W/2-x)*.1))));
+  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2;rr(bx-tw/2,-128-r,tw,32+r,12);ctx.fill();ctx.stroke();ctx.fillStyle="#222";fillRuby(w,bx,-106,20);
   ctx.restore();}
 function drawTalk(c,z){const t=TALK[TH.rider];if(!t||state==="title")return;
   const k=state==="win"?2:state==="fail"?3:state==="go"?1:0,s=t[k],x=c.position.x,y=c.position.y-(TH.rider==="bridge"?120:92)*z;
-  ctx.font="bold 22px sans-serif";const w=ctx.measureText(s).width+24;
-  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20,w,36,14);ctx.fill();ctx.stroke();
+  ctx.font="bold 22px sans-serif";const w=ctx.measureText(rbPlain(s)).width+24,r=hasRb(s)?12:0;
+  ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20-r,w,36+r,14);ctx.fill();ctx.stroke();
   ctx.beginPath();ctx.moveTo(x-6,y+16);ctx.lineTo(x,y+28);ctx.lineTo(x+6,y+16);ctx.fill();
-  ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(s,x,y+6);ctx.textAlign="left";}
+  ctx.fillStyle="#222";fillRuby(s,x,y+6,22);}
 // 車輪の描き方
 function drawWheel(w,z){
   ctx.save();ctx.translate(w.position.x,w.position.y);ctx.rotate(w.angle);ctx.scale(z,z);
@@ -973,11 +997,12 @@ function postFx(kind){
   const f=kind==="gb"?4:3,w=Math.round(W/f),h=Math.round(H/f);
   if(!postCv){postCv=document.createElement("canvas");postCtx=postCv.getContext("2d",{willReadFrequently:true});}
   if(postCv.width!==w){postCv.width=w;postCv.height=h;}
-  postCtx.imageSmoothingEnabled=true;postCtx.drawImage(cv,0,0,w,h);
+  const rw=Math.min(cv.width,Math.round(W*K)),rh=Math.min(cv.height,Math.round(H*K)); // 小さな絵（ステージえらび）の時は左上だけ
+  postCtx.imageSmoothingEnabled=true;postCtx.drawImage(cv,0,0,rw,rh,0,0,w,h);
   if(kind==="gb"){const im=postCtx.getImageData(0,0,w,h),d=im.data;
     for(let i=0;i<d.length;i+=4){const l=(d[i]*.3+d[i+1]*.59+d[i+2]*.11)/256,c=GB[Math.min(3,Math.floor(l*4.2))];d[i]=c[0];d[i+1]=c[1];d[i+2]=c[2];}
     postCtx.putImageData(im,0,0);}
-  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(postCv,0,0,cv.width,cv.height);ctx.restore();ctx.imageSmoothingEnabled=true;
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(postCv,0,0,rw,rh);ctx.restore();ctx.imageSmoothingEnabled=true;
 }
 
 /* ---------- 失敗したら爆発 ---------- */
@@ -1177,11 +1202,11 @@ const MODE=(()=>{
       if(o.k==="saw"){if(o.fired){o.a=Math.min(1,(time-o.fired)/.12)*.35*(o.dir||1);Body.setAngle(o.body,o.a);}
         if(running&&!o.rider.isStatic){const p=o.rider.position,[x0,x1,y]=o.bed;const inBed=p.x>x0&&p.x<x1&&p.y<y&&p.y>y-90;
           o.landT=inBed?o.landT+d:0;o.still=!inBed&&Math.hypot(o.rider.velocity.x,o.rider.velocity.y)<.25?o.still+d:0;
-          if(p.y>WATER_Y+40||p.x<-80||p.x>W+80)return finish(false,"おっさんが飛んでいっちゃった…");
+          if(p.y>WATER_Y+40||p.x<-80||p.x>W+80)return finish(false,"おっさんが とんでいっちゃった…");
           if(o.still>.7&&!o.landed&&!o.free)return finish(false,"とどかなかった…"); // free: 布団なし（飛んだ先でボタン等を押す）
           if(o.landT>.35)o.landed=true;}}
       if(o.k==="basket"){const inB=P.filter(q=>q.k==="ball"&&q.body.position.x>o.x0&&q.body.position.x<o.x1&&q.body.position.y<o.y&&q.body.position.y>o.y-70).length>=(o.need||1);o.done=inB?o.done+d:0;}
-      if(o.k==="ball"&&running&&o.body.position.y>WATER_Y+80&&!o.lost){o.lost=1;if(M.has("ball"))return finish(false,"ボールが落ちちゃった…");}
+      if(o.k==="ball"&&running&&o.body.position.y>WATER_Y+80&&!o.lost){o.lost=1;if(M.has("ball"))return finish(false,"ボールが おちちゃった…");}
     }
     if(!running)return;
     // クリアの判定（全部そろったら）
@@ -1189,7 +1214,7 @@ const MODE=(()=>{
       bed:()=>P.filter(o=>o.k==="saw").every(o=>o.landed),ball:()=>P.filter(o=>o.k==="basket").every(o=>o.done>.3),
       btn:()=>P.filter(o=>o.k==="btn"&&o.goal).every(o=>o.down)};
     if(L.goals.every(g=>ok[g]&&ok[g]())){doneT+=d;if(doneT>.15)finish(true);}else doneT=0;
-    if(goT>(L.limit||(M.has("guard")?L.guard+3:M.has("flag")?24:14))&&state==="go")finish(false,M.has("wake")?"起きなかった… ぐっすり":"時間切れ…");
+    if(goT>(L.limit||(M.has("guard")?L.guard+3:M.has("flag")?24:14))&&state==="go")finish(false,M.has("wake")?"おきなかった… ぐっすり":"じかんぎれ…");
   };
   function fire(o,stroke){if(o.fired)return;o.fired=time;const pts=stroke.plugin.pts;let len=0;for(let i=1;i<pts.length;i++)len+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);
     const v=(o.k2||.72)*Math.sqrt(len*(TH.gravity||1)),an=(o.ang||55)*Math.PI/180,r=o.rider,sd=o.dir||1;
@@ -1220,7 +1245,7 @@ const MODE=(()=>{
       ctx.font="bold 40px sans-serif";ctx.textAlign="center";ctx.lineWidth=8;ctx.strokeStyle="#fff";ctx.fillStyle=left<1.5?"#ff3b3b":"#222";
       const s=`あと ${left.toFixed(1)} びょう まもれ！`;ctx.strokeText(s,W/2,60);ctx.fillText(s,W/2,60);ctx.textAlign="left";}
     if(L.goals.length>1&&state==="draw"){ // 条件が 2 つ以上の時は、左上に並べて見せる
-      const JP={flag:"🏁 旗まで",guard:"🛡 守れ",wake:"⏰ 起こせ",bed:"🛏 布団へ",ball:"⚽ カゴへ",btn:"🔴 ボタン"};
+      const JP={flag:"🏁 はたまで",guard:"🛡 まもれ",wake:"⏰ おこせ",bed:"🛏 ふとんへ",ball:"⚽ カゴへ",btn:"🔴 ボタン"};
       ctx.font="bold 22px sans-serif";let y=100;for(const g of L.goals){const s=JP[g];const w=ctx.measureText(s).width+20;
         ctx.fillStyle="#fffffff0";rr(18,y-24,w,32,10);ctx.fill();ctx.fillStyle="#222";ctx.fillText(s,28,y);y+=38;}}
   };
@@ -1237,7 +1262,7 @@ const MODE=(()=>{
       ctx.fillStyle="#ffd23f";for(let i=0;i<Math.floor((w-40)/24);i++){ctx.beginPath();ctx.moveTo(x-w/2+26+i*24,y-4);ctx.lineTo(x-w/2+36+i*24,y-18);ctx.lineTo(x-w/2+42+i*24,y-18);ctx.lineTo(x-w/2+32+i*24,y-4);ctx.fill();}
       const h=o.down?4:16;ctx.fillStyle=o.down?"#3ac060":"#ff3b3b";ctx.beginPath();ctx.ellipse(x,y-30,Math.max(12,w/2-40),h,0,Math.PI,0);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.stroke();ctx.restore();
       if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5,ty=o.flip?y+62:y-58;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";
-        const t=o.by==="car"?"車で当てて！":"ぶつけて！";ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText(t,x,ty+bob);ctx.fillText(t,x,ty+bob);ctx.textAlign="left";}},
+        const t=o.by==="car"?"くるまで あてて！":"ぶつけて！";ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText(t,x,ty+bob);ctx.fillText(t,x,ty+bob);ctx.textAlign="left";}},
     gate(o){const p=o.body.position,h=o.bot-o.top;ctx.save();ctx.translate(p.x,p.y);ctx.beginPath();ctx.rect(-15,-h/2,30,h);ctx.clip();
       for(let y=-h/2-30;y<h/2;y+=30){ctx.fillStyle=(Math.round(y/30)%2)?"#222":"#ffd23f";ctx.beginPath();ctx.moveTo(-15,y);ctx.lineTo(15,y+15);ctx.lineTo(15,y+45);ctx.lineTo(-15,y+30);ctx.fill();}
       ctx.restore();ctx.strokeStyle="#222";ctx.lineWidth=3;ctx.strokeRect(p.x-15,p.y-h/2,30,h);},
@@ -1295,16 +1320,16 @@ const MODE=(()=>{
       if(o.woke){const j=Math.min(1,o.woke*6)*26;ojiHead(x+50,y-30-j,1,0);ctx.restore();talk(x+50,y-110*sy,o.alarm?"うるさっ！":"はっ！！");}
       else{ojiHead(x+52,y-26,.95,-.4,true);ctx.restore();ctx.fillStyle="#223";ctx.font="bold 22px sans-serif";
         for(let k=0;k<3;k++){const t=(time*.6+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",x+64+k*8+t*24,y-(56+t*50)*sy);}ctx.globalAlpha=1;
-        if(state==="draw"&&!o.quiet)talk(x+(x<W-300?200:-200),y-110*sy,"ぐぅ…（起こして）");}},
+        if(state==="draw"&&!o.quiet)talk(x+(x<W-300?200:-200),y-110*sy,"ぐぅ…（おこして）");}},
     saw(o){const pl=o.body;ctx.fillStyle="#6a5a4a";ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x-26,o.y+46);ctx.lineTo(o.x+26,o.y+46);ctx.fill();
       ctx.save();ctx.translate(pl.position.x,pl.position.y);ctx.rotate(pl.angle);ctx.fillStyle="#c8904a";ctx.fillRect(-o.len/2,-7,o.len,14);ctx.strokeStyle="#5a3a1a";ctx.lineWidth=3;ctx.strokeRect(-o.len/2,-7,o.len,14);ctx.restore();
       const [x0,x1,y]=o.bed;ctx.fillStyle="#6a8ad0";rr(x0+6,y-16,x1-x0-12,20,6);ctx.fill();ctx.fillStyle="#fff";rr(x1-44,y-26,34,14,6);ctx.fill();
       ctx.fillStyle="#8a6a4a";ctx.fillRect(x0-7,y-44,14,50);ctx.fillRect(x1-7,y-44,14,50);ctx.fillRect(x0,y,x1-x0,12);
-      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";ctx.fillText("ここに着地",(x0+x1)/2,y-58);ctx.textAlign="left";}
+      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";ctx.fillText("ここに ちゃくち",(x0+x1)/2,y-58);ctx.textAlign="left";}
       const r=o.rider,p=r.position;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(r.angle);
       ctx.fillStyle="#fff";rr(-16,-16,32,24,6);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle="#e0d4b0";ctx.fillRect(-16,4,32,12);ctx.restore();
       if(r.parts[2])ojiHead(r.parts[2].position.x,r.parts[2].position.y,1,r.angle);
-      const s=state==="win"?"ナイス着地！":state==="fail"?"うそやろ〜":state==="go"?(r.velocity.y<-2?"ぎゃあああ":"え？"):"…なにするの？";talk(p.x,p.y-90,s);},
+      const s=state==="win"?"ナイス ちゃくち！":state==="fail"?"うそやろ〜":state==="go"?(r.velocity.y<-2?"ぎゃあああ":"え？"):"…なにするの？";talk(p.x,p.y-90,s);},
     guy(o){const {x,y}=o,sh=state==="fail"?Math.sin(time*40)*3:0;ctx.strokeStyle="#4a3020";ctx.lineWidth=7;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(x-8+sh,y);ctx.lineTo(x-6,y-30);ctx.moveTo(x+8+sh,y);ctx.lineTo(x+6,y-30);ctx.stroke();
       ctx.fillStyle="#e8dcc0";rr(x-16,y-40,32,14,4);ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(x,y-56,18,20,0,0,7);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();
       ctx.strokeStyle=SKIN;ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x-14,y-62);ctx.lineTo(x-24,y-40+sh);ctx.moveTo(x+14,y-62);ctx.lineTo(x+24,y-40-sh);ctx.stroke();
@@ -1340,272 +1365,272 @@ const ring=(cx,cy,r,n=16)=>{const a=[];for(let i=0;i<=n;i++){const t=i/n*Math.PI
 window.STAGES=[
 /* ===== 世界 1: 線でできること ===== */
  {hand:0},
- {name:"遮断機",hint:"遮断機が道をふさいでいる。線を落としてボタンを押そう。",goals:["flag"],
+ {name:"しゃだんき",hint:"しゃだんきが みちを ふさいでいる。せんを おとして ボタンを おそう。",goals:["flag"],
   ground:[R(-60,W+60,480),R(420,560,300,326)],car:[150,480],goal:[1100,480],
   objs:[{k:"gate",id:"g",x:820,top:0,bot:480},{k:"btn",x:490,y:300,act:["g"],by:"line"}],sol:[[445,250],[535,250]]},
- {"name":"ボールでボタン","hint":"岩の上にボタン。坂を作ってボールを転がそう。門が開いたら車が行く。","goals":["flag"],"ground":[[[-60,520],[1340,520],[1340,1000],[-60,1000]],[[640,340],[800,340],[800,1000],[640,1000]],[[-60,150],[300,150],[300,1000],[-60,1000]]],"objs":[{"k":"ball","x":360,"y":130,"r":18},{"k":"hit","x":720,"y":340,"act":["g"]},{"k":"gate","id":"g","x":1080,"top":410,"bot":520}],"sol":[[305,146],[650,332]],"car":[900,520],"goal":[1220,520]},
- {"name":"トゲの下をくぐれ","hint":"谷の上に、トゲの台がういている。台の下をくぐる坂を作ろう。","ground":[[[-60,470],[440,470],[400,1000],[-60,1000]],[[740,380],[1340,380],[1340,1000],[780,1000]],[[560,240],[640,240],[640,290],[560,290]]],"car":[150,470],"goal":[1060,380],"sol":[[415,445],[765,355]],"idea":"ramp","goals":["flag"],"objs":[{"k":"toge","x0":560,"x1":640,"y":240},{"k":"toge","x0":560,"x1":640,"y":290,"dir":"down"}]},
- {name:"岩の雨",hint:"岩がふってくる！ 線で屋根を作って、5 秒守ろう。",goals:["guard"],guard:5,
+ {"name":"ボールで ボタン","hint":"いわの うえに ボタン。さかを つくって ボールを ころがそう。もんが あいたら くるまが いく。","goals":["flag"],"ground":[[[-60,520],[1340,520],[1340,1000],[-60,1000]],[[640,340],[800,340],[800,1000],[640,1000]],[[-60,150],[300,150],[300,1000],[-60,1000]]],"objs":[{"k":"ball","x":360,"y":130,"r":18},{"k":"hit","x":720,"y":340,"act":["g"]},{"k":"gate","id":"g","x":1080,"top":410,"bot":520}],"sol":[[305,146],[650,332]],"car":[900,520],"goal":[1220,520]},
+ {"name":"トゲの したを くぐれ","hint":"たにの うえに、トゲの だいが ういている。だいの したを くぐる さかを つくろう。","ground":[[[-60,470],[440,470],[400,1000],[-60,1000]],[[740,380],[1340,380],[1340,1000],[780,1000]],[[560,240],[640,240],[640,290],[560,290]]],"car":[150,470],"goal":[1060,380],"sol":[[415,445],[765,355]],"idea":"ramp","goals":["flag"],"objs":[{"k":"toge","x0":560,"x1":640,"y":240},{"k":"toge","x0":560,"x1":640,"y":290,"dir":"down"}]},
+ {name:"いわの あめ",hint:"いわが ふってくる！ せんで やねを つくって、5びょう まもろう。",goals:["guard"],guard:5,
   ground:[R(-60,W+60,480)],car:[640,480],goal:[640,440],rocks:[545,735,.25],sol:[[520,476],[640,300],[760,476]]},
  {hand:10},
- {name:"布団へジャンプ",hint:"シーソーの反対側に線を落とすと、おっさんが飛ぶ。線が長いほど遠くへ！",goals:["bed"],car:null,
+ {name:"ふとんへ ジャンプ",hint:"シーソーの はんたいがわに せんを おとすと、おっさんが とぶ。せんが ながいほど とおくへ！",goals:["bed"],car:null,
   ground:[R(-60,480,480),R(590,W+60,480)],objs:[{k:"saw",x:300,y:450,len:280,bed:[610,760,480]}],sol:[[410,410],[410,136]]},
- {name:"ハチから守れ",hint:"ハチがおっさんを狙ってる！ 線で囲んで 6 秒守ろう。",goals:["guard"],guard:6,car:null,
+ {name:"ハチから まもれ",hint:"ハチが おっさんを ねらってる！ せんで かこんで 6びょう まもろう。",goals:["guard"],guard:6,car:null,
   ground:[R(-60,W+60,480)],objs:[{k:"bees",x:200,y:200,n:10,iv:.4},{k:"guy",x:820,y:480}],
   sol:[[710,478],[720,380],[760,330],[820,315],[880,330],[920,380],[930,478]]},
- {name:"カゴに入れろ",hint:"ボールをカゴへ。2 本の柱に線をのせて、すべり台を作ろう。",goals:["ball"],car:null,
+ {name:"カゴに いれろ",hint:"ボールを カゴへ。2ほんの はしらに せんを のせて、すべりだいを つくろう。",goals:["ball"],car:null,
   ground:[R(-60,W+60,560),[[40,70],[410,260],[410,285],[40,95]],R(480,510,340),R(840,870,480)],
   objs:[{k:"ball",x:80,y:48,r:18},{k:"basket",x0:950,x1:1100,y:560}],sol:[[424,290],[920,480]]},
- {"name":"カップの底","hint":"カップの底のボタンで、遮断機が開く。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[500,300],[700,300],[700,324],[500,324]],[[520,210],[560,210],[560,300],[520,300]],[[640,210],[680,210],[680,300],[640,300]],[[1010,260],[1340,260],[1340,1000],[1010,1000]]],"car":[150,480],"goal":[900,480],"objs":[{"k":"gate","id":"g","x":780,"top":370,"bot":480},{"k":"btn","x":600,"y":300,"w":66,"act":["g"],"by":"line"}],"sol":[[600,160],[600,110]]},
+ {"name":"カップの そこ","hint":"カップの そこの ボタンで、しゃだんきが ひらく。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[500,300],[700,300],[700,324],[500,324]],[[520,210],[560,210],[560,300],[520,300]],[[640,210],[680,210],[680,300],[640,300]],[[1010,260],[1340,260],[1340,1000],[1010,1000]]],"car":[150,480],"goal":[900,480],"objs":[{"k":"gate","id":"g","x":780,"top":370,"bot":480},{"k":"btn","x":600,"y":300,"w":66,"act":["g"],"by":"line"}],"sol":[[600,160],[600,110]]},
 /* ===== 世界 2: 動く物 ===== */
- {name:"エレベーター",hint:"ボタンで谷のエレベーターが上がる。乗ったら上の旗まで！",goals:["flag"],
+ {name:"エレベーター",hint:"ボタンで たにの エレベーターが あがる。のったら うえの はたまで！",goals:["flag"],
   ground:[R(-60,640,480),R(860,900,480),R(1090,W+60,260)],car:[150,480],goal:[1200,260],
   objs:[{k:"btn",x:300,y:480,w:60,act:["e1"],by:"line"},{k:"plat",id:"e1",x:750,y:600,w:200,to:[750,480],T:1,once:true},{k:"plat",x:1000,y:480,w:180,to:[1000,260],T:2,once:true,ride:1}],
   sol:[[270,440],[330,440]]},
- {name:"ベルトコンベア",hint:"線をベルトにのせると、運ばれていく。その先にボタン。",goals:["flag"],
+ {name:"ベルトコンベア",hint:"せんを ベルトに のせると、はこばれていく。その さきに ボタン。",goals:["flag"],
   ground:[R(-60,W+60,480),R(860,960,330,350)],car:[150,480],goal:[1150,480],
   objs:[{k:"gate",id:"g",x:1020,top:0,bot:480},{k:"conv",x0:300,x1:840,y:330,v:5},{k:"btn",x:910,y:330,w:70,act:["g"],by:"line"}],
   sol:[[330,288],[390,288]]},
- {"name":"ドミノの机","hint":"ドミノを倒して、机の下のボタンを押そう。門が開いたら車が行く。","goals":["flag"],"ground":[[[-60,520],[1340,520],[1340,1000],[-60,1000]],[[300,380],[700,380],[700,400],[300,400]],[[320,400],[340,400],[340,520],[320,520]],[[660,400],[680,400],[680,520],[660,520]]],"objs":[{"k":"domino","x":420,"y":380,"n":6,"gap":54,"h":90},{"k":"hit","x":760,"y":520,"act":["g"]},{"k":"gate","id":"g","x":1080,"top":410,"bot":520}],"sol":[[360,378],[390,210]],"car":[920,520],"goal":[1220,520]},
- {name:"ドミノの先",hint:"ドミノ → ボール → ボタン → 橋。車は待っていてくれる。",goals:["flag"],
+ {"name":"ドミノと つくえ","hint":"ドミノを たおして、つくえの したの ボタンを おそう。もんが あいたら くるまが いく。","goals":["flag"],"ground":[[[-60,520],[1340,520],[1340,1000],[-60,1000]],[[300,380],[700,380],[700,400],[300,400]],[[320,400],[340,400],[340,520],[320,520]],[[660,400],[680,400],[680,520],[660,520]]],"objs":[{"k":"domino","x":420,"y":380,"n":6,"gap":54,"h":90},{"k":"hit","x":760,"y":520,"act":["g"]},{"k":"gate","id":"g","x":1080,"top":410,"bot":520}],"sol":[[360,378],[390,210]],"car":[920,520],"goal":[1220,520]},
+ {name:"ドミノの さき",hint:"ドミノ → ボール → ボタン → はし。くるまは まっていてくれる。",goals:["flag"],
   ground:[R(-60,660,440),R(900,W+60,440),R(140,520,250,270)],car:[100,440],goal:[1150,440],
   objs:[{k:"domino",x:260,y:250,n:5,gap:55,h:80},{k:"ball",x:490,y:230,r:18},{k:"btn",x:600,y:440,w:70,act:["b","g2"],by:"thing"},
    {k:"gate",id:"g2",x:680,top:0,bot:440},{k:"bridge",id:"b",x0:660,x1:900,y:440}],
   sol:[[222,242],[257,104]]},
- {name:"バネ",hint:"谷の柱にバネ。線でバネまでの坂を作ろう。",goals:["flag"],
+ {name:"バネ",hint:"たにの はしらに バネ。せんで バネまでの さかを つくろう。",goals:["flag"],
   ground:[R(-60,480,440),R(740,900,520),R(1040,W+60,230)],car:[120,440],goal:[1160,230],
   objs:[{k:"spring",x:866,y:520,w:64,v:18,vx:3}],sol:[[420,400],[810,502]]},
- {name:"風船わり",hint:"風船をわると、箱がボタンに落ちる。",goals:["flag"],
+ {name:"ふうせんわり",hint:"ふうせんを わると、はこが ボタンに おちる。",goals:["flag"],
   ground:[R(-60,W+60,480),R(500,620,330,350)],car:[150,480],goal:[1100,480],
   objs:[{k:"gate",id:"g",x:800,top:0,bot:480},{k:"btn",x:560,y:330,w:70,act:["g"]},{k:"balloon",x:560,y:120,rope:110}],
   sol:[[500,60],[620,60]]},
- {"name":"バネで壁ごえ","hint":"谷に橋をかけて、バネへ。壁を飛びこえて旗まで。","goals":["flag"],"car":[120,520],"ground":[[[-60,520],[260,520],[260,1000],[-60,1000]],[[330,520],[700,520],[700,1000],[330,1000]],[[700,280],[730,280],[730,520],[700,520]],[[730,420],[1340,420],[1340,1000],[730,1000]]],"objs":[{"k":"spring","x":520,"y":520,"w":100,"v":16,"vx":8}],"noDraw":[[400,0,880,600]],"sol":[[245,512],[345,512]],"goal":[1230,420]},
- {name:"屋根のない小屋",hint:"小屋に屋根がない！ ハチが上から入ってくる前にふたをしよう。",goals:["guard"],guard:6,car:null,
+ {"name":"バネで かべごえ","hint":"たにに はしを かけて、バネへ。かべを とびこえて はたまで。","goals":["flag"],"car":[120,520],"ground":[[[-60,520],[260,520],[260,1000],[-60,1000]],[[330,520],[700,520],[700,1000],[330,1000]],[[700,280],[730,280],[730,520],[700,520]],[[730,420],[1340,420],[1340,1000],[730,1000]]],"objs":[{"k":"spring","x":520,"y":520,"w":100,"v":16,"vx":8}],"noDraw":[[400,0,880,600]],"sol":[[245,512],[345,512]],"goal":[1230,420]},
+ {name:"やねの ない こや",hint:"こやに やねが ない！ ハチが うえから はいってくる まえに ふたを しよう。",goals:["guard"],guard:6,car:null,
   ground:[R(-60,W+60,480),R(700,720,300,480),R(900,920,300,480)],
   objs:[{k:"bees",x:880,y:60,n:10,iv:.4},{k:"guy",x:810,y:480}],sol:[[680,290],[940,290]]},
- {name:"谷の大砲",hint:"両側から大砲！ 谷に屋根をかけよう。",goals:["guard"],guard:5,
+ {name:"たにの たいほう",hint:"りょうがわから たいほう！ たにに やねを かけよう。",goals:["guard"],guard:5,
   ground:[[[-60,300],[420,300],[560,480],[720,480],[860,300],[W+60,300],[W+60,1000],[-60,1000]]],car:[640,480],goal:[640,440],
   objs:[{k:"cannon",x:80,y:250,vx:9,vy:null,iv:1.3,delay:.6},{k:"cannon",x:1200,y:250,vx:-9,vy:null,iv:1.3,delay:1.2}],
   sol:[[360,290],[920,290]]},
- {"name":"ジャンプ台","hint":"ジャンプ台で谷をひとっとび！ でも着く所にトゲ。線をしいて、トゲをおおおう。","goals":["flag"],"ground":[[[-60,440],[420,440],[420,1000],[-60,1000]],[[760,440],[1340,440],[1340,1000],[760,1000]]],"car":[130,440],"goal":[1180,440],"objs":[{"k":"jump","x":360,"y":440},{"k":"toge","x0":770,"x1":1010,"y":440}],"sol":[[760,414],[1020,414]]},
+ {"name":"ジャンプだい","hint":"ジャンプだいで たにを ひとっとび！ でも つく ところに トゲ。せんを しいて、トゲを おおおう。","goals":["flag"],"ground":[[[-60,440],[420,440],[420,1000],[-60,1000]],[[760,440],[1340,440],[1340,1000],[760,1000]]],"car":[130,440],"goal":[1180,440],"objs":[{"k":"jump","x":360,"y":440},{"k":"toge","x0":770,"x1":1010,"y":440}],"sol":[[760,414],[1020,414]]},
 /* ===== 世界 3: はずむ・飛ぶ ===== */
- {name:"扇風機",hint:"扇風機の風で、線がふわっと流れる。棚の上のボタンまで運ぼう。",goals:["flag"],
+ {name:"せんぷうき",hint:"せんぷうきの かぜで、せんが ふわっと ながれる。たなの うえの ボタンまで はこぼう。",goals:["flag"],
   ground:[R(-60,W+60,480),R(900,1000,330,350)],car:[150,480],goal:[1150,480],
   objs:[{k:"gate",id:"g",x:1060,top:0,bot:480},{k:"btn",x:950,y:330,w:70,act:["g"],by:"line"},{k:"fan",x:300,y:120,w:700,h:200,fx:1.6,fy:-.9}],
   sol:[[380,260],[440,260]]},
- {"name":"光の中のボタン","hint":"ボタンは天井。光の中は重さが逆になる。ボールを光の中へ転がそう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[460,60],[940,60],[940,80],[460,80]],[[-60,200],[260,200],[260,1000],[-60,1000]],[[560,360],[580,360],[580,480],[560,480]]],"objs":[{"k":"ball","x":380,"y":100,"r":18},{"k":"grav","x":600,"y":80,"w":200,"h":330,"gx":0,"gy":-1},{"k":"hit","x":700,"y":80,"act":["g"],"flip":1},{"k":"gate","id":"g","x":1080,"top":370,"bot":480}],"sol":[[265,196],[586,354]],"car":[900,480],"goal":[1220,480]},
- {name:"壁ごえ",hint:"高い壁の向こうに布団。長い線でおっさんを遠くへ！",goals:["bed"],car:null,
+ {"name":"ひかりの なかの ボタン","hint":"ボタンは てんじょう。ひかりの なかは おもさが ぎゃくに なる。ボールを ひかりの なかへ ころがそう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[460,60],[940,60],[940,80],[460,80]],[[-60,200],[260,200],[260,1000],[-60,1000]],[[560,360],[580,360],[580,480],[560,480]]],"objs":[{"k":"ball","x":380,"y":100,"r":18},{"k":"grav","x":600,"y":80,"w":200,"h":330,"gx":0,"gy":-1},{"k":"hit","x":700,"y":80,"act":["g"],"flip":1},{"k":"gate","id":"g","x":1080,"top":370,"bot":480}],"sol":[[265,196],[586,354]],"car":[900,480],"goal":[1220,480]},
+ {name:"かべごえ",hint:"たかい かべの むこうに ふとん。ながい せんで おっさんを とおくへ！",goals:["bed"],car:null,
   ground:[R(-60,W+60,480),R(450,490,260,480)],objs:[{k:"saw",x:200,y:450,len:260,bed:[720,880,480]}],sol:[[300,425],[300,40]]},
- {name:"おっさん砲",hint:"おっさんを飛ばして、棚のボタンを押させよう。遮断機が開く！",goals:["flag"],
+ {name:"おっさんほう",hint:"おっさんを とばして、たなの ボタンを おさせよう。しゃだんきが ひらく！",goals:["flag"],
   ground:[R(-60,W+60,480),R(540,700,300,320)],car:[1000,480],goal:[1180,480],
   objs:[{k:"saw",x:200,y:450,len:240,free:1,bed:[-999,-900,0]},{k:"btn",x:620,y:300,w:120,act:["g"]},{k:"gate",id:"g",x:1100,top:0,bot:480}],
   sol:[[290,425],[290,90]]},
- {name:"ボタン2つ",hint:"遠くはなれたボタン 2 つ。1 本の線で両方おさえよう。",goals:["flag"],
+ {name:"とおくの ボタン ふたつ",hint:"とおく はなれた ボタン ふたつ。1ぽんの せんで りょうほう おさえよう。",goals:["flag"],
   ground:[R(-60,W+60,480),R(300,380,320,340),R(780,860,320,340)],car:[120,480],goal:[1160,480],
   objs:[{k:"btn",x:340,y:320,w:60,act:["g"],all:1,by:"line"},{k:"btn",x:820,y:320,w:60,act:["g"],all:1,by:"line"},{k:"gate",id:"g",x:1000,top:0,bot:480}],
   sol:[[300,290],[860,290]]},
- {name:"風でハチをとばせ",hint:"ハチが来る！ ボタンを押すと大きな扇風機が回る。",goals:["guard"],guard:6,car:null,
+ {name:"かぜで ハチを とばせ",hint:"ハチが くる！ ボタンを おすと おおきな せんぷうきが まわる。",goals:["guard"],guard:6,car:null,
   ground:[R(-60,W+60,480),R(300,420,330,350)],
   objs:[{k:"bees",x:1150,y:200,n:12,iv:.35},{k:"guy",x:200,y:480},{k:"btn",x:360,y:330,w:70,act:["f"],by:"line"},{k:"fan",id:"f",x:240,y:0,w:1040,h:480,fx:3.5,fy:0}],
   sol:[[330,280],[390,280]]},
- {"name":"ワープ","hint":"丸い穴に入ると、もう一つの穴から出てくる。ボールを穴へ転がして、ボタンの上へ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[800,150],[1100,150],[1100,170],[800,170]],[[-60,200],[160,200],[160,1000],[-60,1000]],[[240,400],[260,400],[260,480],[240,480]]],"objs":[{"k":"ball","x":200,"y":100,"r":18},{"k":"warp","a":[300,450],"b":[950,330]},{"k":"hit","x":950,"y":480,"act":["g"]},{"k":"gate","id":"g","x":870,"top":370,"bot":480}],"noDraw":[[700,0,580,480]],"sol":[[165,196],[265,394]],"car":[760,480],"goal":[1220,480]},
- {name:"ボールのジャンプ",hint:"棚のボールを落とすと、バネで跳ねる。壁の向こうのカゴへ！",goals:["ball"],car:null,
+ {"name":"ワープ","hint":"まるい あなに はいると、もう ひとつの あなから でてくる。ボールを あなへ ころがして、ボタンの うえへ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[800,150],[1100,150],[1100,170],[800,170]],[[-60,200],[160,200],[160,1000],[-60,1000]],[[240,400],[260,400],[260,480],[240,480]]],"objs":[{"k":"ball","x":200,"y":100,"r":18},{"k":"warp","a":[300,450],"b":[950,330]},{"k":"hit","x":950,"y":480,"act":["g"]},{"k":"gate","id":"g","x":870,"top":370,"bot":480}],"noDraw":[[700,0,580,480]],"sol":[[165,196],[265,394]],"car":[760,480],"goal":[1220,480]},
+ {name:"ボールの ジャンプ",hint:"たなの ボールを おとすと、バネで はねる。かべの むこうの カゴへ！",goals:["ball"],car:null,
   ground:[R(-60,W+60,560),R(120,360,300,320),R(620,660,330,560)],
   objs:[{k:"ball",x:330,y:280,r:18},{k:"spring",x:440,y:560,w:100,v:17,vx:7},{k:"basket",x0:880,x1:1040,y:560}],
   sol:[[184,280],[209,102]]},
- {"name":"大砲の坂","hint":"大砲の弾は、地面や坂に当たると消えてしまう。右の坂に線を敷けば、弾が転がってボタンへ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[900,480],[1340,200],[1340,1000],[900,1000]]],"objs":[{"k":"cannon","x":80,"y":420,"vx":14,"vy":-11,"iv":1.3,"delay":0.4,"id":"c","on":true},{"k":"hit","x":840,"y":480,"act":["g","!c"]},{"k":"gate","id":"g","x":700,"top":370,"bot":480}],"noDraw":[[600,280,300,200]],"sol":[[930,451],[1250,248]],"goal":[980,432],"car":[250,480]},
- {"name":"ハチのトンネル","hint":"ハチが車をねらってくる！ 左と右の屋根のあいだに、線で屋根をかけよう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[-60,320],[330,320],[330,340],[-60,340]],[[980,260],[1340,260],[1340,280],[980,280]],[[1220,280],[1240,280],[1240,480],[1220,480]]],"car":[150,480],"goal":[1150,480],"objs":[{"k":"bees","x":520,"y":90,"n":18,"iv":0.25,"delay":0.2,"sp":1.5,"max":6}],"sol":[[322,312],[988,252]]},
+ {"name":"たいほうの さか","hint":"たいほうの たまは、じめんや さかに あたると きえてしまう。みぎの さかに せんを しけば、たまが ころがって ボタンへ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[900,480],[1340,200],[1340,1000],[900,1000]]],"objs":[{"k":"cannon","x":80,"y":420,"vx":14,"vy":-11,"iv":1.3,"delay":0.4,"id":"c","on":true},{"k":"hit","x":840,"y":480,"act":["g","!c"]},{"k":"gate","id":"g","x":700,"top":370,"bot":480}],"noDraw":[[600,280,300,200]],"sol":[[930,451],[1250,248]],"goal":[980,432],"car":[250,480]},
+ {"name":"ハチの トンネル","hint":"ハチが くるまを ねらってくる！ ひだりと みぎの やねの あいだに、せんで やねを かけよう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[-60,320],[330,320],[330,340],[-60,340]],[[980,260],[1340,260],[1340,280],[980,280]],[[1220,280],[1240,280],[1240,480],[1220,480]]],"car":[150,480],"goal":[1150,480],"objs":[{"k":"bees","x":520,"y":90,"n":18,"iv":0.25,"delay":0.2,"sp":1.5,"max":6}],"sol":[[322,312],[988,252]]},
 /* ===== 世界 4: ピタゴラ（つながる仕掛け） ===== */
- {"name":"てこ","hint":"てこの端に線を落とすと、ボールが天井のボタンへ飛ぶ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[640,440],[660,440],[660,480],[640,480]],[[480,180],[780,180],[780,200],[480,200]]],"objs":[{"k":"lever","x":430,"y":400,"len":420,"a0":0.33,"dens":0.0006},{"k":"ball","x":600,"y":430,"r":18},{"k":"hit","x":620,"y":200,"act":["g"],"flip":1},{"k":"gate","id":"g","x":1080,"top":370,"bot":480}],"sol":[[190,150],[340,150]],"car":[900,480],"goal":[1220,480]},
- {"name":"ボタン2つ","hint":"ボタンは 2 つ。柱の上のボタンは線で、下のボタンはボールを転がして押そう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[340,300],[460,300],[460,1000],[340,1000]]],"objs":[{"k":"ball","x":560,"y":250,"r":18},{"k":"btn","x":400,"y":300,"w":60,"act":["g"],"by":"line","all":true},{"k":"hit","x":820,"y":480,"act":["g"],"all":true},{"k":"gate","id":"g","x":1100,"top":370,"bot":480}],"sol":[[350,292],[470,292],[680,472]],"car":[960,480],"goal":[1230,480]},
- {name:"ボールのすべり台",hint:"ボールが坂から落ちてくる。線のすべり台で、ボタンまで届けよう。",goals:["flag"],
+ {"name":"てこ","hint":"てこの はしに せんを おとすと、ボールが てんじょうの ボタンへ とぶ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[640,440],[660,440],[660,480],[640,480]],[[480,180],[780,180],[780,200],[480,200]]],"objs":[{"k":"lever","x":430,"y":400,"len":420,"a0":0.33,"dens":0.0006},{"k":"ball","x":600,"y":430,"r":18},{"k":"hit","x":620,"y":200,"act":["g"],"flip":1},{"k":"gate","id":"g","x":1080,"top":370,"bot":480}],"sol":[[190,150],[340,150]],"car":[900,480],"goal":[1220,480]},
+ {"name":"せんと ボールで ボタン","hint":"ボタンは ふたつ。はしらの うえの ボタンは せんで、したの ボタンは ボールを ころがして おそう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[340,300],[460,300],[460,1000],[340,1000]]],"objs":[{"k":"ball","x":560,"y":250,"r":18},{"k":"btn","x":400,"y":300,"w":60,"act":["g"],"by":"line","all":true},{"k":"hit","x":820,"y":480,"act":["g"],"all":true},{"k":"gate","id":"g","x":1100,"top":370,"bot":480}],"sol":[[350,292],[470,292],[680,472]],"car":[960,480],"goal":[1230,480]},
+ {name:"ボールの すべりだい",hint:"ボールが さかから おちてくる。せんの すべりだいで、ボタンまで とどけよう。",goals:["flag"],
   ground:[R(-60,700,480),R(900,W+60,240),[[160,200],[400,260],[400,272],[160,212]],R(340,420,304,324),R(560,700,330,350)],car:[120,480],goal:[1150,240],
   objs:[{k:"ball",x:190,y:186,r:18},{k:"btn",x:630,y:330,w:70,act:["g","e"],by:"thing"},{k:"gate",id:"g",x:530,top:340,bot:480},
    {k:"plat",id:"e",x:800,y:480,w:180,to:[800,240],T:2,once:true,ride:1}],
   sol:[[352,284],[590,316]]},
- {"name":"大砲でボタン","hint":"ボタンで大砲が動き出す。弾が下のボタンを押せば、門が開く。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[560,330],[600,330],[600,480],[560,480]],[[900,320],[1000,320],[1000,1000],[900,1000]]],"objs":[{"k":"cannon","id":"c","x":100,"y":440,"vx":7,"vy":-12,"iv":1.2,"delay":0.2},{"k":"btn","x":950,"y":320,"w":70,"act":["c"],"by":"line"},{"k":"hit","x":720,"y":480,"act":["g"]},{"k":"gate","id":"g","x":1180,"top":370,"bot":480}],"noDraw":[[600,0,250,480]],"sol":[[915,280],[985,280]],"car":[1080,480],"goal":[1245,480]},
- {name:"扇風機リレー",hint:"ボタン → 扇風機 → ボール → ボタン → 橋。",goals:["flag"],
+ {"name":"たいほうで ボタン","hint":"ボタンで たいほうが うごきだす。たまが したの ボタンを おせば、もんが あく。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[560,330],[600,330],[600,480],[560,480]],[[900,320],[1000,320],[1000,1000],[900,1000]]],"objs":[{"k":"cannon","id":"c","x":100,"y":440,"vx":7,"vy":-12,"iv":1.2,"delay":0.2},{"k":"btn","x":950,"y":320,"w":70,"act":["c"],"by":"line"},{"k":"hit","x":720,"y":480,"act":["g"]},{"k":"gate","id":"g","x":1180,"top":370,"bot":480}],"noDraw":[[600,0,250,480]],"sol":[[915,280],[985,280]],"car":[1080,480],"goal":[1245,480]},
+ {name:"せんぷうき リレー",hint:"ボタン → せんぷうき → ボール → ボタン → はし。",goals:["flag"],
   ground:[R(-60,500,480),R(800,W+60,480),R(300,900,250,270),R(80,180,260,280)],car:[150,480],goal:[1150,480],
   objs:[{k:"btn",x:130,y:260,w:60,act:["f"],by:"line"},{k:"fan",id:"f",x:280,y:150,w:620,h:100,fx:3,fy:0},{k:"ball",x:330,y:232,r:18},
    {k:"btn",x:860,y:250,w:60,act:["b","g"],by:"thing"},{k:"gate",id:"g",x:480,top:300,bot:480},{k:"bridge",id:"b",x0:500,x1:800,y:480}],
   sol:[[95,230],[165,230]]},
- {name:"ハチの巣のスイッチ",hint:"ハチがどんどん出てくる！ 巣のスイッチを切って、6 秒守ろう。",goals:["guard"],guard:6,car:null,
+ {name:"ハチの すの スイッチ",hint:"ハチが どんどん でてくる！ すの スイッチを きって、6びょう まもろう。",goals:["guard"],guard:6,car:null,
   ground:[R(-60,W+60,480),R(900,1100,320,340),R(920,950,250,320),R(1050,1080,250,320)],
   objs:[{k:"bees",id:"h",on:true,x:1150,y:120,n:30,iv:.3,delay:1},{k:"btn",x:1000,y:320,w:70,act:["!h"],by:"line"},{k:"guy",x:220,y:480}],
   sol:[[1000,200],[1000,300]]},
- {name:"ドミノでカゴ",hint:"ドミノを倒して、ボールをカゴへ。",goals:["ball"],car:null,
+ {name:"ドミノで カゴ",hint:"ドミノを たおして、ボールを カゴへ。",goals:["ball"],car:null,
   ground:[R(-60,W+60,560),R(250,702,300,320)],
   objs:[{k:"domino",x:340,y:300,n:7,gap:50,h:100},{k:"ball",x:695,y:282,r:18},{k:"basket",x0:712,x1:880,y:560}],
   sol:[[280,298],[310,130]]},
- {name:"ドミノとバネ",hint:"ドミノ → ボール → バネ → 高い棚のボタン → 遮断機。",goals:["flag"],
+ {name:"ドミノと バネ",hint:"ドミノ → ボール → バネ → たかい たなの ボタン → しゃだんき。",goals:["flag"],
   ground:[R(-60,W+60,480),R(150,452,300,320),R(700,860,230,250)],car:[920,480],goal:[1190,480],
   objs:[{k:"domino",x:190,y:300,n:5,gap:50,h:100},{k:"ball",x:445,y:282,r:18},{k:"spring",x:500,y:480,w:90,v:16,vx:5},{k:"btn",x:780,y:230,w:130,act:["g"],by:"thing"},{k:"gate",id:"g",x:1080,top:0,bot:480}],
   sol:[[166,274],[196,100]]},
- {"name":"ドミノの合図","hint":"ドミノを倒して、机の上のボタンへ。遮断機が開いたら旗へ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,280],[700,280],[700,300],[200,300]],[[1040,300],[1340,300],[1340,1000],[1040,1000]]],"car":[150,480],"goal":[930,480],"objs":[{"k":"domino","x":260,"y":280,"n":7,"gap":55,"h":80},{"k":"btn","x":655,"y":280,"w":50,"act":["g"],"by":"thing"},{"k":"gate","id":"g","x":820,"top":370,"bot":480}],"sol":[[220,278],[250,110]]},
- {"name":"大連鎖","hint":"線 → ドミノ → ボール → ボタン → 遮断機と目覚まし → ボールはカゴへ。","goals":["flag","ball"],"ground":[[[-60,560],[1340,560],[1340,1000],[-60,1000]],[[160,250],[640,250],[640,270],[160,270]],[[620,320],[960,360],[960,380],[620,340]],[[-60,160],[120,160],[120,1000],[-60,1000]]],"car":[150,560],"goal":[1245,560],"objs":[{"k":"domino","x":220,"y":250,"n":8,"gap":50,"h":100},{"k":"ball","x":630,"y":232,"r":18},{"k":"btn","x":800,"y":339,"w":70,"act":["g"],"by":"thing"},{"k":"gate","id":"g","x":1190,"top":450,"bot":560},{"k":"basket","x0":980,"x1":1140,"y":440}],"sol":[[180,248],[210,90]]},
+ {"name":"ドミノの あいず","hint":"ドミノを たおして、つくえの うえの ボタンへ。しゃだんきが ひらいたら はたへ。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,280],[700,280],[700,300],[200,300]],[[1040,300],[1340,300],[1340,1000],[1040,1000]]],"car":[150,480],"goal":[930,480],"objs":[{"k":"domino","x":260,"y":280,"n":7,"gap":55,"h":80},{"k":"btn","x":655,"y":280,"w":50,"act":["g"],"by":"thing"},{"k":"gate","id":"g","x":820,"top":370,"bot":480}],"sol":[[220,278],[250,110]]},
+ {"name":"だいれんさ","hint":"せん → ドミノ → ボール → ボタン → しゃだんきと めざまし → ボールは カゴへ。","goals":["flag","ball"],"ground":[[[-60,560],[1340,560],[1340,1000],[-60,1000]],[[160,250],[640,250],[640,270],[160,270]],[[620,320],[960,360],[960,380],[620,340]],[[-60,160],[120,160],[120,1000],[-60,1000]]],"car":[150,560],"goal":[1245,560],"objs":[{"k":"domino","x":220,"y":250,"n":8,"gap":50,"h":100},{"k":"ball","x":630,"y":232,"r":18},{"k":"btn","x":800,"y":339,"w":70,"act":["g"],"by":"thing"},{"k":"gate","id":"g","x":1190,"top":450,"bot":560},{"k":"basket","x0":980,"x1":1140,"y":440}],"sol":[[180,248],[210,90]]},
 /* ===== 世界 5: 止まる線（描いた所で止まる） ===== */
- {name:"空中の坂",hint:"この世界の線は、描いた所で止まって落ちない。高い台へ坂をかけよう。",goals:["flag"],line:"fixed",
+ {name:"くうちゅうの さか",hint:"この せかいの せんは、かいた ところで とまって おちない。たかい だいへ さかを かけよう。",goals:["flag"],line:"fixed",
   ground:[R(-60,560,480),R(760,W+60,280)],car:[120,480],goal:[1150,280],sol:[[330,472],[770,272]]},
- {name:"空のかさ",hint:"岩がふってくる！ 空中にかさを描いて 6 秒守ろう。",goals:["guard"],guard:6,line:"fixed",
+ {name:"そらの かさ",hint:"いわが ふってくる！ くうちゅうに かさを かいて 6びょう まもろう。",goals:["guard"],guard:6,line:"fixed",
   ground:[R(-60,W+60,480)],car:[640,480],goal:[640,440],rocks:[450,830,.2],sol:[[470,340],[640,240],[810,340]]},
- {name:"空から車",hint:"車が空から落ちてくる。受け止めて、すべり台で向こうへ。",goals:["flag"],line:"fixed",air:1,
+ {name:"そらから くるま",hint:"くるまが そらから おちてくる。うけとめて、すべりだいで むこうへ。",goals:["flag"],line:"fixed",air:1,
   ground:[R(760,W+60,480)],car:[180,100],goal:[1150,480],sol:[[100,260],[770,472]]},
- {name:"ハチの壁",hint:"ハチは止まった線に当たるとおしまい。壁を立てて 6 秒守ろう。",goals:["guard"],guard:6,car:null,line:"fixed",
+ {name:"ハチの かべ",hint:"ハチは とまった せんに あたると おしまい。かべを たてて 6びょう まもろう。",goals:["guard"],guard:6,car:null,line:"fixed",
   ground:[R(-60,W+60,480)],objs:[{k:"bees",x:1150,y:150,n:12,iv:.35},{k:"guy",x:420,y:480}],sol:[[560,150],[700,150],[700,474]]},
- {name:"行って戻る",hint:"車は ↩ で引き返す。帰り道に、高い旗への坂を。",goals:["flag"],line:"fixed",turn:1180,
+ {name:"いって もどる",hint:"くるまは ↩ で ひきかえす。かえりみちに、たかい はたへの さかを。",goals:["flag"],line:"fixed",turn:1180,
   ground:[R(-60,W+60,480),R(-60,300,250,480)],car:[880,480],goal:[150,250],sol:[[820,472],[310,242]]},
- {name:"ボールの長い道",hint:"ボールが右上から落ちる。ブロックをよけて、左下のカゴまで道を。",goals:["ball"],car:null,line:"fixed",
+ {name:"ボールの ながい みち",hint:"ボールが みぎうえから おちる。ブロックを よけて、ひだりしたの カゴまで みちを。",goals:["ball"],car:null,line:"fixed",
   ground:[R(-60,W+60,480),R(500,800,360,480)],limit:20,objs:[{k:"ball",x:1150,y:60,r:18},{k:"basket",x0:60,x1:230,y:480}],
   sol:[[1220,100],[500,320],[170,395]]},
- {name:"バネで空へ",hint:"バネで車が空へ飛ぶ。落ちてくる所に道を描いて、高い旗へ。",goals:["flag"],line:"fixed",
+ {name:"バネで そらへ",hint:"バネで くるまが そらへ とぶ。おちてくる ところに みちを かいて、たかい はたへ。",goals:["flag"],line:"fixed",
   ground:[R(-60,W+60,480),R(900,W+60,250)],car:[150,480],goal:[1150,250],objs:[{k:"spring",x:420,y:480,w:90,v:12,vx:3}],
   sol:[[530,350],[905,242]]},
- {name:"階段",hint:"2 段の台。1 本の線で、上の旗まで道を作ろう。",goals:["flag"],line:"fixed",
+ {name:"かいだん",hint:"2だんの だい。1ぽんの せんで、うえの はたまで みちを つくろう。",goals:["flag"],line:"fixed",
   ground:[R(-60,420,480),R(420,760,340),R(760,W+60,200)],car:[100,480],goal:[1150,200],
   sol:[[208,466],[423,324],[528,326],[763,186]]},
- {"name":"とびすぎ注意の島","hint":"この世界の線は止まる。ジャンプ台で島へとぶけど、とびすぎる。線で壁を立てて止めよう。","goals":["flag"],"line":"fixed","land":1,"ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[700,420],[840,420],[840,1000],[700,1000]],[[-60,600],[1340,600],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[770,420],"objs":[{"k":"jump","x":250,"y":480,"v":17,"vx":8},{"k":"toge","x0":300,"x1":700,"y":600},{"k":"toge","x0":840,"x1":1320,"y":600}],"sol":[[850,300],[850,412]]},
- {"name":"空中の足場","hint":"この世界の線は止まる。ジャンプ台でとんだ先に、空中の足場を作ってあげよう。下はトゲ。","goals":["flag"],"line":"fixed","ground":[[[-60,300],[240,300],[240,1000],[-60,1000]],[[1000,360],[1340,360],[1340,1000],[1000,1000]],[[-60,600],[1340,600],[1340,1000],[-60,1000]]],"car":[100,300],"goal":[1180,360],"objs":[{"k":"jump","x":190,"y":300},{"k":"toge","x0":240,"x1":1000,"y":600}],"sol":[[470,450],[1006,366]]},
+ {"name":"とびすぎ ちゅういの しま","hint":"この せかいの せんは とまる。ジャンプだいで しまへ とぶけど、とびすぎる。せんで かべを たてて とめよう。","goals":["flag"],"line":"fixed","land":1,"ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[700,420],[840,420],[840,1000],[700,1000]],[[-60,600],[1340,600],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[770,420],"objs":[{"k":"jump","x":250,"y":480,"v":17,"vx":8},{"k":"toge","x0":300,"x1":700,"y":600},{"k":"toge","x0":840,"x1":1320,"y":600}],"sol":[[850,300],[850,412]]},
+ {"name":"くうちゅうの あしば","hint":"この せかいの せんは とまる。ジャンプだいで とんだ さきに、くうちゅうの あしばを つくって あげよう。したは トゲ。","goals":["flag"],"line":"fixed","ground":[[[-60,300],[240,300],[240,1000],[-60,1000]],[[1000,360],[1340,360],[1340,1000],[1000,1000]],[[-60,600],[1340,600],[1340,1000],[-60,1000]]],"car":[100,300],"goal":[1180,360],"objs":[{"k":"jump","x":190,"y":300},{"k":"toge","x0":240,"x1":1000,"y":600}],"sol":[[470,450],[1006,366]]},
 /* ===== 世界 6: 氷の線（上に乗った物がすべる） ===== */
- {name:"氷のすべり台",hint:"この世界の線は氷。車は上ではふんばれないけど、下り坂ならすべっていく。",goals:["flag"],line:"ice",
+ {name:"こおりの すべりだい",hint:"この せかいの せんは こおり。くるまは うえでは ふんばれないけど、くだりざかなら すべっていく。",goals:["flag"],line:"ice",
   ground:[R(-60,300,200),R(900,W+60,480)],car:[100,200],goal:[1150,480],sol:[[200,193],[305,193],[910,470]]},
- {"name":"穴をこえる箱","hint":"氷の坂のとちゅうに穴。坂にそって線を描けば、箱がすべってボタンまで。","goals":["flag"],"line":"ice","ground":[{"p":[[-60,200],[200,200],[500,340],[500,1000],[-60,1000]],"ice":1},{"p":[[600,387],[800,480],[1080,480],[1080,1000],[600,1000]],"ice":1},[[1080,480],[1340,480],[1340,1000],[1080,1000]]],"objs":[{"k":"box","x":300,"y":220,"w":44,"h":44},{"k":"hit","x":960,"y":480,"act":["g"]},{"k":"gate","id":"g","x":1195,"top":370,"bot":480}],"sol":[[490,326],[620,384]],"goal":[1250,480],"car":[1130,480]},
- {name:"箱をすべらせろ",hint:"箱を氷の坂ですべらせて、ボタンまで運ぼう。",goals:["flag"],line:"ice",
+ {"name":"あなを こえる はこ","hint":"こおりの さかの とちゅうに あな。さかに そって せんを かけば、はこが すべって ボタンまで。","goals":["flag"],"line":"ice","ground":[{"p":[[-60,200],[200,200],[500,340],[500,1000],[-60,1000]],"ice":1},{"p":[[600,387],[800,480],[1080,480],[1080,1000],[600,1000]],"ice":1},[[1080,480],[1340,480],[1340,1000],[1080,1000]]],"objs":[{"k":"box","x":300,"y":220,"w":44,"h":44},{"k":"hit","x":960,"y":480,"act":["g"]},{"k":"gate","id":"g","x":1195,"top":370,"bot":480}],"sol":[[490,326],[620,384]],"goal":[1250,480],"car":[1130,480]},
+ {name:"はこを すべらせろ",hint:"はこを こおりの さかで すべらせて、ボタンまで はこぼう。",goals:["flag"],line:"ice",
   ground:[R(-60,W+60,480),{p:[[-60,150],[260,250],[260,480],[-60,480]],ice:1},R(260,300,272,480)],car:[900,480],goal:[1180,480],
   objs:[{k:"box",x:150,y:190,w:44,h:44},{k:"btn",x:740,y:480,w:90,act:["g"],by:"thing"},{k:"gate",id:"g",x:1040,top:0,bot:480}],
   sol:[[290,248],[658,456]]},
- {name:"ソリでボタン",hint:"氷の坂で線をすべらせて、下のボタンを押そう。門が開いたら車が行く。",goals:["flag"],line:"ice",
+ {name:"ソリで ボタン",hint:"こおりの さかで せんを すべらせて、したの ボタンを おそう。もんが あいたら くるまが いく。",goals:["flag"],line:"ice",
   ground:[{p:[[-60,150],[80,150],[640,470],[W+60,470],[W+60,1000],[-60,1000]],ice:1}],car:[1000,470],goal:[1200,470],
   objs:[{k:"btn",x:820,y:470,w:90,act:["g"],by:"line"},{k:"gate",id:"g",x:1100,top:0,bot:470}],sol:[[120,160],[300,262]]},
- {name:"すべって上る",hint:"右の台から左の台へ。下ってから上る、谷の形の氷を。",goals:["flag"],line:"ice",dir:-1,
+ {name:"すべって のぼる",hint:"みぎの だいから ひだりの だいへ。くだってから のぼる、たにの かたちの こおりを。",goals:["flag"],line:"ice",dir:-1,
   ground:[R(980,W+60,220),R(-60,300,330)],car:[1120,220],goal:[150,330],sol:[[1000,212],[750,280],[450,280],[250,322]]},
- {name:"戻って下へ",hint:"↩ で引き返したら、下の旗へすべり下りよう。",goals:["flag"],line:"ice",turn:1180,
+ {name:"もどって したへ",hint:"↩ で ひきかえしたら、したの はたへ すべりおりよう。",goals:["flag"],line:"ice",turn:1180,
   ground:[R(620,W+60,400),R(-60,260,580)],car:[760,400],goal:[150,580],turnY:400,sol:[[647,384],[618,385],[222,564]]},
- {name:"空から左へ",hint:"空から落ちる車。受け止めて、左下の旗まですべらせよう。",goals:["flag"],line:"ice",air:1,dir:-1,
+ {name:"そらから ひだりへ",hint:"そらから おちる くるま。うけとめて、ひだりしたの はたまで すべらせよう。",goals:["flag"],line:"ice",air:1,dir:-1,
   ground:[R(-60,300,560),R(1000,1080,300,560)],car:[1040,60],goal:[140,560],sol:[[1014,285],[980,285],[294,544]]},
- {name:"エレベーターの上から",hint:"エレベーターで上へ。てっぺんから、谷の向こうの旗まで氷のすべり台を。",goals:["flag"],line:"ice",
+ {name:"エレベーターの うえから",hint:"エレベーターで うえへ。てっぺんから、たにの むこうの はたまで こおりの すべりだいを。",goals:["flag"],line:"ice",
   ground:[R(-60,440,480),R(620,660,180,480),R(1000,W+60,420)],car:[160,480],goal:[1180,420],
   objs:[{k:"plat",x:520,y:480,w:160,to:[520,160],T:2.5,once:true,ride:1}],sol:[[648,156],[1026,394]]},
- {name:"ソリで箱を押せ",hint:"ソリが箱をおして、ボタンへ。門が開いたら車が行く。",goals:["flag"],line:"ice",
+ {name:"ソリで はこを おせ",hint:"ソリが はこを おして、ボタンへ。もんが あいたら くるまが いく。",goals:["flag"],line:"ice",
   ground:[{p:[[-60,180],[120,180],[620,420],[W+60,420],[W+60,1000],[-60,1000]],ice:1}],car:[1000,420],goal:[1200,420],
   objs:[{k:"box",x:700,y:396,w:44,h:44},{k:"btn",x:880,y:420,w:80,act:["g"],by:"thing"},{k:"gate",id:"g",x:1100,top:0,bot:420}],sol:[[150,178],[330,264]]},
- {name:"箱が先、車があと",hint:"1 本の氷のすべり台。先に箱がボタンを押して、あとから車が門をくぐる。",goals:["flag"],line:"ice",
+ {name:"はこが さき、くるまが あと",hint:"1ぽんの こおりの すべりだい。さきに はこが ボタンを おして、あとから くるまが もんを くぐる。",goals:["flag"],line:"ice",
   ground:[R(-60,300,200),R(620,W+60,480)],car:[60,200],goal:[1180,480],
   objs:[{k:"box",x:250,y:176,w:40,h:40,live:1},{k:"conv",x0:120,x1:300,y:200,v:2.5},{k:"btn",x:720,y:480,w:90,act:["g"],by:"thing"},{k:"gate",id:"g",x:1050,top:0,bot:480}],
   sol:[[321,189],[641,468]]},
 /* ===== 世界 7: 浮く線（ゆっくり上へ） ===== */
- {"name":"箱を持ち上げろ","hint":"この世界の線は浮いていく。箱をのせて、天井のボタンまで持ち上げよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[500,40],[900,40],[900,80],[500,80]]],"objs":[{"k":"box","x":700,"y":300,"w":44,"h":44},{"k":"hit","x":700,"y":80,"act":["g"],"flip":1},{"k":"gate","id":"g","x":1080,"top":370,"bot":480}],"sol":[[640,420],[760,420]],"car":[900,480],"goal":[1220,480]},
- {"name":"浮かぶ屋根","hint":"この世界の線は浮く。左と右の屋根の下まで浮かせて、ハチをふせぐ屋根にしよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[-60,290],[330,290],[330,310],[-60,310]],[[970,290],[1340,290],[1340,310],[970,310]]],"car":[150,480],"goal":[1150,480],"objs":[{"k":"bees","x":520,"y":80,"n":18,"iv":0.25,"delay":0.8,"sp":1.5,"max":6}],"sol":[[310,440],[990,440]]},
- {name:"天井のボタン",hint:"ボタンは天井にある。下から線を浮かせて押そう。",goals:["flag"],line:"float",
+ {"name":"はこを もちあげろ","hint":"この せかいの せんは ういていく。はこを のせて、てんじょうの ボタンまで もちあげよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[500,40],[900,40],[900,80],[500,80]]],"objs":[{"k":"box","x":700,"y":300,"w":44,"h":44},{"k":"hit","x":700,"y":80,"act":["g"],"flip":1},{"k":"gate","id":"g","x":1080,"top":370,"bot":480}],"sol":[[640,420],[760,420]],"car":[900,480],"goal":[1220,480]},
+ {"name":"うかぶ やね","hint":"この せかいの せんは うく。ひだりと みぎの やねの したまで うかせて、ハチを ふせぐ やねに しよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[-60,290],[330,290],[330,310],[-60,310]],[[970,290],[1340,290],[1340,310],[970,310]]],"car":[150,480],"goal":[1150,480],"objs":[{"k":"bees","x":520,"y":80,"n":18,"iv":0.25,"delay":0.8,"sp":1.5,"max":6}],"sol":[[310,440],[990,440]]},
+ {name:"てんじょうの ボタン",hint:"ボタンは てんじょうに ある。したから せんを うかせて おそう。",goals:["flag"],line:"float",
   ground:[R(-60,W+60,480),R(420,720,150,180)],car:[120,480],goal:[1150,480],
   objs:[{k:"btn",x:570,y:180,w:100,act:["g"],by:"line",side:"d"},{k:"gate",id:"g",x:950,top:0,bot:480}],sol:[[500,420],[640,420]]},
- {name:"下から持ち上げろ",hint:"空中の車の下に線を描こう。浮いて、車を上の台まで運ぶ。",goals:["flag"],line:"float",air:1,
+ {name:"したから もちあげろ",hint:"くうちゅうの くるまの したに せんを かこう。ういて、くるまを うえの だいまで はこぶ。",goals:["flag"],line:"float",air:1,
   ground:[[[700,250],[W+60,250],[W+60,1000],[720,1000],[720,258],[700,258]],R(60,100,250,258)],car:[200,300],goal:[1150,250],
   sol:[[90,520],[715,520]]},
- {name:"かさが浮かぶ",hint:"岩がふってくる。線を浮かせて、フックに引っかけて屋根にしよう。",goals:["guard"],guard:6,line:"float",
+ {name:"かさが うかぶ",hint:"いわが ふってくる。せんを うかせて、フックに ひっかけて やねに しよう。",goals:["guard"],guard:6,line:"float",
   ground:[R(-60,W+60,480),R(460,480,250,270),R(800,820,250,270)],car:[640,480],goal:[640,440],rocks:[450,830,.2],
   noDraw:[[440,0,400,280]],sol:[[470,380],[810,380]]},
- {"name":"ボタン2つ持ち上げ","hint":"天井のボタンが 2 つ。浮いた線は描いた傾きのまま上がる。箱を 2 つとも持ち上げよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,60],[400,60],[400,100],[200,100]],[[840,220],[1040,220],[1040,260],[840,260]]],"objs":[{"k":"box","x":300,"y":200,"w":44,"h":44},{"k":"box","x":920,"y":400,"w":44,"h":44},{"k":"hit","x":300,"y":100,"act":["g"],"flip":1,"all":true},{"k":"hit","x":940,"y":260,"act":["g"],"flip":1,"all":true},{"k":"gate","id":"g","x":1180,"top":370,"bot":480}],"sol":[[252,290],[972,472]],"car":[1100,480],"goal":[1245,480]},
- {name:"箱で天井のボタン",hint:"ボタンは天井のくぼみの奥。線では届かない。空中の箱を持ち上げて押そう。",goals:["flag"],line:"float",
+ {"name":"ボタン ふたつ もちあげ","hint":"てんじょうの ボタンが ふたつ。ういた せんは かいた かたむきの まま あがる。はこを ふたつとも もちあげよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,60],[400,60],[400,100],[200,100]],[[840,220],[1040,220],[1040,260],[840,260]]],"objs":[{"k":"box","x":300,"y":200,"w":44,"h":44},{"k":"box","x":920,"y":400,"w":44,"h":44},{"k":"hit","x":300,"y":100,"act":["g"],"flip":1,"all":true},{"k":"hit","x":940,"y":260,"act":["g"],"flip":1,"all":true},{"k":"gate","id":"g","x":1180,"top":370,"bot":480}],"sol":[[252,290],[972,472]],"car":[1100,480],"goal":[1245,480]},
+ {name:"はこで てんじょうの ボタン",hint:"ボタンは てんじょうの くぼみの おく。せんでは とどかない。くうちゅうの はこを もちあげて おそう。",goals:["flag"],line:"float",
   ground:[R(-60,W+60,480),R(240,440,230,250),R(500,760,230,250),R(440,500,190,200)],car:[900,480],goal:[1200,480],
   objs:[{k:"box",x:470,y:380,w:44,h:44},{k:"btn",x:470,y:200,w:44,act:["g"],by:"thing",side:"d"},{k:"gate",id:"g",x:1080,top:0,bot:480}],
   sol:[[330,430],[640,430]]},
- {"name":"風で飛ばす","hint":"浮く線で箱を持ち上げると、上の風で右へ飛んでいく。台の上のボタンにのせよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[880,480],[1000,420],[1340,420],[1340,1000],[880,1000]],[[1262,0],[1340,0],[1340,420],[1262,420]]],"objs":[{"k":"box","x":665,"y":400,"w":44,"h":44},{"k":"fan","x":60,"y":40,"w":1040,"h":220,"fx":2.4,"fy":0},{"k":"hit","x":1170,"y":420,"act":["g"]},{"k":"gate","id":"g","x":820,"top":370,"bot":480}],"noDraw":[[760,0,520,480],[0,0,760,280]],"sol":[[610,440],[720,440]],"goal":[1050,420],"car":[150,480]},
- {name:"行って、戻って、ななめの谷",hint:"車は ↩ で引き返す。帰り道の谷は、向こう岸のほうが高い。浮かぶ線は描いた傾きのまま上がる。",goals:["flag"],line:"float",turn:1180,
+ {"name":"かぜで とばす","hint":"うく せんで はこを もちあげると、うえの かぜで みぎへ とんでいく。だいの うえの ボタンに のせよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[880,480],[1000,420],[1340,420],[1340,1000],[880,1000]],[[1262,0],[1340,0],[1340,420],[1262,420]]],"objs":[{"k":"box","x":665,"y":400,"w":44,"h":44},{"k":"fan","x":60,"y":40,"w":1040,"h":220,"fx":2.4,"fy":0},{"k":"hit","x":1170,"y":420,"act":["g"]},{"k":"gate","id":"g","x":820,"top":370,"bot":480}],"noDraw":[[760,0,520,480],[0,0,760,280]],"sol":[[610,440],[720,440]],"goal":[1050,420],"car":[150,480]},
+ {name:"いって、もどって、ななめの たに",hint:"くるまは ↩ で ひきかえす。かえりみちの たには、むこうぎしの ほうが たかい。うく せんは かいた かたむきの まま あがる。",goals:["flag"],line:"float",turn:1180,
   ground:[[[-60,400],[260,400],[260,420],[240,420],[240,1000],[-60,1000]],[[640,480],[W+60,480],[W+60,1000],[660,1000],[660,500],[640,500]]],
   car:[760,480],goal:[120,400],sol:[[256,480],[656,560]]},
- {name:"持ち上げてボタン",hint:"車を持ち上げる線で、天井のボタンも押そう。門が開けば旗へ。",goals:["flag"],line:"float",air:1,
+ {name:"もちあげて ボタン",hint:"くるまを もちあげる せんで、てんじょうの ボタンも おそう。もんが あけば はたへ。",goals:["flag"],line:"float",air:1,
   ground:[[[700,250],[W+60,250],[W+60,1000],[720,1000],[720,258],[700,258]],R(30,130,230,258)],car:[220,300],goal:[1180,250],
   objs:[{k:"btn",x:80,y:258,w:90,act:["g"],by:"line",side:"d"},{k:"gate",id:"g",x:1000,top:0,bot:250}],
   sol:[[60,520],[715,520]]},
 /* ===== 世界 8: ゴムの線（落ちた物がはね返る） ===== */
- {name:"トランポリン",hint:"この世界の線はゴム。落ちてきた物がはね返る。谷の底に線を敷けばトランポリン。はねて向こうの台へ。",goals:["flag"],line:"rubber",
+ {name:"トランポリン",hint:"この せかいの せんは ゴム。おちてきた ものが はねかえる。たにの そこに せんを しけば トランポリン。はねて むこうの だいへ。",goals:["flag"],line:"rubber",
   ground:[R(-60,380,200),R(380,900,480),R(900,W+60,380)],car:[150,200],goal:[1150,380],sol:[[420,470],[860,470]]},
- {name:"ボールをはね返せ",hint:"落ちてくるボールを、ゴムではね返して壁の向こうのカゴへ。",goals:["ball"],car:null,line:"rubber",
+ {name:"ボールを はねかえせ",hint:"おちてくる ボールを、ゴムで はねかえして かべの むこうの カゴへ。",goals:["ball"],car:null,line:"rubber",
   ground:[R(-60,W+60,480),R(200,230,340),R(420,450,470),R(700,740,370)],objs:[{k:"ball",x:320,y:60,r:18},{k:"basket",x0:850,x1:1050,y:480}],
   sol:[[236,333],[435,462]]},
- {"name":"岩をはね返して","hint":"岩の雨。ゴムの屋根ではね返して、6 秒守ろう。","goals":["guard"],"guard":6,"line":"rubber","rocks":[520,700,0.35],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[480,298],[500,298],[500,480],[480,480]],[[720,378],[740,378],[740,480],[720,480]]],"objs":[{"k":"guy","x":610,"y":480}],"sol":[[494,290],[736,370]]},
- {"name":"高い台のボタン","hint":"落ちてくるボールをはね返して、高い台のボタンへ。門が開いたら車が行く。","goals":["flag"],"line":"rubber","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,380],[230,380],[230,1000],[200,1000]],[[420,470],[450,470],[450,1000],[420,1000]],[[700,380],[1340,380],[1340,1000],[700,1000]]],"objs":[{"k":"ball","x":320,"y":60,"r":18},{"k":"hit","x":850,"y":380,"act":["g"]},{"k":"gate","id":"g","x":1130,"top":270,"bot":380}],"sol":[[236,373],[435,462]],"car":[1010,380],"goal":[1235,380]},
- {"name":"大砲をはね返せ","hint":"大砲の弾は、屋根の下のボタンを飛びこえてしまう。ゴムの板を立てかけて、はね返そう。","goals":["flag"],"line":"rubber","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[540,330],[760,330],[760,350],[540,350]],[[1230,0],[1340,0],[1340,1000],[1230,1000]]],"objs":[{"k":"cannon","x":80,"y":420,"vx":14,"vy":-11,"iv":1.3,"delay":0.4,"id":"c","on":true},{"k":"hit","x":650,"y":480,"act":["g","!c"]},{"k":"gate","id":"g","x":320,"top":370,"bot":480}],"sol":[[1149,472],[1222,215]],"car":[200,480],"goal":[880,480]},
- {name:"空から車",hint:"空から車が落ちてくる。ゴムではね飛ばして、右の台へ。",goals:["flag"],line:"rubber",air:1,
+ {"name":"いわを はねかえして","hint":"いわの あめ。ゴムの やねで はねかえして、6びょう まもろう。","goals":["guard"],"guard":6,"line":"rubber","rocks":[520,700,0.35],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[480,298],[500,298],[500,480],[480,480]],[[720,378],[740,378],[740,480],[720,480]]],"objs":[{"k":"guy","x":610,"y":480}],"sol":[[494,290],[736,370]]},
+ {"name":"たかい だいの ボタン","hint":"おちてくる ボールを はねかえして、たかい だいの ボタンへ。もんが あいたら くるまが いく。","goals":["flag"],"line":"rubber","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,380],[230,380],[230,1000],[200,1000]],[[420,470],[450,470],[450,1000],[420,1000]],[[700,380],[1340,380],[1340,1000],[700,1000]]],"objs":[{"k":"ball","x":320,"y":60,"r":18},{"k":"hit","x":850,"y":380,"act":["g"]},{"k":"gate","id":"g","x":1130,"top":270,"bot":380}],"sol":[[236,373],[435,462]],"car":[1010,380],"goal":[1235,380]},
+ {"name":"たいほうを はねかえせ","hint":"たいほうの たまは、やねの したの ボタンを とびこえてしまう。ゴムの いたを たてかけて、はねかえそう。","goals":["flag"],"line":"rubber","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[540,330],[760,330],[760,350],[540,350]],[[1230,0],[1340,0],[1340,1000],[1230,1000]]],"objs":[{"k":"cannon","x":80,"y":420,"vx":14,"vy":-11,"iv":1.3,"delay":0.4,"id":"c","on":true},{"k":"hit","x":650,"y":480,"act":["g","!c"]},{"k":"gate","id":"g","x":320,"top":370,"bot":480}],"sol":[[1149,472],[1222,215]],"car":[200,480],"goal":[880,480]},
+ {name:"ゴムで ポーン",hint:"そらから くるまが おちてくる。ゴムで はねとばして、みぎの だいへ。",goals:["flag"],line:"rubber",air:1,
   ground:[R(-60,W+60,560),R(160,190,400),R(520,550,470),R(600,W+60,420)],car:[300,100],goal:[1150,420],sol:[[196,393],[520,462]]},
- {name:"高いカゴ",hint:"右から落ちるボールを、ゴムではね上げて左の高いカゴへ。",goals:["ball"],car:null,line:"rubber",
+ {name:"たかい カゴ",hint:"みぎから おちる ボールを、ゴムで はねあげて ひだりの たかい カゴへ。",goals:["ball"],car:null,line:"rubber",
   ground:[R(-60,W+60,480),R(1050,1080,420),R(830,860,470),R(480,700,340)],objs:[{k:"ball",x:960,y:40,r:18},{k:"basket",x0:520,x1:680,y:340}],
   sol:[[1044,413],[845,462]]},
- {"name":"はねて天井のボタン","hint":"トランポリンで車を高くはね上げて、天井のボタンを押そう。門が開いたら旗へ。","goals":["flag"],"line":"rubber","ground":[[[-60,150],[300,150],[300,1000],[-60,1000]],[[300,480],[900,480],[900,1000],[300,1000]],[[900,350],[1340,350],[1340,1000],[900,1000]],[[480,180],[700,180],[700,200],[480,200]]],"car":[120,150],"goal":[1150,350],"objs":[{"k":"hit","x":590,"y":200,"act":["g"],"by":"car","flip":1},{"k":"gate","id":"g","x":1020,"top":0,"bot":350}],"sol":[[340,470],[860,470]]},
- {name:"ボールで遠くのボタン",hint:"ボールをはね返して、高い台のボタンへ。門が開いたら車が行く。",goals:["flag"],line:"rubber",
+ {"name":"はねて てんじょうの ボタン","hint":"トランポリンで くるまを たかく はねあげて、てんじょうの ボタンを おそう。もんが あいたら はたへ。","goals":["flag"],"line":"rubber","ground":[[[-60,150],[300,150],[300,1000],[-60,1000]],[[300,480],[900,480],[900,1000],[300,1000]],[[900,350],[1340,350],[1340,1000],[900,1000]],[[480,180],[700,180],[700,200],[480,200]]],"car":[120,150],"goal":[1150,350],"objs":[{"k":"hit","x":590,"y":200,"act":["g"],"by":"car","flip":1},{"k":"gate","id":"g","x":1020,"top":0,"bot":350}],"sol":[[340,470],[860,470]]},
+ {name:"ボールで とおくの ボタン",hint:"ボールを はねかえして、たかい だいの ボタンへ。もんが あいたら くるまが いく。",goals:["flag"],line:"rubber",
   ground:[R(-60,W+60,480),R(200,230,340),R(420,450,470),R(700,900,380)],car:[1000,480],goal:[1200,480],
   objs:[{k:"ball",x:320,y:60,r:18},{k:"btn",x:800,y:380,w:160,act:["g"],by:"thing"},{k:"gate",id:"g",x:1100,top:0,bot:480}],sol:[[236,333],[435,462]]},
- {name:"はねすぎ注意",hint:"ゴムの上に落ちると、はねすぎて小島を飛びこえてしまう。落とさずに、そっと下ろすには？",goals:["flag"],line:"rubber",dir:-1,
+ {name:"はねすぎ ちゅうい",hint:"ゴムの うえに おちると、はねすぎて こじまを とびこえてしまう。おとさずに、そっと おろすには？",goals:["flag"],line:"rubber",dir:-1,
   ground:[R(980,W+60,150),R(520,980,560),R(300,520,400),R(-60,300,700)],car:[1160,150],goal:[410,400],sol:[[968,160],[532,390]]},
 /* ===== 世界 9: インク少し（短い線でどこに置くか） ===== */
- {name:"ちょっとだけ",hint:"この世界はインクが少ない。上のメーターがなくなるまでしか描けない。小さなすき間をうめよう。",goals:["flag"],ink:140,
+ {name:"ちょっとだけ",hint:"この せかいは インクが すくない。うえの メーターが なくなるまでしか かけない。ちいさな すきまを うめよう。",goals:["flag"],ink:140,
   ground:[R(-60,400,480),R(490,W+60,480)],car:[120,480],goal:[1150,480],sol:[[385,472],[505,472]]},
- {name:"すきまのボタン",hint:"ボタンは細いすき間の底。短い線を落として押そう。",goals:["flag"],ink:110,
+ {name:"すきまの ボタン",hint:"ボタンは ほそい すきまの そこ。みじかい せんを おとして おそう。",goals:["flag"],ink:110,
   ground:[R(-60,610,300),R(670,W+60,300),R(600,680,480)],car:[120,300],goal:[1150,300],
   objs:[{k:"btn",x:640,y:480,w:50,act:["g"],by:"line"},{k:"gate",id:"g",x:900,top:0,bot:300}],sol:[[640,330],[640,420]]},
- {"name":"最初のひと押し","hint":"ドミノを 1 枚たおせば、あとは全部たおれる。最後のドミノがボタンを押す。短い線で。","goals":["flag"],"ink":120,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,300],[900,300],[900,320],[200,320]]],"objs":[{"k":"domino","x":300,"y":300,"n":8,"gap":55,"h":100},{"k":"hit","x":790,"y":300,"act":["g"]},{"k":"gate","id":"g","x":1000,"top":370,"bot":480}],"sol":[[220,120],[300,190]],"car":[300,480],"goal":[1200,480]},
- {name:"ちっちゃい車の段差",hint:"小さな車。トンネルの入り口の段差をのぼれない。小さな坂を。",goals:["flag"],ink:150,size:.5,
+ {"name":"さいしょの ひとおし","hint":"ドミノを 1まい たおせば、あとは ぜんぶ たおれる。さいごの ドミノが ボタンを おす。みじかい せんで。","goals":["flag"],"ink":120,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,300],[900,300],[900,320],[200,320]]],"objs":[{"k":"domino","x":300,"y":300,"n":8,"gap":55,"h":100},{"k":"hit","x":790,"y":300,"act":["g"]},{"k":"gate","id":"g","x":1000,"top":370,"bot":480}],"sol":[[220,120],[300,190]],"car":[300,480],"goal":[1200,480]},
+ {name:"ちっちゃい くるまの だんさ",hint:"ちいさな くるま。トンネルの いりぐちの だんさを のぼれない。ちいさな さかを。",goals:["flag"],ink:150,size:.5,
   ground:[R(-60,W+60,480),R(500,W+60,440),R(560,W+60,-100,380)],car:[120,480],goal:[1150,440],sol:[[406,464],[521,424]]},
- {name:"ハチの巣に栓",hint:"ハチの巣は地面の下のほら穴。出口の穴を小さなふたでふさごう。",goals:["guard"],guard:6,car:null,ink:110,
+ {name:"ほらあなの ハチ",hint:"ハチの すは じめんの したの ほらあな。でぐちの あなを ちいさな ふたで ふさごう。",goals:["guard"],guard:6,car:null,ink:110,
   ground:[R(-60,W+60,560),R(-60,480,420),R(800,W+60,420),R(480,600,420,470),R(680,800,420,470)],
   objs:[{k:"bees",x:640,y:440,n:16,iv:.25,delay:.3},{k:"guy",x:900,y:420}],sol:[[590,412],[690,412]]},
- {name:"行きはよいよい",hint:"行きは下り坂で穴を飛びこえた。↩ で帰りは上り坂。小さな橋を。",goals:["flag"],ink:140,turn:1180,
+ {name:"いきは よいよい",hint:"いきは くだりざかで あなを とびこえた。↩ で かえりは のぼりざか。ちいさな はしを。",goals:["flag"],ink:140,turn:1180,
   ground:[[[-60,300],[500,420],[500,1000],[-60,1000]],[[600,435],[W+60,500],[W+60,1000],[600,1000]]],car:[120,300],goal:[150,300],turnY:500,
   sol:[[488,412],[612,428]]},
- {name:"すべり台の穴",hint:"ボールがころがる坂のとちゅうに穴。小さな橋で、下のカゴまで。",goals:["ball"],car:null,ink:170,limit:22,
+ {name:"すべりだいの あな",hint:"ボールが ころがる さかの とちゅうに あな。ちいさな はしで、したの カゴまで。",goals:["ball"],car:null,ink:170,limit:22,
   ground:[[[-60,150],[140,150],[560,370],[560,1000],[-60,1000]],[[630,407],[880,480],[880,1000],[630,1000]],R(880,W+60,560)],
   objs:[{k:"ball",x:170,y:140,r:18},{k:"basket",x0:910,x1:1070,y:560}],sol:[[520,337],[670,411]]},
- {name:"雨よけ",hint:"岩がふってくる所を、車が通る。ちょうどいい所に小さな屋根を。",goals:["flag"],ink:160,
+ {name:"あまよけ",hint:"いわが ふってくる ところを、くるまが とおる。ちょうど いい ところに ちいさな やねを。",goals:["flag"],ink:160,
   ground:[R(-60,W+60,480),R(590,610,280,300),R(730,750,280,300)],car:[120,480],goal:[1150,480],rocks:[610,730,.25],
   sol:[[600,272],[740,272]]},
- {"name":"エレベーターで運べ","hint":"天井のボタンのまわりは描けない。短い線をエレベーターにのせて、下から押そう。門が開けば車が行く。","goals":["flag"],"car":[600,480],"ink":110,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,140],[400,140],[400,170],[200,170]]],"objs":[{"k":"plat","x":300,"y":480,"w":160,"to":[300,192],"T":2.5,"once":true},{"k":"btn","x":300,"y":170,"w":100,"act":["g"],"by":"line","side":"d"},{"k":"gate","id":"g","x":900,"top":0,"bot":480}],"sol":[[250,440],[350,440]],"goal":[1180,480],"noDraw":[[160,0,280,380]]},
- {"name":"バネで飛ばせ","hint":"ボタンは右の道の上。短い線をバネにのせて飛ばそう。","goals":["flag"],"ink":110,"ground":[[[-60,480],[560,480],[560,1000],[-60,1000]],[[560,300],[1340,300],[1340,1000],[560,1000]],[[-60,200],[160,200],[160,220],[-60,220]]],"car":[620,300],"goal":[1200,300],"noDraw":[[560,0,720,300]],"objs":[{"k":"spring","x":300,"y":480,"w":100,"v":17,"vx":7},{"k":"btn","x":720,"y":300,"w":100,"act":["g"],"by":"line"},{"k":"gate","id":"g","x":1100,"top":190,"bot":300}],"sol":[[260,440],[340,440]]},
+ {"name":"エレベーターで はこべ","hint":"てんじょうの ボタンの まわりは かけない。みじかい せんを エレベーターに のせて、したから おそう。もんが あけば くるまが いく。","goals":["flag"],"car":[600,480],"ink":110,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[200,140],[400,140],[400,170],[200,170]]],"objs":[{"k":"plat","x":300,"y":480,"w":160,"to":[300,192],"T":2.5,"once":true},{"k":"btn","x":300,"y":170,"w":100,"act":["g"],"by":"line","side":"d"},{"k":"gate","id":"g","x":900,"top":0,"bot":480}],"sol":[[250,440],[350,440]],"goal":[1180,480],"noDraw":[[160,0,280,380]]},
+ {"name":"バネで とばせ","hint":"ボタンは みぎの みちの うえ。みじかい せんを バネに のせて とばそう。","goals":["flag"],"ink":110,"ground":[[[-60,480],[560,480],[560,1000],[-60,1000]],[[560,300],[1340,300],[1340,1000],[560,1000]],[[-60,200],[160,200],[160,220],[-60,220]]],"car":[620,300],"goal":[1200,300],"noDraw":[[560,0,720,300]],"objs":[{"k":"spring","x":300,"y":480,"w":100,"v":17,"vx":7},{"k":"btn","x":720,"y":300,"w":100,"act":["g"],"by":"line"},{"k":"gate","id":"g","x":1100,"top":190,"bot":300}],"sol":[[260,440],[340,440]]},
 /* ===== 世界 10: 月と銀河（重力が弱い・いろんな線） ===== */
- {name:"月のジャンプ",hint:"月は体が軽い。台に坂をかけて、谷をふわっとひとっとび！",goals:["flag"],
+ {name:"つきの ジャンプ",hint:"つきは からだが かるい。だいに さかを かけて、たにを ふわっと ひとっとび！",goals:["flag"],
   ground:[cL(380,480),R(290,340,410,480),cR(580,540)],car:[110,480],goal:[1150,540],sol:[[160,470],[335,376]]},
- {name:"月のシーソー",hint:"月でもシーソー。遠くの台の布団まで飛ばそう。",goals:["bed"],car:null,
+ {name:"つきの シーソー",hint:"つきでも シーソー。とおくの だいの ふとんまで とばそう。",goals:["bed"],car:null,
   ground:[R(-60,440,480),R(560,W+60,380)],objs:[{k:"saw",x:220,y:450,len:260,bed:[600,760,380]}],sol:[[320,425],[320,95]]},
- {name:"月で行って戻って",hint:"月では体が軽い。谷をトランポリンで越えて、↩ で引き返したら、また越えて帰ろう。",goals:["flag"],line:"rubber",turn:1180,turnY:400,
+ {name:"つきで いって もどって",hint:"つきでは からだが かるい。たにを トランポリンで こえて、↩ で ひきかえしたら、また こえて かえろう。",goals:["flag"],line:"rubber",turn:1180,turnY:400,
   ground:[R(-60,400,400),R(400,860,500),R(860,W+60,400)],car:[260,400],goal:[90,400],sol:[[440,490],[820,490]]},
- {name:"月のボール",hint:"ボールがゆっくり落ちてくる。長いすべり台で遠くのカゴへ。",goals:["ball"],car:null,
+ {name:"つきの ボール",hint:"ボールが ゆっくり おちてくる。ながい すべりだいで とおくの カゴへ。",goals:["ball"],car:null,
   ground:[R(-60,W+60,560),R(160,260,300,320),R(640,680,440,560)],limit:18,
   objs:[{k:"ball",x:210,y:120,r:18},{k:"basket",x0:700,x1:840,y:560}],sol:[[180,250],[725,424]]},
- {name:"宇宙のワープ",hint:"谷に落ちたらワープ。出てきた所から、止まる線のすべり台で右の台へ。",goals:["flag"],line:"fixed",
+ {name:"うちゅうの ワープ",hint:"たにに おちたら ワープ。でてきた ところから、とまる せんの すべりだいで みぎの だいへ。",goals:["flag"],line:"fixed",
   ground:[[[-60,440],[400,440],[360,1000],[-60,1000]],R(1000,W+60,400)],car:[140,440],goal:[1180,400],
   objs:[{k:"warp",a:[620,540],b:[730,110],only:"car",r:50,stop:1}],sol:[[650,250],[1010,392]]},
- {name:"月のハチ",hint:"月にもハチ！ おっさんを 6 秒守ろう。",goals:["guard"],guard:6,car:null,
+ {name:"つきの ハチ",hint:"つきにも ハチ！ おっさんを 6びょう まもろう。",goals:["guard"],guard:6,car:null,
   ground:[R(-60,W+60,480)],objs:[{k:"bees",x:1100,y:150,n:12,iv:.35},{k:"guy",x:400,y:480}],
   sol:[[290,478],[300,380],[340,330],[400,315],[460,330],[500,380],[510,478]]},
- {name:"月の大岩",hint:"月の大岩がゆっくり転がってくる。線で止めて、おっさんを 8 秒守ろう。",goals:["guard"],guard:8,car:null,
+ {name:"つきの おおいわ",hint:"つきの おおいわが ゆっくり ころがってくる。せんで とめて、おっさんを 8びょう まもろう。",goals:["guard"],guard:8,car:null,
   ground:[[[-60,480],[560,480],[W+60,140],[W+60,1000],[-60,1000]]],objs:[{k:"guy",x:440,y:480}],boulder:[1100,205,34],
   sol:[[800,367],[640,335],[640,437]]},
- {"name":"トゲの天井にふた","hint":"月ではジャンプが高すぎて、トゲの天井にささる！ 浮く線でトゲにふたをしよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[430,120],[920,120],[920,150],[430,150]]],"car":[130,480],"goal":[1180,480],"objs":[{"k":"jump","x":470,"y":480},{"k":"toge","x0":430,"x1":920,"y":150,"dir":"down"}],"sol":[[470,400],[900,400]]},
- {name:"宇宙のピタゴラ",hint:"線 → てこ → ボール → ボタン → 遮断機。",goals:["flag"],
+ {"name":"トゲの てんじょうに ふた","hint":"つきでは ジャンプが たかすぎて、トゲの てんじょうに ささる！ うく せんで トゲに ふたを しよう。","goals":["flag"],"line":"float","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[430,120],[920,120],[920,150],[430,150]]],"car":[130,480],"goal":[1180,480],"objs":[{"k":"jump","x":470,"y":480},{"k":"toge","x0":430,"x1":920,"y":150,"dir":"down"}],"sol":[[470,400],[900,400]]},
+ {name:"うちゅうの ピタゴラ",hint:"せん → てこ → ボール → ボタン → しゃだんき。",goals:["flag"],
   ground:[R(-60,W+60,480),[[655,420],[705,462],[765,462],[815,420],[815,480],[655,480]]],car:[900,480],goal:[1200,480],
   objs:[{k:"lever",x:430,y:400,len:420,a0:.33,dens:.0015},{k:"ball",x:600,y:430,r:18},{k:"btn",x:735,y:462,w:60,act:["g"],by:"thing"},{k:"gate",id:"g",x:1100,top:0,bot:480}],
   sol:[[190,150],[340,150]]},
- {"name":"さいごの面","hint":"大岩でボタン → 遮断機と目覚まし。橋をかけて旗へ。ぜんぶの力で！","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[300,300],[600,300],[600,320],[300,320]],[[760,280],[1340,40],[1340,300],[760,300]],[[-60,160],[160,160],[160,180],[-60,180]]],"car":[300,480],"goal":[1180,480],"objs":[{"k":"btn","x":530,"y":300,"w":80,"act":["g"],"by":"thing"},{"k":"gate","id":"g","x":700,"top":296,"bot":480}],"boulder":[900,183,30],"sol":[[580,286],[780,258]]},
+ {"name":"さいごの めん","hint":"おおいわで ボタン → しゃだんきと めざまし。はしを かけて はたへ。ぜんぶの ちからで！","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[300,300],[600,300],[600,320],[300,320]],[[760,280],[1340,40],[1340,300],[760,300]],[[-60,160],[160,160],[160,180],[-60,180]]],"car":[300,480],"goal":[1180,480],"objs":[{"k":"btn","x":530,"y":300,"w":80,"act":["g"],"by":"thing"},{"k":"gate","id":"g","x":700,"top":296,"bot":480}],"boulder":[900,183,30],"sol":[[580,286],[780,258]]},
 /* ===== 世界11（そらのしま・ハチのもり）・世界12（こうじげんば・ゆうやけの空）: 101〜120 面（2026-10-16）。ジャンプ台・トゲ・空中の足場・ハチ ===== */
- {"name":"空のくだり坂","hint":"この世界の線は止まる。高い島から低い島へ、空中にくだり坂を作ろう。下はトゲ。","goals":["flag"],"line":"fixed","ground":[[[-60,260],[300,260],[300,1000],[-60,1000]],[[980,480],[1340,480],[1340,1000],[980,1000]],[[-60,640],[1340,640],[1340,1000],[-60,1000]]],"car":[130,260],"goal":[1180,480],"objs":[{"k":"toge","x0":300,"x1":980,"y":640}],"sol":[[302,256],[980,474]]},
- {"name":"空ののぼり坂","hint":"ジャンプ台でとんだ車を、空中ののぼり坂でうけとめて、高い島まで運ぼう。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[800,240],[1340,240],[1340,1000],[800,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1180,240],"objs":[{"k":"jump","x":250,"y":480,"v":12},{"k":"toge","x0":300,"x1":800,"y":660}],"sol":[[400,330],[800,238]]},
- {"name":"とびすぎるジャンプ台","hint":"このジャンプ台は強すぎて、トゲの天井にささる。ジャンプ台に線でふたをしよう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[380,70],[760,70],[760,100],[380,100]]],"car":[130,480],"goal":[1180,480],"objs":[{"k":"jump","x":560,"y":480,"v":18},{"k":"toge","x0":380,"x1":760,"y":100,"dir":"down"}],"sol":[[490,440],[630,440]]},
- {"name":"ハチの巣にふた","hint":"ハチが出てくる前に、巣の下にふたをしよう。インクは少し。","goals":["flag"],"line":"fixed","ink":200,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1180,480],"objs":[{"k":"bees","x":640,"y":150,"n":20,"iv":0.2,"delay":0.2,"sp":1.5,"max":6}],"sol":[[580,110],[590,190],[690,190],[700,110]]},
- {"name":"ゴムでトゲごえ","hint":"この世界の線はゴム。トゲの穴に落ちる車を、はね上げよう。","goals":["flag"],"line":"rubber","ground":[[[-60,480],[400,480],[400,1000],[-60,1000]],[[400,640],[640,640],[640,1000],[400,1000]],[[640,500],[1340,500],[1340,1000],[640,1000]]],"car":[130,480],"goal":[1180,500],"objs":[{"k":"toge","x0":400,"x1":640,"y":640}],"sol":[[410,600],[630,600]]},
- {"name":"かべと屋根","hint":"旗に着いたら 6 秒まもろう。ハチは右と上から。かべと屋根をいっぺんに作ろう。","goals":["flag","guard"],"guard":6,"line":"fixed","dir":-1,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]]],"car":[1000,480],"goal":[760,480],"objs":[{"k":"bees","x":1240,"y":420,"n":12,"iv":0.35,"delay":0.6,"sp":1.5,"max":6},{"k":"bees","x":880,"y":60,"n":12,"iv":0.35,"delay":0.9,"sp":1.5,"max":6}],"sol":[[1100,476],[1100,250],[560,250]]},
- {"name":"旗でテント","hint":"車は旗のすぐ前。旗に着いたら 6 秒、ハチから守ろう。三角のテントをはって。","goals":["flag","guard"],"guard":6,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]]],"car":[560,480],"goal":[660,480],"objs":[{"k":"bees","x":1100,"y":120,"n":20,"iv":0.3,"delay":0.5,"sp":1.5,"max":6}],"sol":[[400,476],[650,250],[920,476]]},
- {"name":"二だんジャンプ","hint":"ジャンプ台から、島のジャンプ台へ。うまくとどくように、線で道をつなごう。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[320,480],[320,1000],[-60,1000]],[[620,420],[760,420],[760,1000],[620,1000]],[[1080,300],[1340,300],[1340,1000],[1080,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1180,300],"objs":[{"k":"jump","x":270,"y":480,"v":12},{"k":"jump","x":700,"y":420,"v":17,"vx":7},{"k":"toge","x0":320,"x1":620,"y":660},{"k":"toge","x0":760,"x1":1080,"y":660}],"sol":[[470,350],[618,416]]},
- {"name":"大砲のたて","hint":"右の大砲が車をねらう。ななめのたてで、弾をふせごう。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[1160,300],[1340,300],[1340,1000],[1160,1000]]],"car":[130,480],"goal":[1050,480],"objs":[{"k":"cannon","x":1200,"y":280,"vx":-10,"vy":-2,"iv":0.9,"delay":0.3}],"sol":[[700,180],[900,330]]},
- {"name":"トゲの島に着地","hint":"ジャンプ台でとぶと、島の上はトゲ。トゲをおおって、とびすぎないように、はしに壁も。L の字で。","goals":["flag"],"line":"fixed","land":1,"ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[700,420],[900,420],[900,1000],[700,1000]],[[-60,640],[1340,640],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[820,420],"objs":[{"k":"jump","x":250,"y":480,"v":17,"vx":8},{"k":"toge","x0":700,"x1":900,"y":420},{"k":"toge","x0":300,"x1":700,"y":640},{"k":"toge","x0":900,"x1":1320,"y":640}],"sol":[[700,394],[904,394],[904,290]]},
- {"name":"すべり台とジャンプ台","hint":"谷の底はトゲ。トゲの向こうのジャンプ台まで、すべり台をかけよう。","goals":["flag"],"ground":[[[-60,300],[400,300],[400,1000],[-60,1000]],[[400,640],[900,640],[900,1000],[400,1000]],[[900,300],[1340,300],[1340,1000],[900,1000]]],"car":[130,300],"goal":[1180,300],"objs":[{"k":"toge","x0":400,"x1":720,"y":640},{"k":"jump","x":810,"y":640,"v":21,"vx":3,"w":120}],"sol":[[408,284],[744,622]]},
- {"name":"空から車","hint":"車が空から落ちてくる！ 下はトゲ。うけとめて、右の道へすべらせよう。","goals":["flag"],"line":"fixed","air":1,"ground":[[[900,480],[1340,480],[1340,1000],[900,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[300,120],"goal":[1180,480],"objs":[{"k":"toge","x0":-40,"x1":900,"y":660}],"sol":[[220,300],[900,478]]},
- {"name":"うしろから来るハチ","hint":"ハチは右から追いかけてくる。車のうしろに、高い壁を立てよう。","goals":["flag"],"line":"fixed","dir":-1,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]]],"car":[1000,480],"goal":[100,480],"objs":[{"k":"bees","x":1230,"y":420,"n":20,"iv":0.25,"delay":0.3,"sp":1.5,"max":6}],"sol":[[1080,40],[1080,476]]},
- {"name":"氷のすべり台","hint":"この世界の線は氷。高い所から氷の坂ですべりおりて、いきおいでトゲの穴をとびこえよう。","goals":["flag"],"line":"ice","ground":[[[-60,120],[200,120],[200,1000],[-60,1000]],[[-60,480],[680,480],[680,1000],[-60,1000]],[[680,620],[780,620],[780,1000],[680,1000]],[[780,540],[1340,540],[1340,1000],[780,1000]]],"car":[100,120],"goal":[1180,540],"objs":[{"k":"toge","x0":680,"x1":780,"y":620},{"k":"toge","x0":200,"x1":560,"y":480}],"sol":[[190,116],[620,476]]},
- {"name":"島に岩の雨","hint":"ジャンプ台で島へ。島には岩がふってくる。着いたら 4 秒守ろう。2つのひさしに屋根をかけておこう。","goals":["flag","guard"],"guard":4,"rocks":[800,1100,0.25],"ground":[[[-60,480],[320,480],[320,1000],[-60,1000]],[[640,480],[1340,480],[1340,1000],[640,1000]],[[760,330],[800,330],[800,350],[760,350]],[[1100,330],[1140,330],[1140,350],[1100,350]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[960,480],"objs":[{"k":"jump","x":270,"y":480,"v":14,"vx":10},{"k":"toge","x0":320,"x1":640,"y":660}],"sol":[[752,322],[1148,322]]},
- {"name":"トゲの階段","hint":"くだりの階段は、だんの上がぜんぶトゲ。かどにのせて、ななめのすべり台をかけよう。","goals":["flag"],"ground":[[[-60,240],[300,240],[300,1000],[-60,1000]],[[300,300],[500,300],[500,1000],[300,1000]],[[500,360],[700,360],[700,1000],[500,1000]],[[700,420],[900,420],[900,1000],[700,1000]],[[900,480],[1340,480],[1340,1000],[900,1000]]],"car":[130,240],"goal":[1180,480],"objs":[{"k":"toge","x0":310,"x1":420,"y":300},{"k":"toge","x0":510,"x1":620,"y":360},{"k":"toge","x0":710,"x1":820,"y":420}],"sol":[[284,226],[1104,468]]},
- {"name":"門をあけてジャンプ","hint":"この世界の線は止まる。ボールを坂で転がして台に当てると門が開く。その先のジャンプ台で島へ。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[1060,300],[1340,300],[1340,1000],[1060,1000]]],"car":[560,480],"goal":[1180,300],"objs":[{"k":"ball","x":280,"y":100,"r":18},{"k":"hit","x":400,"y":480,"act":["g"]},{"k":"gate","id":"g","x":680,"top":370,"bot":480},{"k":"jump","x":860,"y":480,"v":15,"vx":7}],"sol":[[220,220],[370,440]]},
- {"name":"ハチは下から","hint":"ハチの巣は地面の下。高い所の旗まで坂を作れば、坂がハチをふせぐ。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[900,340],[1340,340],[1340,1000],[900,1000]]],"car":[130,480],"goal":[1180,340],"objs":[{"k":"bees","x":640,"y":470,"n":18,"iv":0.25,"delay":1,"sp":1.5,"max":6}],"sol":[[300,476],[900,342]]},
- {"name":"2台でジャンプ","hint":"車は 2 台。2 台とも、ジャンプ台から空中のさかをのぼって、高い島へ。","goals":["flag"],"line":"fixed","cars":2,"ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[820,280],[1340,280],[1340,1000],[820,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1060,280],"objs":[{"k":"jump","x":250,"y":480,"v":12},{"k":"toge","x0":300,"x1":820,"y":660}],"sol":[[400,330],[820,278]]},
- {"name":"さいごの空","hint":"ジャンプ台、ハチ、トゲ。空中にうけとめる道を作って、さいごの島へ。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[900,360],[1340,360],[1340,1000],[900,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1180,360],"objs":[{"k":"jump","x":250,"y":480,"v":12},{"k":"toge","x0":300,"x1":900,"y":660},{"k":"bees","x":1000,"y":60,"n":10,"iv":0.35,"delay":2.6,"sp":1.3,"max":4.5}],"sol":[[400,360],[540,440],[900,362]]},
+ {"name":"そらの くだりざか","hint":"この せかいの せんは とまる。たかい しまから ひくい しまへ、くうちゅうに くだりざかを つくろう。したは トゲ。","goals":["flag"],"line":"fixed","ground":[[[-60,260],[300,260],[300,1000],[-60,1000]],[[980,480],[1340,480],[1340,1000],[980,1000]],[[-60,640],[1340,640],[1340,1000],[-60,1000]]],"car":[130,260],"goal":[1180,480],"objs":[{"k":"toge","x0":300,"x1":980,"y":640}],"sol":[[302,256],[980,474]]},
+ {"name":"そらの のぼりざか","hint":"ジャンプだいで とんだ くるまを、くうちゅうの のぼりざかで うけとめて、たかい しままで はこぼう。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[800,240],[1340,240],[1340,1000],[800,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1180,240],"objs":[{"k":"jump","x":250,"y":480,"v":12},{"k":"toge","x0":300,"x1":800,"y":660}],"sol":[[400,330],[800,238]]},
+ {"name":"とびすぎる ジャンプだい","hint":"この ジャンプだいは つよすぎて、トゲの てんじょうに ささる。ジャンプだいに せんで ふたを しよう。","goals":["flag"],"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[380,70],[760,70],[760,100],[380,100]]],"car":[130,480],"goal":[1180,480],"objs":[{"k":"jump","x":560,"y":480,"v":18},{"k":"toge","x0":380,"x1":760,"y":100,"dir":"down"}],"sol":[[490,440],[630,440]]},
+ {"name":"ハチの すに ふた","hint":"ハチが でてくる まえに、すの したに ふたを しよう。インクは すこし。","goals":["flag"],"line":"fixed","ink":200,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1180,480],"objs":[{"k":"bees","x":640,"y":150,"n":20,"iv":0.2,"delay":0.2,"sp":1.5,"max":6}],"sol":[[580,110],[590,190],[690,190],[700,110]]},
+ {"name":"ゴムで トゲごえ","hint":"この せかいの せんは ゴム。トゲの あなに おちる くるまを、はねあげよう。","goals":["flag"],"line":"rubber","ground":[[[-60,480],[400,480],[400,1000],[-60,1000]],[[400,640],[640,640],[640,1000],[400,1000]],[[640,500],[1340,500],[1340,1000],[640,1000]]],"car":[130,480],"goal":[1180,500],"objs":[{"k":"toge","x0":400,"x1":640,"y":640}],"sol":[[410,600],[630,600]]},
+ {"name":"かべと やね","hint":"はたに ついたら 6びょう まもろう。ハチは みぎと うえから。かべと やねを いっぺんに つくろう。","goals":["flag","guard"],"guard":6,"line":"fixed","dir":-1,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]]],"car":[1000,480],"goal":[760,480],"objs":[{"k":"bees","x":1240,"y":420,"n":12,"iv":0.35,"delay":0.6,"sp":1.5,"max":6},{"k":"bees","x":880,"y":60,"n":12,"iv":0.35,"delay":0.9,"sp":1.5,"max":6}],"sol":[[1100,476],[1100,250],[560,250]]},
+ {"name":"はたで テント","hint":"くるまは はたの すぐ まえ。はたに ついたら 6びょう、ハチから まもろう。さんかくの テントを はって。","goals":["flag","guard"],"guard":6,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]]],"car":[560,480],"goal":[660,480],"objs":[{"k":"bees","x":1100,"y":120,"n":20,"iv":0.3,"delay":0.5,"sp":1.5,"max":6}],"sol":[[400,476],[650,250],[920,476]]},
+ {"name":"にだん ジャンプ","hint":"ジャンプだいから、しまの ジャンプだいへ。うまく とどくように、せんで みちを つなごう。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[320,480],[320,1000],[-60,1000]],[[620,420],[760,420],[760,1000],[620,1000]],[[1080,300],[1340,300],[1340,1000],[1080,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1180,300],"objs":[{"k":"jump","x":270,"y":480,"v":12},{"k":"jump","x":700,"y":420,"v":17,"vx":7},{"k":"toge","x0":320,"x1":620,"y":660},{"k":"toge","x0":760,"x1":1080,"y":660}],"sol":[[470,350],[618,416]]},
+ {"name":"たいほうの たて","hint":"みぎの たいほうが くるまを ねらう。ななめの たてで、たまを ふせごう。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[1160,300],[1340,300],[1340,1000],[1160,1000]]],"car":[130,480],"goal":[1050,480],"objs":[{"k":"cannon","x":1200,"y":280,"vx":-10,"vy":-2,"iv":0.9,"delay":0.3}],"sol":[[700,180],[900,330]]},
+ {"name":"トゲの しまに ちゃくち","hint":"ジャンプだいで とぶと、しまの うえは トゲ。トゲを おおって、とびすぎないように、はしに かべも。L の じで。","goals":["flag"],"line":"fixed","land":1,"ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[700,420],[900,420],[900,1000],[700,1000]],[[-60,640],[1340,640],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[820,420],"objs":[{"k":"jump","x":250,"y":480,"v":17,"vx":8},{"k":"toge","x0":700,"x1":900,"y":420},{"k":"toge","x0":300,"x1":700,"y":640},{"k":"toge","x0":900,"x1":1320,"y":640}],"sol":[[700,394],[904,394],[904,290]]},
+ {"name":"すべりだいと ジャンプだい","hint":"たにの そこは トゲ。トゲの むこうの ジャンプだいまで、すべりだいを かけよう。","goals":["flag"],"ground":[[[-60,300],[400,300],[400,1000],[-60,1000]],[[400,640],[900,640],[900,1000],[400,1000]],[[900,300],[1340,300],[1340,1000],[900,1000]]],"car":[130,300],"goal":[1180,300],"objs":[{"k":"toge","x0":400,"x1":720,"y":640},{"k":"jump","x":810,"y":640,"v":21,"vx":3,"w":120}],"sol":[[408,284],[744,622]]},
+ {"name":"トゲの うえに おちる くるま","hint":"くるまが そらから おちてくる！ したは トゲ。うけとめて、みぎの みちへ すべらせよう。","goals":["flag"],"line":"fixed","air":1,"ground":[[[900,480],[1340,480],[1340,1000],[900,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[300,120],"goal":[1180,480],"objs":[{"k":"toge","x0":-40,"x1":900,"y":660}],"sol":[[220,300],[900,478]]},
+ {"name":"うしろから くる ハチ","hint":"ハチは みぎから おいかけてくる。くるまの うしろに、たかい かべを たてよう。","goals":["flag"],"line":"fixed","dir":-1,"ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]]],"car":[1000,480],"goal":[100,480],"objs":[{"k":"bees","x":1230,"y":420,"n":20,"iv":0.25,"delay":0.3,"sp":1.5,"max":6}],"sol":[[1080,40],[1080,476]]},
+ {"name":"こおりで ひとっとび","hint":"この せかいの せんは こおり。たかい ところから こおりの さかで すべりおりて、いきおいで トゲの あなを とびこえよう。","goals":["flag"],"line":"ice","ground":[[[-60,120],[200,120],[200,1000],[-60,1000]],[[-60,480],[680,480],[680,1000],[-60,1000]],[[680,620],[780,620],[780,1000],[680,1000]],[[780,540],[1340,540],[1340,1000],[780,1000]]],"car":[100,120],"goal":[1180,540],"objs":[{"k":"toge","x0":680,"x1":780,"y":620},{"k":"toge","x0":200,"x1":560,"y":480}],"sol":[[190,116],[620,476]]},
+ {"name":"しまに いわの あめ","hint":"ジャンプだいで しまへ。しまには いわが ふってくる。ついたら 4びょう まもろう。ふたつの ひさしに やねを かけておこう。","goals":["flag","guard"],"guard":4,"rocks":[800,1100,0.25],"ground":[[[-60,480],[320,480],[320,1000],[-60,1000]],[[640,480],[1340,480],[1340,1000],[640,1000]],[[760,330],[800,330],[800,350],[760,350]],[[1100,330],[1140,330],[1140,350],[1100,350]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[960,480],"objs":[{"k":"jump","x":270,"y":480,"v":14,"vx":10},{"k":"toge","x0":320,"x1":640,"y":660}],"sol":[[752,322],[1148,322]]},
+ {"name":"トゲの かいだん","hint":"くだりの かいだんは、だんの うえが ぜんぶ トゲ。かどに のせて、ななめの すべりだいを かけよう。","goals":["flag"],"ground":[[[-60,240],[300,240],[300,1000],[-60,1000]],[[300,300],[500,300],[500,1000],[300,1000]],[[500,360],[700,360],[700,1000],[500,1000]],[[700,420],[900,420],[900,1000],[700,1000]],[[900,480],[1340,480],[1340,1000],[900,1000]]],"car":[130,240],"goal":[1180,480],"objs":[{"k":"toge","x0":310,"x1":420,"y":300},{"k":"toge","x0":510,"x1":620,"y":360},{"k":"toge","x0":710,"x1":820,"y":420}],"sol":[[284,226],[1104,468]]},
+ {"name":"もんを あけて ジャンプ","hint":"この せかいの せんは とまる。ボールを さかで ころがして だいに あてると もんが あく。その さきの ジャンプだいで しまへ。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[1060,300],[1340,300],[1340,1000],[1060,1000]]],"car":[560,480],"goal":[1180,300],"objs":[{"k":"ball","x":280,"y":100,"r":18},{"k":"hit","x":400,"y":480,"act":["g"]},{"k":"gate","id":"g","x":680,"top":370,"bot":480},{"k":"jump","x":860,"y":480,"v":15,"vx":7}],"sol":[[220,220],[370,440]]},
+ {"name":"ハチは したから","hint":"ハチの すは じめんの した。たかい ところの はたまで さかを つくれば、さかが ハチを ふせぐ。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[1340,480],[1340,1000],[-60,1000]],[[900,340],[1340,340],[1340,1000],[900,1000]]],"car":[130,480],"goal":[1180,340],"objs":[{"k":"bees","x":640,"y":470,"n":18,"iv":0.25,"delay":1,"sp":1.5,"max":6}],"sol":[[300,476],[900,342]]},
+ {"name":"2だいで ジャンプ","hint":"くるまは 2だい。2だいとも、ジャンプだいから くうちゅうの さかを のぼって、たかい しまへ。","goals":["flag"],"line":"fixed","cars":2,"ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[820,280],[1340,280],[1340,1000],[820,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1060,280],"objs":[{"k":"jump","x":250,"y":480,"v":12},{"k":"toge","x0":300,"x1":820,"y":660}],"sol":[[400,330],[820,278]]},
+ {"name":"さいごの そら","hint":"ジャンプだい、ハチ、トゲ。くうちゅうに うけとめる みちを つくって、さいごの しまへ。","goals":["flag"],"line":"fixed","ground":[[[-60,480],[300,480],[300,1000],[-60,1000]],[[900,360],[1340,360],[1340,1000],[900,1000]],[[-60,660],[1340,660],[1340,1000],[-60,1000]]],"car":[130,480],"goal":[1180,360],"objs":[{"k":"jump","x":250,"y":480,"v":12},{"k":"toge","x0":300,"x1":900,"y":660},{"k":"bees","x":1000,"y":60,"n":10,"iv":0.35,"delay":2.6,"sp":1.3,"max":4.5}],"sol":[[400,360],[540,440],[900,362]]},
 ];
 })();
 
@@ -1628,7 +1653,7 @@ const cliffL=(x1,top)=>[[-60,top],[x1,top],[x1-40,1000],[-60,1000]];
 const cliffR=(x0,top)=>[[x0,top],[W+60,top],[W+60,1000],[x0+40,1000]];
 
 const LEVELS=[
- {name:"はじめの一本",hint:"谷の上に横線を一本。指を離すと線が落ちて、車が走り出す！",
+ {name:"はじめの いっぽん",hint:"たにの うえに よこせんを いっぽん。ゆびを はなすと せんが おちて、くるまが はしりだす！",
   ground:[cliffL(470,440),cliffR(730,440)],car:[150,440],goal:[1060,440]},
  {name:"ひろい谷",hint:"短いと谷に落ちる。両岸にしっかりかかる長さで。",
   ground:[cliffL(380,440),cliffR(820,440)],car:[140,440],goal:[1090,440]},
@@ -1650,7 +1675,7 @@ const LEVELS=[
  {name:"大峡谷",hint:"とても長い谷。くぎを通して長い一本を。",
   ground:[cliffL(260,440),cliffR(1020,440)],car:[110,440],goal:[1140,440],pins:[[520,452],[760,452]]},
  /* ---- 11〜20 ---- */
- {name:"はね橋",hint:"谷の上には描けない。岸の出っぱりのうしろに高い線を立てれば、倒れて橋になる。",
+ {name:"はねばし",hint:"たにの うえには かけない。きしの でっぱりの うしろに たかい せんを たてれば、たおれて はしに なる。",
   ground:[cliffL(420,440),cliffR(660,440),rect(410,428,428,450)],car:[140,440],goal:[1000,440],noDraw:[[455,0,205,600]]},
  {name:"高い壁",hint:"大きな三角形で、壁の上まで。",
   ground:[rect(-60,W+60,480),rect(620,760,330)],car:[150,480],goal:[1080,480]},
@@ -1864,9 +1889,9 @@ function loadLevel(i){
   document.getElementById("retryBig").classList.remove("show","pulse");
   document.getElementById("toast").style.opacity=0;
   const lk=LINE_KIND[L.line];
-  document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${L.name}${lk?`　<b style="background:${lk.col[1]};color:${lk.col[0]};border:2px solid ${lk.col[0]};padding:1px 10px;border-radius:12px;font-size:17px;opacity:1">${lk.name}</b>`:""}${L.ink?`　<b style="background:#3fa7ff;color:#fff;padding:1px 10px;border-radius:12px;font-size:17px">インク少し</b>`:""}</small>`;
-  document.getElementById("hint").textContent=(lk?`【${lk.name}】`:"")+L.hint;
-  if(i%5===0&&i>0)banner(i%10===0?`ワールド${Math.floor(i/10)+1}　${TH.name}`:TH.name);
+  document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${rbHTML(L.name)}${lk?`　<b style="background:${lk.col[1]};color:${lk.col[0]};border:2px solid ${lk.col[0]};padding:1px 10px;border-radius:12px;font-size:17px;opacity:1">${lk.name}</b>`:""}${L.ink?`　<b style="background:#3fa7ff;color:#fff;padding:1px 10px;border-radius:12px;font-size:17px">インク すこし</b>`:""}</small>`;
+  document.getElementById("hint").innerHTML=rbHTML((lk?`【${lk.name}】`:"")+L.hint);
+  if(!quiet&&i%5===0&&i>0)banner(i%10===0?`ワールド${Math.floor(i/10)+1}　${TH.name}`:TH.name);
 }
 function mulberry(a){return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function banner(s){const t=$("toast");t.textContent=s;t.style.opacity=1;t.style.fontSize="34px";clearTimeout(toastT);
@@ -1901,7 +1926,7 @@ function onHit(ev){
       const r=a.parent;if(!r.plugin.rock&&!r.plugin.bee||r.plugin.dead)continue;
       const o=b.parent;
       if(cars.some(c=>!c.waiting&&!L.nocar&&(o===c.chassis||o===c.wA||o===c.wB))||(cargo&&o===cargo)||o.plugin.guy){
-        if(state==="draw"||state==="go")finish(false,r.plugin.bee?"ハチに刺された！":r.plugin.big?"大岩にぶつかっちゃった！":"落石にあたっちゃった！");}
+        if(state==="draw"||state==="go")finish(false,r.plugin.bee?"ハチに さされた！":r.plugin.big?"おおいわに ぶつかっちゃった！":"いしが あたっちゃった！");}
       else if(o.isStatic&&!r.plugin.big){r.plugin.dead=true;}
     }
   }
@@ -1980,8 +2005,8 @@ function endDraw(){
 }
 /* 線の種類（面の line）。世界ごとに線の性質が変わる
    rubber: 上に落ちた物（車・ボール・岩）がはね返る（線自体は柱の上で落ち着く）／ice: 上に乗った物（車・ボール・箱）だけすべる（地面の上では止まっている。坂をすべらせたい時は地面を ice にする）／fixed: 描いた所で止まって落ちない／float: 上へ浮く／heavy: 重い（5 倍） */
-const LINE_KIND={rubber:{name:"ゴムの線",col:["#a3164f","#ff7ab0"]},ice:{name:"氷の線",col:["#2a7fb8","#d8f4ff"]},
-  fixed:{name:"止まる線",col:["#2b2f36","#a9b2bd"]},float:{name:"浮く線",col:["#b87800","#ffe066"]},heavy:{name:"鉄の線",col:["#15171c","#5d6470"]}};
+const LINE_KIND={rubber:{name:"ゴムの せん",col:["#a3164f","#ff7ab0"]},ice:{name:"こおりの せん",col:["#2a7fb8","#d8f4ff"]},
+  fixed:{name:"とまる せん",col:["#2b2f36","#a9b2bd"]},float:{name:"うく せん",col:["#b87800","#ffe066"]},heavy:{name:"てつの せん",col:["#15171c","#5d6470"]}};
 function lineKind(body){const k=L.line;if(!LINE_KIND[k])return;body.plugin.kind=k;
   if(k==="heavy"){Body.setMass(body,body.mass*5);Body.setInertia(body,body.inertia*5);}
   if(k==="float"){body.frictionAir=.15;Body.setInertia(body,Infinity);} // 描いた傾きのまま回らない（エレベーターの床になる） // ゆっくり浮く（上向きの力は step で重さの 2 倍 = 差し引き 1 倍）
@@ -2015,27 +2040,57 @@ $("hintBtn").onclick=()=>{showHint=(showHint+1)%3;};  // 1回目: 始点と終�
 $("retryBig").onclick=()=>{$("resOv").classList.remove("show");loadLevel(li);};
 $("menuBtn").onclick=()=>showSel();
 $("startBtn").onclick=()=>{audio();$("titleOv").classList.remove("show");showSel();};
-$("selBack").onclick=()=>{$("selOv").classList.remove("show");if(state==="title")$("titleOv").classList.add("show");};
+$("selBack").onclick=()=>{clearTimeout(thumbTimer);$("selOv").classList.remove("show");if(state==="title")$("titleOv").classList.add("show");};
 $("resRetry").onclick=()=>{$("resOv").classList.remove("show");loadLevel(li);};
 $("resNext").onclick=()=>{$("resOv").classList.remove("show");
   if(state==="win"&&li+1<LEVELS.length)loadLevel(li+1);else if(state==="win")showSel();else loadLevel(li);};
-const PER=10,PAGES=()=>Math.ceil(LEVELS.length/PER);
-$("pgPrev").onclick=()=>{selPage=(selPage-1+PAGES())%PAGES();showSel();};
-$("pgNext").onclick=()=>{selPage=(selPage+1)%PAGES();showSel();};
+const PER=20,PAGES=()=>Math.ceil(LEVELS.length/PER);
+const pagesEl=$("pages");let thumbDone=[],thumbQ=[],thumbTimer=0,quiet=false,selBuilt=false;
+const curPage=()=>Math.round(pagesEl.scrollLeft/(pagesEl.clientWidth||1));
+function goPage(p,smooth=true){p=(p+PAGES())%PAGES();pagesEl.scrollTo({left:p*pagesEl.clientWidth,behavior:smooth?"smooth":"auto"});selPage=p;selLabel(p);}
+$("pgPrev").onclick=()=>goPage(curPage()-1);
+$("pgNext").onclick=()=>goPage(curPage()+1);
+function selLabel(p){const a0=p*PER,a1=Math.min(LEVELS.length,a0+PER);let got=0;for(let i=a0;i<a1;i++)if(save.stars[i])got++;
+  $("pgLabel").textContent=`${a0+1}〜${a1}　${got}/${a1-a0}${got===a1-a0?" 🏅":""}`;
+  [...$("dots").children].forEach((d,k)=>d.classList.toggle("on",k===p));}
+// 1 面ぶんの小さな絵: その面を読みこんで本物の描き方で小さく描き、タイルへ写す
+function drawThumb(i){const t=pagesEl.querySelector(`[data-i="${i}"] canvas`);if(!t)return;
+  quiet=true;loadLevel(i);quiet=false;const k0=K,tk=t.width/W;K=tk;render();K=k0;
+  t.getContext("2d").drawImage(cv,0,0,Math.ceil(W*tk),Math.ceil(H*tk),0,0,t.width,t.height);thumbDone[i]=1;}
+function runThumbs(){clearTimeout(thumbTimer);if(!thumbQ.length)return;
+  const back={li,state,had:!!L};
+  for(let n=0;n<10&&thumbQ.length;n++){const i=thumbQ.shift();if(!thumbDone[i])drawThumb(i);}
+  if(back.had){quiet=true;loadLevel(back.li);quiet=false;}
+  state=back.state==="title"?"title":"draw";
+  if(thumbQ.length&&$("selOv").classList.contains("show"))thumbTimer=setTimeout(runThumbs,30);}
+function queueThumbs(p){const first=[],rest=[];for(let i=0;i<LEVELS.length;i++){if(thumbDone[i])continue;(Math.floor(i/PER)===p?first:rest).push(i);}
+  rest.sort((a,b)=>Math.abs(Math.floor(a/PER)-p)-Math.abs(Math.floor(b/PER)-p));thumbQ=first.concat(rest);runThumbs();}
+function buildSel(){pagesEl.innerHTML="";$("dots").innerHTML="";
+  const px=Math.max(1,Math.min(3,K));
+  for(let p=0;p<PAGES();p++){const pg=document.createElement("div");pg.className="page";
+    for(let i=p*PER;i<Math.min(LEVELS.length,(p+1)*PER);i++){const th=themeOf(i);
+      const b=document.createElement("button");b.className="tile";b.dataset.i=i;b.style.setProperty("--wc",th.sky?th.sky[0]:th.ground[0]);
+      const c=document.createElement("canvas");c.width=Math.round(208*px);c.height=Math.round(117*px);b.appendChild(c);
+      b.insertAdjacentHTML("beforeend",`<span class="no">${i+1}</span><span class="ok"></span>`);
+      b.onclick=()=>{if(dragMoved)return;clearTimeout(thumbTimer);$("selOv").classList.remove("show");loadLevel(i);};
+      pg.appendChild(b);}
+    pagesEl.appendChild(pg);
+    const d=document.createElement("i");d.onclick=()=>goPage(p);$("dots").appendChild(d);}
+  selBuilt=true;}
+pagesEl.addEventListener("scroll",()=>{const p=curPage();if(p!==selPage){selPage=p;selLabel(p);}},{passive:true});
+// パソコンのマウスでも横にドラッグできるように（指はそのままスクロール）
+let dragX=null,dragL=0,dragMoved=false;
+pagesEl.addEventListener("pointerdown",e=>{dragMoved=false;if(e.pointerType!=="mouse")return;dragX=e.clientX;dragL=pagesEl.scrollLeft;pagesEl.classList.add("drag");});
+addEventListener("pointermove",e=>{if(dragX===null)return;const s=wrap.getBoundingClientRect().width/W,dx=(e.clientX-dragX)/s;if(Math.abs(dx)>8)dragMoved=true;pagesEl.scrollLeft=dragL-dx;});
+addEventListener("pointerup",e=>{if(dragX===null)return;const s=wrap.getBoundingClientRect().width/W,dx=(e.clientX-dragX)/s;dragX=null;pagesEl.classList.remove("drag");
+  const p0=Math.round(dragL/pagesEl.clientWidth);goPage(Math.abs(dx)>80?p0-Math.sign(dx):p0);setTimeout(()=>{dragMoved=false;},0);});
+pagesEl.addEventListener("wheel",e=>{if(Math.abs(e.deltaY)<Math.abs(e.deltaX))return;e.preventDefault();if(Math.abs(e.deltaY)>20)goPage(curPage()+Math.sign(e.deltaY));},{passive:false});
 function showSel(){
-  const g=$("grid");g.innerHTML="";
-  if(selPage<0){let i=0;while(i<LEVELS.length-1&&save.stars[i])i++;selPage=Math.floor(i/PER);} // 最初は続きのページ
-  const a0=selPage*PER,a1=Math.min(LEVELS.length,(selPage+1)*PER);let got=0;for(let i=a0;i<a1;i++)if(save.stars[i])got++;
-  $("pgLabel").textContent=`ワールド${selPage+1} ${themeOf(a0).name}／${themeOf(a0+5).name}  ${got}/${a1-a0}${got===a1-a0?" 🏅":""}`;
-  const th=themeOf(a0);$("grid").style.setProperty("--wc",th.sky?th.sky[th.sky.length>2?1:0]:th.ground[0]);
-  LEVELS.slice(selPage*PER,(selPage+1)*PER).forEach((lv,j)=>{const i=selPage*PER+j;
-    const b=document.createElement("button");b.className="btn";
-    b.innerHTML=unlocked(i)?`${i+1}<span>${save.stars[i]?"クリア":"&nbsp;"}</span>`:"🔒";
-    b.disabled=!unlocked(i);
-    b.onclick=()=>{$("selOv").classList.remove("show");loadLevel(i);};
-    g.appendChild(b);
-  });
+  if(!selBuilt)buildSel();
+  pagesEl.querySelectorAll(".tile").forEach(b=>{const i=+b.dataset.i,ok=!!save.stars[i];b.classList.toggle("done",ok);b.querySelector(".ok").textContent=ok?"⭐":"";});
   $("selOv").classList.add("show");
+  if(selPage<0){let i=0;while(i<LEVELS.length-1&&save.stars[i])i++;selPage=Math.floor(i/PER);} // 最初は続きのページ
+  goPage(selPage,false);queueThumbs(selPage);
 }
 function finish(win,msg){
   if(state==="win"||state==="fail")return;
@@ -2044,14 +2099,14 @@ function finish(win,msg){
     const cols=["#ff5a4e","#ffd23f","#5cc443","#3fa7ff","#ff8ac8","#8a5cff"];
     for(let k=0;k<90;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%6]});}
   else{sfx.fail();toast(msg);$("retryBig").classList.add("show","pulse");
-    const icon=msg.includes("落石")?"🪨":msg.includes("荷物")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("動けなく")||msg.includes("時間")?"⛔":"💦";
+    const icon=msg.includes("いしが")?"🪨":msg.includes("にもつ")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("うごけなく")||msg.includes("じかん")?"⛔":"💦";
     if(!MODE.noCar())explode();
     const c=MODE.focus();failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
   setTimeout(()=>{
     $("resTitle").textContent=win?"クリア！":"しっぱい…";
     $("resTitle").style.color=win?"#ff5a4e":"#557";
-    $("resMsg").innerHTML=win?`STAGE ${li+1} ${L.name}`:msg;
-    $("resNext").textContent=win?(li+1<LEVELS.length?"次へ ▶":"ステージ選択"):"やり直す";
+    $("resMsg").innerHTML=win?`STAGE ${li+1} ${rbHTML(L.name)}`:msg;
+    $("resNext").textContent=win?(li+1<LEVELS.length?"つぎへ ▶":"ステージを えらぶ"):"やりなおす";
     $("resRetry").style.display=win?"":"none";
     $("resOv").classList.add("show");
   },win?700:900);
@@ -2114,24 +2169,24 @@ function step(){
     Composite.remove(world,strokes[i].body);strokes[i].cons.forEach(c=>Composite.remove(world,c));strokes.splice(i,1);}
   if(state==="draw"||state==="go"){
     const live=cars.filter(c=>!c.waiting);
-    const fallMsg=TH.lava?"溶岩に落ちちゃった…":TH.space?"宇宙に落ちちゃった…":TH.subway?"線路に落ちちゃった…":"車が落ちちゃった…";
+    const fallMsg=TH.lava?"ようがんに おちちゃった…":TH.space?"うちゅうに おちちゃった…":TH.subway?"せんろに おちちゃった…":"くるまが おちちゃった…";
     if(live.some(c=>c.chassis.position.y>WATER_Y+60)){finish(false,fallMsg);return;}
     let fl=false;for(const c of live){if(MODE.inGrav(c.chassis))continue;const a=((c.chassis.angle%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI;if(Math.abs(a)>1.9)fl=true;}
     flipT=fl?flipT+DT/1000:0;
-    if(flipT>1.2){finish(false,"ひっくり返っちゃった…");return;}
+    if(flipT>1.2){finish(false,"ひっくりかえっちゃった…");return;}
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
-      if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
+      if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"にもつを おとしちゃった…");return;}}
     if(state==="go"&&MODE.has("flag")){
       const done=(L.turn===undefined||turned)&&cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]&&(!L.land||Math.abs(c.chassis.velocity.y)<1.5&&c.chassis.position.y>L.goal[1]-90));  // land: 旗の所に着地してから
       if(done)winT+=DT/1000;else winT=0;
       MODE.flagDone(winT>.25);
       if(winT>.25){}
-      else if(goT>30)finish(false,"時間切れ… 車が進めなかった");
+      else if(goT>30)finish(false,"じかんぎれ… くるまが すすめなかった");
       else{ // 動いている車が 1 台も無いまま 2.5 秒で失敗（穴や壁で詰まった時に待たせない）。動く足場で運ばれている時は動いている扱い
         const pending=live.filter(c=>(L.turn!==undefined&&!turned)||(c.chassis.position.x-L.goal[0])*DIR<0);
         const moving=pending.some(c=>{const p=c.chassis.position,q=c.prevP||p;c.prevP={x:p.x,y:p.y};return Math.hypot(p.x-q.x,p.y-q.y)>=.25;});
         stuckT=(goT>1.5&&pending.length&&!moving&&!MODE.busy())?stuckT+DT/1000:0;
-        if(stuckT>2.5)finish(false,"動けなくなっちゃった…");
+        if(stuckT>2.5)finish(false,"うごけなく なっちゃった…");
       }
     }
   }
@@ -2277,7 +2332,7 @@ function render(){
       ctx.fillStyle="#6a4a00";ctx.fillRect(x-2,15,4,11);ctx.fillRect(x-2,28,4,4);ctx.fillStyle="#ffd23f";}}
   // 2 台目の車は左上に小さく「あと1台」
   const wait=cars.filter(c=>c.waiting).length;
-  if(wait){ctx.fillStyle="#0006";rr(18,78,150,40,12);ctx.fill();ctx.fillStyle="#fff";ctx.font="bold 22px sans-serif";ctx.fillText(`🚗 あと${wait}台`,32,106);}
+  if(wait){ctx.fillStyle="#0006";rr(18,78,150,40,12);ctx.fill();ctx.fillStyle="#fff";ctx.font="bold 22px sans-serif";ctx.fillText(`🚗 あと${wait}だい`,32,106);}
 }
 // 空の飾り（太陽・月・星・雲・雪）
 function drawSkyDeco(th,ph){

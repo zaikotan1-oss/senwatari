@@ -43,9 +43,26 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 .card .btn.sub{background:#e4e8f0}
 #pager{display:flex;align-items:center;justify-content:center;gap:18px;font-size:24px;font-weight:bold;color:#556}
 #pager .btn{width:64px;height:52px;padding:0;margin:0;font-size:32px}
-#grid{display:grid;grid-template-columns:repeat(5,110px);gap:14px;margin:14px 0 20px;justify-content:center}
-#grid .btn{height:100px;font-size:36px;background:var(--wc,#8fd3ff);color:#fff;text-shadow:0 2px 0 #0005;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#grid .btn span{font-size:18px;color:#fff;text-shadow:0 2px 0 #3a7}
+/* ステージえらび: 本物の面を小さく描いたタイルを 20 面ずつ。横にスワイプ */
+#selCard{padding:16px 22px 12px;width:1180px;box-sizing:border-box}
+#selHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#selHead h2{margin:0;font-size:32px}
+#selHead #selBack{margin:0;font-size:22px;padding:10px 22px}
+#pager{min-width:330px;justify-content:flex-end}
+#pgLabel{font-size:20px;min-width:180px}
+#pages{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;touch-action:pan-x;scrollbar-width:none;margin:10px 0 4px;-webkit-overflow-scrolling:touch}
+#pages::-webkit-scrollbar{display:none}
+#pages.drag{scroll-snap-type:none}
+.page{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:repeat(5,208px);gap:12px;justify-content:center;padding:4px 0}
+.tile{position:relative;width:208px;height:117px;border-radius:14px;overflow:hidden;border:3px solid #fff;box-shadow:0 3px 0 #0003;padding:0;margin:0;background:var(--wc,#8fd3ff);cursor:pointer;box-sizing:content-box}
+.tile canvas{width:100%;height:100%;display:block}
+.tile .no{position:absolute;left:5px;top:4px;font-size:13px;font-weight:bold;background:#0006;color:#fff;border-radius:8px;padding:0 6px;line-height:19px}
+.tile .ok{position:absolute;right:4px;top:2px;font-size:18px;text-shadow:0 1px 2px #0008}
+.tile.done{border-color:#ffd23f}
+.tile:active{transform:scale(.96)}
+#dots{display:flex;justify-content:center;gap:8px;height:16px}
+#dots i{width:12px;height:12px;border-radius:6px;background:#d4dae6;cursor:pointer}
+#dots i.on{background:#ff5a4e}
 #titleOv{background:linear-gradient(#58b8ff,#c9ecff)}
 #titleOv h1{font-size:96px;color:#fff;text-shadow:0 6px 0 #2f6fd0,0 10px 20px #0004;margin:0}
 #titleOv p{font-size:26px;color:#2b4a7a;font-weight:bold}
@@ -60,11 +77,11 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 <div id="wrap">
   <canvas id="cv"></canvas>
   <div class="hud" id="top">
-    <div id="stage">STAGE 1<small>はじめの一本</small></div>
+    <div id="stage">STAGE 1<small>はじめの いっぽん</small></div>
     <div id="tools">
       <button class="btn" id="hintBtn" title="ヒント">💡</button>
-      <button class="btn" id="retryBtn" title="やり直し">↻</button>
-      <button class="btn" id="menuBtn" title="ステージ選択">☰</button>
+      <button class="btn" id="retryBtn" title="やりなおし">↻</button>
+      <button class="btn" id="menuBtn" title="ステージを えらぶ">☰</button>
     </div>
   </div>
   <div class="hud" id="hint"></div>
@@ -72,32 +89,32 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
   <div id="toast"></div>
 
   <div class="ov show" id="titleOv"><div style="text-align:center">
-    <h1>線でわたれ！</h1>
-    <p>線は一本だけ。指を離した瞬間、線は落ちて車が走り出す。<br>うまく橋をかけて、車を向こう岸まで送りとどけよう。</p>
+    <h1><ruby>線<rt>せん</rt></ruby>でわたれ！</h1>
+    <p>せんは いっぽんだけ。ゆびを はなした しゅんかん、せんは おちて くるまが はしりだす。<br>うまく はしを かけて、くるまを むこうぎしまで おくりとどけよう。</p>
     <button class="btn" id="startBtn">あそぶ</button>
   </div></div>
 
-  <div class="ov" id="selOv"><div class="card">
-    <h2>ステージをえらぶ</h2>
-    <div id="pager"><button class="btn sub" id="pgPrev">‹</button><span id="pgLabel"></span><button class="btn sub" id="pgNext">›</button></div>
-    <div id="grid"></div>
-    <button class="btn sub" id="selBack">もどる</button>
+  <div class="ov" id="selOv"><div class="card" id="selCard">
+    <div id="selHead"><button class="btn sub" id="selBack">もどる</button><h2>ステージをえらぶ</h2>
+      <div id="pager"><button class="btn sub" id="pgPrev">‹</button><span id="pgLabel"></span><button class="btn sub" id="pgNext">›</button></div></div>
+    <div id="pages"></div>
+    <div id="dots"></div>
   </div></div>
 
   <div class="ov" id="resOv"><div class="card">
     <h1 id="resTitle">クリア！</h1>
         <p id="resMsg"></p>
     <div>
-      <button class="btn sub" id="resRetry">もう一回</button>
-      <button class="btn" id="resNext">次へ ▶</button>
+      <button class="btn sub" id="resRetry">もう いっかい</button>
+      <button class="btn" id="resNext">つぎへ ▶</button>
     </div>
   </div></div>
 </div>
-<div id="rotate">横向きにしてあそんでね</div>
+<div id="rotate">よこむきに して あそんでね</div>
 
-<script src="matter.min.js?v=111"></script>
-<script src="gen.js?v=111"></script>
-<script src="gen_table.js?v=111"></script><script src="looks.js?v=111"></script><script src="modes.js?v=111"></script><script src="stages.js?v=111"></script>
+<script src="matter.min.js?v=114"></script>
+<script src="gen.js?v=114"></script>
+<script src="gen_table.js?v=114"></script><script src="looks.js?v=114"></script><script src="modes.js?v=114"></script><script src="stages.js?v=114"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -116,7 +133,7 @@ const cliffL=(x1,top)=>[[-60,top],[x1,top],[x1-40,1000],[-60,1000]];
 const cliffR=(x0,top)=>[[x0,top],[W+60,top],[W+60,1000],[x0+40,1000]];
 
 const LEVELS=[
- {name:"はじめの一本",hint:"谷の上に横線を一本。指を離すと線が落ちて、車が走り出す！",
+ {name:"はじめの いっぽん",hint:"たにの うえに よこせんを いっぽん。ゆびを はなすと せんが おちて、くるまが はしりだす！",
   ground:[cliffL(470,440),cliffR(730,440)],car:[150,440],goal:[1060,440]},
  {name:"ひろい谷",hint:"短いと谷に落ちる。両岸にしっかりかかる長さで。",
   ground:[cliffL(380,440),cliffR(820,440)],car:[140,440],goal:[1090,440]},
@@ -138,7 +155,7 @@ const LEVELS=[
  {name:"大峡谷",hint:"とても長い谷。くぎを通して長い一本を。",
   ground:[cliffL(260,440),cliffR(1020,440)],car:[110,440],goal:[1140,440],pins:[[520,452],[760,452]]},
  /* ---- 11〜20 ---- */
- {name:"はね橋",hint:"谷の上には描けない。岸の出っぱりのうしろに高い線を立てれば、倒れて橋になる。",
+ {name:"はねばし",hint:"たにの うえには かけない。きしの でっぱりの うしろに たかい せんを たてれば、たおれて はしに なる。",
   ground:[cliffL(420,440),cliffR(660,440),rect(410,428,428,450)],car:[140,440],goal:[1000,440],noDraw:[[455,0,205,600]]},
  {name:"高い壁",hint:"大きな三角形で、壁の上まで。",
   ground:[rect(-60,W+60,480),rect(620,760,330)],car:[150,480],goal:[1080,480]},
@@ -352,9 +369,9 @@ function loadLevel(i){
   document.getElementById("retryBig").classList.remove("show","pulse");
   document.getElementById("toast").style.opacity=0;
   const lk=LINE_KIND[L.line];
-  document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${L.name}${lk?`　<b style="background:${lk.col[1]};color:${lk.col[0]};border:2px solid ${lk.col[0]};padding:1px 10px;border-radius:12px;font-size:17px;opacity:1">${lk.name}</b>`:""}${L.ink?`　<b style="background:#3fa7ff;color:#fff;padding:1px 10px;border-radius:12px;font-size:17px">インク少し</b>`:""}</small>`;
-  document.getElementById("hint").textContent=(lk?`【${lk.name}】`:"")+L.hint;
-  if(i%5===0&&i>0)banner(i%10===0?`ワールド${Math.floor(i/10)+1}　${TH.name}`:TH.name);
+  document.getElementById("stage").innerHTML=`STAGE ${i+1}<small>${rbHTML(L.name)}${lk?`　<b style="background:${lk.col[1]};color:${lk.col[0]};border:2px solid ${lk.col[0]};padding:1px 10px;border-radius:12px;font-size:17px;opacity:1">${lk.name}</b>`:""}${L.ink?`　<b style="background:#3fa7ff;color:#fff;padding:1px 10px;border-radius:12px;font-size:17px">インク すこし</b>`:""}</small>`;
+  document.getElementById("hint").innerHTML=rbHTML((lk?`【${lk.name}】`:"")+L.hint);
+  if(!quiet&&i%5===0&&i>0)banner(i%10===0?`ワールド${Math.floor(i/10)+1}　${TH.name}`:TH.name);
 }
 function mulberry(a){return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function banner(s){const t=$("toast");t.textContent=s;t.style.opacity=1;t.style.fontSize="34px";clearTimeout(toastT);
@@ -389,7 +406,7 @@ function onHit(ev){
       const r=a.parent;if(!r.plugin.rock&&!r.plugin.bee||r.plugin.dead)continue;
       const o=b.parent;
       if(cars.some(c=>!c.waiting&&!L.nocar&&(o===c.chassis||o===c.wA||o===c.wB))||(cargo&&o===cargo)||o.plugin.guy){
-        if(state==="draw"||state==="go")finish(false,r.plugin.bee?"ハチに刺された！":r.plugin.big?"大岩にぶつかっちゃった！":"落石にあたっちゃった！");}
+        if(state==="draw"||state==="go")finish(false,r.plugin.bee?"ハチに さされた！":r.plugin.big?"おおいわに ぶつかっちゃった！":"いしが あたっちゃった！");}
       else if(o.isStatic&&!r.plugin.big){r.plugin.dead=true;}
     }
   }
@@ -468,8 +485,8 @@ function endDraw(){
 }
 /* 線の種類（面の line）。世界ごとに線の性質が変わる
    rubber: 上に落ちた物（車・ボール・岩）がはね返る（線自体は柱の上で落ち着く）／ice: 上に乗った物（車・ボール・箱）だけすべる（地面の上では止まっている。坂をすべらせたい時は地面を ice にする）／fixed: 描いた所で止まって落ちない／float: 上へ浮く／heavy: 重い（5 倍） */
-const LINE_KIND={rubber:{name:"ゴムの線",col:["#a3164f","#ff7ab0"]},ice:{name:"氷の線",col:["#2a7fb8","#d8f4ff"]},
-  fixed:{name:"止まる線",col:["#2b2f36","#a9b2bd"]},float:{name:"浮く線",col:["#b87800","#ffe066"]},heavy:{name:"鉄の線",col:["#15171c","#5d6470"]}};
+const LINE_KIND={rubber:{name:"ゴムの せん",col:["#a3164f","#ff7ab0"]},ice:{name:"こおりの せん",col:["#2a7fb8","#d8f4ff"]},
+  fixed:{name:"とまる せん",col:["#2b2f36","#a9b2bd"]},float:{name:"うく せん",col:["#b87800","#ffe066"]},heavy:{name:"てつの せん",col:["#15171c","#5d6470"]}};
 function lineKind(body){const k=L.line;if(!LINE_KIND[k])return;body.plugin.kind=k;
   if(k==="heavy"){Body.setMass(body,body.mass*5);Body.setInertia(body,body.inertia*5);}
   if(k==="float"){body.frictionAir=.15;Body.setInertia(body,Infinity);} // 描いた傾きのまま回らない（エレベーターの床になる） // ゆっくり浮く（上向きの力は step で重さの 2 倍 = 差し引き 1 倍）
@@ -503,27 +520,57 @@ $("hintBtn").onclick=()=>{showHint=(showHint+1)%3;};  // 1回目: 始点と終�
 $("retryBig").onclick=()=>{$("resOv").classList.remove("show");loadLevel(li);};
 $("menuBtn").onclick=()=>showSel();
 $("startBtn").onclick=()=>{audio();$("titleOv").classList.remove("show");showSel();};
-$("selBack").onclick=()=>{$("selOv").classList.remove("show");if(state==="title")$("titleOv").classList.add("show");};
+$("selBack").onclick=()=>{clearTimeout(thumbTimer);$("selOv").classList.remove("show");if(state==="title")$("titleOv").classList.add("show");};
 $("resRetry").onclick=()=>{$("resOv").classList.remove("show");loadLevel(li);};
 $("resNext").onclick=()=>{$("resOv").classList.remove("show");
   if(state==="win"&&li+1<LEVELS.length)loadLevel(li+1);else if(state==="win")showSel();else loadLevel(li);};
-const PER=10,PAGES=()=>Math.ceil(LEVELS.length/PER);
-$("pgPrev").onclick=()=>{selPage=(selPage-1+PAGES())%PAGES();showSel();};
-$("pgNext").onclick=()=>{selPage=(selPage+1)%PAGES();showSel();};
+const PER=20,PAGES=()=>Math.ceil(LEVELS.length/PER);
+const pagesEl=$("pages");let thumbDone=[],thumbQ=[],thumbTimer=0,quiet=false,selBuilt=false;
+const curPage=()=>Math.round(pagesEl.scrollLeft/(pagesEl.clientWidth||1));
+function goPage(p,smooth=true){p=(p+PAGES())%PAGES();pagesEl.scrollTo({left:p*pagesEl.clientWidth,behavior:smooth?"smooth":"auto"});selPage=p;selLabel(p);}
+$("pgPrev").onclick=()=>goPage(curPage()-1);
+$("pgNext").onclick=()=>goPage(curPage()+1);
+function selLabel(p){const a0=p*PER,a1=Math.min(LEVELS.length,a0+PER);let got=0;for(let i=a0;i<a1;i++)if(save.stars[i])got++;
+  $("pgLabel").textContent=`${a0+1}〜${a1}　${got}/${a1-a0}${got===a1-a0?" 🏅":""}`;
+  [...$("dots").children].forEach((d,k)=>d.classList.toggle("on",k===p));}
+// 1 面ぶんの小さな絵: その面を読みこんで本物の描き方で小さく描き、タイルへ写す
+function drawThumb(i){const t=pagesEl.querySelector(`[data-i="${i}"] canvas`);if(!t)return;
+  quiet=true;loadLevel(i);quiet=false;const k0=K,tk=t.width/W;K=tk;render();K=k0;
+  t.getContext("2d").drawImage(cv,0,0,Math.ceil(W*tk),Math.ceil(H*tk),0,0,t.width,t.height);thumbDone[i]=1;}
+function runThumbs(){clearTimeout(thumbTimer);if(!thumbQ.length)return;
+  const back={li,state,had:!!L};
+  for(let n=0;n<10&&thumbQ.length;n++){const i=thumbQ.shift();if(!thumbDone[i])drawThumb(i);}
+  if(back.had){quiet=true;loadLevel(back.li);quiet=false;}
+  state=back.state==="title"?"title":"draw";
+  if(thumbQ.length&&$("selOv").classList.contains("show"))thumbTimer=setTimeout(runThumbs,30);}
+function queueThumbs(p){const first=[],rest=[];for(let i=0;i<LEVELS.length;i++){if(thumbDone[i])continue;(Math.floor(i/PER)===p?first:rest).push(i);}
+  rest.sort((a,b)=>Math.abs(Math.floor(a/PER)-p)-Math.abs(Math.floor(b/PER)-p));thumbQ=first.concat(rest);runThumbs();}
+function buildSel(){pagesEl.innerHTML="";$("dots").innerHTML="";
+  const px=Math.max(1,Math.min(3,K));
+  for(let p=0;p<PAGES();p++){const pg=document.createElement("div");pg.className="page";
+    for(let i=p*PER;i<Math.min(LEVELS.length,(p+1)*PER);i++){const th=themeOf(i);
+      const b=document.createElement("button");b.className="tile";b.dataset.i=i;b.style.setProperty("--wc",th.sky?th.sky[0]:th.ground[0]);
+      const c=document.createElement("canvas");c.width=Math.round(208*px);c.height=Math.round(117*px);b.appendChild(c);
+      b.insertAdjacentHTML("beforeend",`<span class="no">${i+1}</span><span class="ok"></span>`);
+      b.onclick=()=>{if(dragMoved)return;clearTimeout(thumbTimer);$("selOv").classList.remove("show");loadLevel(i);};
+      pg.appendChild(b);}
+    pagesEl.appendChild(pg);
+    const d=document.createElement("i");d.onclick=()=>goPage(p);$("dots").appendChild(d);}
+  selBuilt=true;}
+pagesEl.addEventListener("scroll",()=>{const p=curPage();if(p!==selPage){selPage=p;selLabel(p);}},{passive:true});
+// パソコンのマウスでも横にドラッグできるように（指はそのままスクロール）
+let dragX=null,dragL=0,dragMoved=false;
+pagesEl.addEventListener("pointerdown",e=>{dragMoved=false;if(e.pointerType!=="mouse")return;dragX=e.clientX;dragL=pagesEl.scrollLeft;pagesEl.classList.add("drag");});
+addEventListener("pointermove",e=>{if(dragX===null)return;const s=wrap.getBoundingClientRect().width/W,dx=(e.clientX-dragX)/s;if(Math.abs(dx)>8)dragMoved=true;pagesEl.scrollLeft=dragL-dx;});
+addEventListener("pointerup",e=>{if(dragX===null)return;const s=wrap.getBoundingClientRect().width/W,dx=(e.clientX-dragX)/s;dragX=null;pagesEl.classList.remove("drag");
+  const p0=Math.round(dragL/pagesEl.clientWidth);goPage(Math.abs(dx)>80?p0-Math.sign(dx):p0);setTimeout(()=>{dragMoved=false;},0);});
+pagesEl.addEventListener("wheel",e=>{if(Math.abs(e.deltaY)<Math.abs(e.deltaX))return;e.preventDefault();if(Math.abs(e.deltaY)>20)goPage(curPage()+Math.sign(e.deltaY));},{passive:false});
 function showSel(){
-  const g=$("grid");g.innerHTML="";
-  if(selPage<0){let i=0;while(i<LEVELS.length-1&&save.stars[i])i++;selPage=Math.floor(i/PER);} // 最初は続きのページ
-  const a0=selPage*PER,a1=Math.min(LEVELS.length,(selPage+1)*PER);let got=0;for(let i=a0;i<a1;i++)if(save.stars[i])got++;
-  $("pgLabel").textContent=`ワールド${selPage+1} ${themeOf(a0).name}／${themeOf(a0+5).name}  ${got}/${a1-a0}${got===a1-a0?" 🏅":""}`;
-  const th=themeOf(a0);$("grid").style.setProperty("--wc",th.sky?th.sky[th.sky.length>2?1:0]:th.ground[0]);
-  LEVELS.slice(selPage*PER,(selPage+1)*PER).forEach((lv,j)=>{const i=selPage*PER+j;
-    const b=document.createElement("button");b.className="btn";
-    b.innerHTML=unlocked(i)?`${i+1}<span>${save.stars[i]?"クリア":"&nbsp;"}</span>`:"🔒";
-    b.disabled=!unlocked(i);
-    b.onclick=()=>{$("selOv").classList.remove("show");loadLevel(i);};
-    g.appendChild(b);
-  });
+  if(!selBuilt)buildSel();
+  pagesEl.querySelectorAll(".tile").forEach(b=>{const i=+b.dataset.i,ok=!!save.stars[i];b.classList.toggle("done",ok);b.querySelector(".ok").textContent=ok?"⭐":"";});
   $("selOv").classList.add("show");
+  if(selPage<0){let i=0;while(i<LEVELS.length-1&&save.stars[i])i++;selPage=Math.floor(i/PER);} // 最初は続きのページ
+  goPage(selPage,false);queueThumbs(selPage);
 }
 function finish(win,msg){
   if(state==="win"||state==="fail")return;
@@ -532,14 +579,14 @@ function finish(win,msg){
     const cols=["#ff5a4e","#ffd23f","#5cc443","#3fa7ff","#ff8ac8","#8a5cff"];
     for(let k=0;k<90;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%6]});}
   else{sfx.fail();toast(msg);$("retryBig").classList.add("show","pulse");
-    const icon=msg.includes("落石")?"🪨":msg.includes("荷物")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("動けなく")||msg.includes("時間")?"⛔":"💦";
+    const icon=msg.includes("いしが")?"🪨":msg.includes("にもつ")?"📦":msg.includes("ひっくり")?"🔄":msg.includes("うごけなく")||msg.includes("じかん")?"⛔":"💦";
     if(!MODE.noCar())explode();
     const c=MODE.focus();failAt={x:Math.max(60,Math.min(W-60,c.x)),y:Math.max(90,Math.min(WATER_Y-10,c.y-60)),icon,t:time,word:failWord(msg)};return;}  // 失敗は幕を出さず、リトライボタンだけ目立たせる
   setTimeout(()=>{
     $("resTitle").textContent=win?"クリア！":"しっぱい…";
     $("resTitle").style.color=win?"#ff5a4e":"#557";
-    $("resMsg").innerHTML=win?`STAGE ${li+1} ${L.name}`:msg;
-    $("resNext").textContent=win?(li+1<LEVELS.length?"次へ ▶":"ステージ選択"):"やり直す";
+    $("resMsg").innerHTML=win?`STAGE ${li+1} ${rbHTML(L.name)}`:msg;
+    $("resNext").textContent=win?(li+1<LEVELS.length?"つぎへ ▶":"ステージを えらぶ"):"やりなおす";
     $("resRetry").style.display=win?"":"none";
     $("resOv").classList.add("show");
   },win?700:900);
@@ -602,24 +649,24 @@ function step(){
     Composite.remove(world,strokes[i].body);strokes[i].cons.forEach(c=>Composite.remove(world,c));strokes.splice(i,1);}
   if(state==="draw"||state==="go"){
     const live=cars.filter(c=>!c.waiting);
-    const fallMsg=TH.lava?"溶岩に落ちちゃった…":TH.space?"宇宙に落ちちゃった…":TH.subway?"線路に落ちちゃった…":"車が落ちちゃった…";
+    const fallMsg=TH.lava?"ようがんに おちちゃった…":TH.space?"うちゅうに おちちゃった…":TH.subway?"せんろに おちちゃった…":"くるまが おちちゃった…";
     if(live.some(c=>c.chassis.position.y>WATER_Y+60)){finish(false,fallMsg);return;}
     let fl=false;for(const c of live){if(MODE.inGrav(c.chassis))continue;const a=((c.chassis.angle%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI;if(Math.abs(a)>1.9)fl=true;}
     flipT=fl?flipT+DT/1000:0;
-    if(flipT>1.2){finish(false,"ひっくり返っちゃった…");return;}
+    if(flipT>1.2){finish(false,"ひっくりかえっちゃった…");return;}
     if(cargo){const d=Math.hypot(cargo.position.x-car.chassis.position.x,cargo.position.y-car.chassis.position.y);
-      if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"荷物を落としちゃった…");return;}}
+      if(cargo.position.y>WATER_Y+60||(state==="go"&&d>160)){finish(false,"にもつを おとしちゃった…");return;}}
     if(state==="go"&&MODE.has("flag")){
       const done=(L.turn===undefined||turned)&&cars.every(c=>!c.waiting&&(c.chassis.position.x-L.goal[0])*DIR>0&&c.chassis.position.y<L.goal[1]&&(!L.land||Math.abs(c.chassis.velocity.y)<1.5&&c.chassis.position.y>L.goal[1]-90));  // land: 旗の所に着地してから
       if(done)winT+=DT/1000;else winT=0;
       MODE.flagDone(winT>.25);
       if(winT>.25){}
-      else if(goT>30)finish(false,"時間切れ… 車が進めなかった");
+      else if(goT>30)finish(false,"じかんぎれ… くるまが すすめなかった");
       else{ // 動いている車が 1 台も無いまま 2.5 秒で失敗（穴や壁で詰まった時に待たせない）。動く足場で運ばれている時は動いている扱い
         const pending=live.filter(c=>(L.turn!==undefined&&!turned)||(c.chassis.position.x-L.goal[0])*DIR<0);
         const moving=pending.some(c=>{const p=c.chassis.position,q=c.prevP||p;c.prevP={x:p.x,y:p.y};return Math.hypot(p.x-q.x,p.y-q.y)>=.25;});
         stuckT=(goT>1.5&&pending.length&&!moving&&!MODE.busy())?stuckT+DT/1000:0;
-        if(stuckT>2.5)finish(false,"動けなくなっちゃった…");
+        if(stuckT>2.5)finish(false,"うごけなく なっちゃった…");
       }
     }
   }
@@ -765,7 +812,7 @@ function render(){
       ctx.fillStyle="#6a4a00";ctx.fillRect(x-2,15,4,11);ctx.fillRect(x-2,28,4,4);ctx.fillStyle="#ffd23f";}}
   // 2 台目の車は左上に小さく「あと1台」
   const wait=cars.filter(c=>c.waiting).length;
-  if(wait){ctx.fillStyle="#0006";rr(18,78,150,40,12);ctx.fill();ctx.fillStyle="#fff";ctx.font="bold 22px sans-serif";ctx.fillText(`🚗 あと${wait}台`,32,106);}
+  if(wait){ctx.fillStyle="#0006";rr(18,78,150,40,12);ctx.fill();ctx.fillStyle="#fff";ctx.font="bold 22px sans-serif";ctx.fillText(`🚗 あと${wait}だい`,32,106);}
 }
 // 空の飾り（太陽・月・星・雲・雪）
 function drawSkyDeco(th,ph){
