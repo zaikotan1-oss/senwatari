@@ -46,9 +46,9 @@ const THEMES=[
   water:["#1a1030","#08040f"],line:["#ffffff","#b0d0ff"],car:["#e8e8f0","#c8a040","#404050"],deco:"moon",gravity:.45,space:true,rider:"rover"},
  {name:"ぎんが",bg:"galaxy",ground:["#4a2a7a","#1a0a3a"],grass:["#40f0ff","#2090c0"],noStripe:1,gpat:"crystal",edge:"#d0a0ff",edgeW:3,glow:"#b070ff",
   water:["#000000","#000000"],line:["#40f0ff","#e0ffff"],car:["#b8c4d8","#80ff90","#40485a"],deco:"galaxy",gravity:.45,space:true,rider:"ufo",wheel:"orb"},
- {name:"そらのしま",sky:["#7fd0ff","#f4fbff"],hill:["#ffffff","#e6f4ff"],ground:["#8fcf6a","#5a9a40"],grass:["#b8f07a","#8ad050"],edge:"#3a6a28",
+ {name:"そらの しま",sky:["#7fd0ff","#f4fbff"],hill:["#ffffff","#e6f4ff"],ground:["#8fcf6a","#5a9a40"],grass:["#b8f07a","#8ad050"],edge:"#3a6a28",
   water:["#e8f6ff","#c8e8ff"],line:["#1a3a5a","#4a7aa8"],car:["#ff8a3a","#e86a1a","#8a3a0a"],deco:"clouds",rider:"buggy"},
- {name:"ハチのもり",sky:["#a8e0a0","#f0ffe0"],hill:["#6aa860","#4f9048"],ground:["#7a5a30","#4a3418"],grass:["#4a9a38","#367a28"],edge:"#2a1a0a",
+ {name:"ハチの もり",sky:["#a8e0a0","#f0ffe0"],hill:["#6aa860","#4f9048"],ground:["#7a5a30","#4a3418"],grass:["#4a9a38","#367a28"],edge:"#2a1a0a",
   water:["#3a7a40","#1a4a20"],line:["#2a1a0a","#6a4a20"],car:["#ffd23f","#f0b400","#5a4000"],deco:"autumn",rider:"boar"},
  {name:"こうじげんば",sky:["#9fd3ff","#fff4d8"],hill:["#c8c0b0","#b0a898"],ground:["#c8a060","#8a6a38"],grass:["#f0c020","#c89a10"],edge:"#3a2a10",
   water:["#5a5a60","#2a2a30"],line:["#1a1a20","#ffd23f"],car:["#f0a020","#c87a10","#3a2a10"],deco:"desert",rider:"cart"},
@@ -396,9 +396,9 @@ function fillRuby(s,x,y,size){const tw=ctx.measureText(rbPlain(s)).width,f=ctx.f
 const TALK={bridge:["……","ふんっ！！","こし、ぶじ！","こしがぁぁ！"],kotatsu:["でたくない…","でたくないぃ","みかん、うまし","こたつごと〜！"],
   bath:["ふぅ〜","いい ゆだな〜","ととのった","あちちちっ"],pig:["ブヒ","ブヒー！","ブヒヒッ♪","ブヒィ…"],cat:["にゃ","にゃーっ！","にゃふん","ふにゃ〜"],
   car:["いくぞ","ブオーン！","よっしゃ！","うそーん"],tank:["……","ぜんしん！","せいあつ かんりょう","てったい〜！"],buggy:["すな あつい","ヒャッホー！","さいこうかよ","すながぁ"],
-  loco:["シュッ","シュッポッポ！","ていこく どおり","だっせん〜！"],penguin:["さむ","すべる〜！","ペンッ！","ひぇ〜"],sports:["……","フゥーーッ！","イケてる","ダサッ"],
+  loco:["シュッ","シュッポッポ！","{定刻|ていこく} どおり","だっせん〜！"],penguin:["さむ","すべる〜！","ペンッ！","ひぇ〜"],sports:["……","フゥーーッ！","イケてる","ダサッ"],
   boar:["フゴ","{猪突猛進|ちょとつもうしん}！","フゴフゴ♪","フゴォ…"],rickshaw:["へい","へいらっしゃい！","まいど あり！","おだいは いらねぇ…"],cart:["あつ","あつっ あつっ！","おたから ゲット","もえつきた…"],
-  cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","せんこう〜！","ふじょう せいこう","しんすい〜！"],rover:["ピピ","ちいさな いっぽ！","じんるいの おおきな いっぽ","ヒューストン…"],
+  cake:["あまい","とろける〜","おいしくできました","ぐちゃ…"],sub:["ぶくぶく","もぐるよ〜！","ふじょう せいこう","しんすい〜！"],rover:["ピピ","ちいさな いっぽ！","じんるいの おおきな いっぽ","ヒューストン…"],
   ufo:["ワレワレハ","ワレワレハー！","チキュウ、チョロイ","カエリタイ…"],superoji:["……","とうっ！","せいぎは かつ","マントが…"],futon:["zzz","むにゃ…","あと 5ふん…","（まだ ねてる）"]};
 // 失敗の擬音
 function failWord(msg){return msg.includes("トゲ")?"プスッ！":msg.includes("おきなかった")?"ぐぅ…":msg.includes("とんでいっちゃった")?"ヒューン…":msg.includes("とどかなかった")?"ぽてっ":msg.includes("おおいわ")?"ドガーン！":msg.includes("いしが")?"ゴンッ！":msg.includes("にもつ")?"あっ…":msg.includes("ひっくり")?"ゴロン…":
@@ -431,9 +431,9 @@ const CHEERS=[
  {w:["ポッポー（てんさい）","クルッポー！","パンくずより ええもん みた"],d(c){const h=c*.8;_L([[-4,0],[-4,-12]],"#e77",3);_L([[4,0],[4,-12]],"#e77",3);_E(0,-24,20,14,"#9aa0b0");
    _E(-18,-28,12,7,"#7a8090");_E(12+h,-40,8,10,"#6a9");_E(14+h,-50,10,10,"#8a90a0");_E(17+h,-52,2.5,2.5,"#f60");_E(17+h,-52,1.2,1.2,"#000");
    ctx.fillStyle="#fc6";ctx.beginPath();ctx.moveTo(23+h,-50);ctx.lineTo(31+h,-48);ctx.lineTo(23+h,-46);ctx.fill();}},
- {w:["あおです。どうぞ","ずっと あおに しとくわ","しんごうむしは アカンで"],d(c){ctx.fillStyle="#888";rr(-4,-60,8,60,2);ctx.fill();ctx.fillStyle="#333";rr(-40,-86,80,28,8);ctx.fill();
+ {w:["あおです。どうぞ","ずっと あおに しとくわ","{信号無視|しんごうむし}は アカンで"],d(c){ctx.fillStyle="#888";rr(-4,-60,8,60,2);ctx.fill();ctx.fillStyle="#333";rr(-40,-86,80,28,8);ctx.fill();
    _E(-24,-72,9,9,"#522");_E(0,-72,9,9,"#540");_E(24,-72,9,9,Math.sin(time*8)>0?"#3f6":"#1a4");_eyes(24,-74,3,1.5);_smile(24,-72,3);}},
- {w:["うらめしや…やない、すごいや","じょうぶつ しそう","ぞくっとした"],d(c){const f=Math.sin(time*3)*6;ctx.save();ctx.globalAlpha=.9;ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-20,-20+f);
+ {w:["うらめしや…やない、すごいや","{成仏|じょうぶつ} しそう","ぞくっとした"],d(c){const f=Math.sin(time*3)*6;ctx.save();ctx.globalAlpha=.9;ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-20,-20+f);
    ctx.arc(0,-50+f,20,Math.PI,0);ctx.lineTo(20,-20+f);for(let i=0;i<4;i++)ctx.quadraticCurveTo(15-i*10,-10+f+(i%2?-6:6),10-i*10,-20+f);ctx.fill();ctx.restore();
    _eyes(0,-52+f,7,3);_E(0,-42+f,4,5,"#222");_L([[-18,-40+f],[-30,-50+f+c]],"#fff",5);_L([[18,-40+f],[30,-50+f-c]],"#fff",5);}},
  {w:["{大根役者|だいこんやくしゃ}ちゃうで","おでんで まってる","ほめたら ふとなった"],d(c){for(const a of [-.5,0,.5])_E(Math.sin(a)*14,-86+Math.abs(a)*6,5,16,"#4b3");_E(0,-40,15,36,"#f8f8f0");
@@ -466,7 +466,7 @@ const CHEERS=[
    _E(0,-48,22,24,"#ff6a4a");ctx.fillStyle="#fff";rr(-22,-58,44,6,3);ctx.fill();_eyes(0,-44,7,3);_E(0,-34,4,4,"#c33");}},
  {w:["もちつけ…いや、すごい","つきまで とどいた","ぺったん！"],d(c){_E(-7,-78,5,16,"#fff");_E(7,-80,5,16,"#fff");_E(-7,-78,2,11,"#fcc");_E(7,-80,2,11,"#fcc");_E(0,-30,16,24,"#fff");_E(0,-58,14,13,"#fff");
    _eyes(0,-59,5,2.2,"#e22");_E(0,-54,2,1.5,"#f9a");ctx.save();ctx.translate(20,-40);ctx.rotate(-.6+c*.08);ctx.fillStyle="#b08050";rr(-2,-28,4,30,2);ctx.fill();rr(-10,-34,20,10,3);ctx.fill();ctx.restore();}},
- {w:["はなしが ながく なるので しょうりゃく。えらい","こうちょう せんせいも かんしんです","ぜんこう しゅうかいで はっぴょうします"],d(c){_L([[-6,0],[-5,-24]],"#333",7);_L([[6,0],[5,-24]],"#333",7);ctx.fillStyle="#333";rr(-15,-58,30,36,6);ctx.fill();
+ {w:["ながいので しょうりゃく。えらい","こうちょう せんせいも かんしんです","ぜんこうで はっぴょうします"],d(c){_L([[-6,0],[-5,-24]],"#333",7);_L([[6,0],[5,-24]],"#333",7);ctx.fillStyle="#333";rr(-15,-58,30,36,6);ctx.fill();
    ctx.fillStyle="#fff";ctx.beginPath();ctx.moveTo(-5,-58);ctx.lineTo(5,-58);ctx.lineTo(0,-46);ctx.fill();_L([[0,-54],[0,-44]],"#c22",3);_L([[-14,-52],[-24,-40]],"#333",6);
    _L([[14,-52],[24,-64]],"#333",6);ctx.fillStyle="#fff";rr(18,-78,18,14,1);ctx.fill();ojiHead(0,-78,.9,0);
    ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.beginPath();ctx.arc(-6,-80,5,0,7);ctx.moveTo(11,-80);ctx.arc(6,-80,5,0,7);ctx.stroke();}},
