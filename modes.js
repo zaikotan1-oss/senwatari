@@ -41,6 +41,8 @@ const MODE=(()=>{
       MAKE[o.k]&&MAKE[o.k](o);P.push(o);
       if(!o.live)for(const b of [o.body,o.box,o.ball,...(o.bodies||[])])if(b&&!b.isStatic&&(o.k==="ball"||o.k==="box"||o.k==="domino"||o.k==="balloon"||o.k==="lever")){Body.setStatic(b,true);FZ.push(b);}if(o.id)(byId[o.id]=byId[o.id]||[]).push(o);}
   };
+  // 守られる おっさんの まちの ことば: その面で こわい物を言う（10-31 本人「岩の面で ハチこわい はおかしい」）
+  const fearWord=()=>P.some(q=>q.k==="bees")?"ハチ こわい…":L.boulder?"おおいわ こわい…":L.rocks?"いわ こわい…":P.some(q=>q.k==="cannon")||L.cannon?"たいほう こわい…":"こわい…";
   const MAKE={
     btn(o){o.w=o.w||64;o.down=false;},
     gate(o){o.body=ST(Bodies.rectangle(o.x,(o.top+o.bot)/2,30,o.bot-o.top,{isStatic:true,friction:.5}));o.y0=o.body.position.y;},
@@ -281,7 +283,7 @@ const MODE=(()=>{
     guy(o){const {x,y}=o,sh=state==="fail"?Math.sin(time*40)*3:0;ctx.strokeStyle="#4a3020";ctx.lineWidth=7;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(x-8+sh,y);ctx.lineTo(x-6,y-30);ctx.moveTo(x+8+sh,y);ctx.lineTo(x+6,y-30);ctx.stroke();
       ctx.fillStyle="#e8dcc0";rr(x-16,y-40,32,14,4);ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(x,y-56,18,20,0,0,7);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();
       ctx.strokeStyle=SKIN;ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x-14,y-62);ctx.lineTo(x-24,y-40+sh);ctx.moveTo(x+14,y-62);ctx.lineTo(x+24,y-40-sh);ctx.stroke();
-      ojiHead(x,y-86,1,0);const s=state==="fail"?"いったぁぁ！":state==="win"?"たすかった〜":state==="go"?"ひぃぃ！":"ハチこわい…";talk(x,y-140,s);},
+      ojiHead(x,y-86,1,0);const s=state==="fail"?"いったぁぁ！":state==="win"?"たすかった〜":state==="go"?"ひぃぃ！":fearWord();talk(x,y-140,s);},
     bees(o){ctx.fillStyle="#b07a30";ctx.beginPath();ctx.ellipse(o.x,o.y,30,36,0,0,7);ctx.fill();ctx.strokeStyle="#7a5018";ctx.lineWidth=3;for(let k=-2;k<=2;k++){ctx.beginPath();ctx.ellipse(o.x,o.y+k*12,30-Math.abs(k)*5,4,0,0,Math.PI);ctx.stroke();}
       ctx.fillStyle="#3a2008";ctx.beginPath();ctx.arc(o.x,o.y+10,7,0,7);ctx.fill();
       for(const b of o.list){if(b.plugin.dead)continue;const p=b.position,f=Math.sin(time*60+b.id)*4;ctx.fillStyle="#ffffffc0";ctx.beginPath();ctx.ellipse(p.x-3,p.y-8,6,4+f*.3,-.5,0,7);ctx.ellipse(p.x+4,p.y-8,6,4-f*.3,.5,0,7);ctx.fill();

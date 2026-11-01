@@ -1,4 +1,4 @@
-/* 絵柄 24 種（5 面ごとにガラッと変わる）と、走る物の見た目
+/* 絵柄 44 種（5 面ごとにガラッと変わる）と、走る物の見た目
    ・ふつうの絵柄: 空→遠くの山→遠景の飾り→水 を index.html の render が描く
    ・bg を持つ絵柄: 背景を丸ごと BG[bg] が描く（描き方そのものが違う: 落書き・ドット絵・設計図…）
    ・rider: 走る物（当たり判定は車と同じ。車体 -48..48 × -13..13、車輪は ±32, +20, 半径 19）
@@ -54,6 +54,46 @@ const THEMES=[
   water:["#5a5a60","#2a2a30"],line:["#1a1a20","#ffd23f"],car:["#f0a020","#c87a10","#3a2a10"],deco:"desert",rider:"cart"},
  {name:"ゆうやけの そら",sky:["#ff9a5a","#ffe0a0"],hill:["#d0705a","#b85a48"],ground:["#7a4a5a","#4a2a3a"],grass:["#ffb07a","#e8905a"],edge:"#2a141a",
   water:["#ffd0a0","#ffb080"],line:["#2a0a1a","#7a3a5a"],car:["#5a3aa0","#ffffff","#2a1a50"],deco:"sunset",rider:"sports"},
+ {name:"はるの はなばたけ",sky:["#8fd0ff", "#fff0f6"],hill:["#f7c6dc", "#eab0cc"],ground:["#9a6a40", "#5e3e22"],grass:["#7ad35a", "#5cb840"],edge:"#3a2410",
+  water:["#4ab0f0", "#1a70b8"],line:["#2a1a10", "#6a4a30"],car:["#ff7ab0", "#e85a94", "#8a2a50"],deco:"clouds",rider:"pig"},
+ {name:"なつの うみべ",sky:["#3fbfff", "#d9f6ff"],hill:["#a0e4f0", "#80d0e0"],ground:["#f0d898", "#c8a868"],grass:["#f8e8b0", "#e8d090"],edge:"#8a6a30",
+  water:["#1fb8e0", "#0a6fa8"],line:["#0a2a40", "#2a5a80"],car:["#ffd23f", "#f0a800", "#6a4a00"],deco:"island",rider:"bath"},
+ {name:"ジャングル",sky:["#7fd09a", "#e8fff0"],hill:["#3a8a4a", "#2f7a3e"],ground:["#6a4a28", "#3a2814"],grass:["#2e9a3a", "#1f7a2a"],edge:"#1a1008",
+  water:["#2a7a5a", "#104a30"],line:["#1a1008", "#4a3418"],car:["#e8732a", "#c85a18", "#5a2a08"],deco:"autumn",rider:"boar"},
+ {name:"ゆきの むら",sky:["#a8d8ff", "#ffffff"],hill:["#e0ecf8", "#c8dcf0"],ground:["#9aa8b8", "#5a6a7a"],grass:["#ffffff", "#e6eef8"],edge:"#3a4658",
+  water:["#9ad8f0", "#5a9ac8"],line:["#1a2440", "#40507a"],car:["#d8342a", "#ffffff", "#5a1010"],deco:"snow",rider:"penguin"},
+ {name:"まつりの よる",sky:["#140a30", "#3a1a5a"],hill:["#2a1a4a", "#22143e"],ground:["#5a3a2a", "#2a1a12"],grass:["#c8342a", "#8a2018"],edge:"#100806",
+  water:["#2a1a5a", "#100830"],line:["#fff0a0", "#ffd060"],car:["#ff5a3a", "#ffd23f", "#5a1a10"],deco:"night",rider:"rickshaw"},
+ {name:"おもちゃばこ",sky:["#ffe08a", "#fff8e0"],hill:["#ffb0a0", "#ff9a8a"],ground:["#3a7ae0", "#2a5ab0"],grass:["#ff4a4a", "#d83030"],edge:"#102040",
+  water:["#4ad0a0", "#20a078"],line:["#1a1a2a", "#5a5a8a"],car:["#40c040", "#ffd23f", "#105010"],deco:"candy",rider:"tank"},
+ {name:"あきの ゆうぐれ",sky:["#ff8a5a", "#ffe0b0"],hill:["#c8603a", "#a84a2a"],ground:["#7a4a2a", "#4a2a14"],grass:["#e8902a", "#c8701a"],edge:"#2a1408",
+  water:["#e89a5a", "#a85a2a"],line:["#2a0a08", "#6a2a18"],car:["#6a3aa0", "#ffffff", "#2a1a50"],deco:"sunset",rider:"cat"},
+ {name:"きのこの もり",sky:["#b8e0a8", "#f8fff0"],hill:["#8ab87a", "#6a9a5a"],ground:["#7a5a3a", "#4a3420"],grass:["#6ab84a", "#4a9a30"],edge:"#2a1a0a",
+  water:["#4a8a6a", "#2a5a40"],line:["#2a1a0a", "#6a4a2a"],car:["#ff3a3a", "#ffffff", "#7a1010"],deco:"autumn",rider:"cake"},
+ {name:"こおりの くに",sky:["#c8f0ff", "#ffffff"],hill:["#d8f4ff", "#b8e4f8"],ground:["#8ac8e8", "#4a8ab8"],grass:["#e8f8ff", "#c8e8f8"],edge:"#2a5a80",
+  water:["#a8e8ff", "#5ab8e0"],line:["#0a2a50", "#3a6aa0"],car:["#2a6ad8", "#e8f4ff", "#0a2a60"],deco:"snow",rider:"penguin"},
+ {name:"さばくの よる",sky:["#0a1438", "#3a3a7a"],hill:["#3a3060", "#2a2450"],ground:["#b08a50", "#6a4a28"],grass:["#d8b070", "#b08a50"],edge:"#3a2410",
+  water:["#2a3a7a", "#101a40"],line:["#fff4c0", "#ffd860"],car:["#e8e8f0", "#3a7ae0", "#20203a"],deco:"night",rider:"buggy"},
+ {name:"にじの はら",sky:["#7fd6ff", "#ffffff"],hill:["#ffd0f0", "#d0f0ff"],ground:["#a06a40", "#6a4024"],grass:["#5cd46a", "#3cb84a"],edge:"#3a2010",
+  water:["#5ab8ff", "#2a7ad8"],line:["#3a1a5a", "#8a5ab8"],car:["#ff5a8a", "#ffd23f", "#6a2a40"],deco:"clouds",rider:"sports"},
+ {name:"こうじょう",sky:["#a8b8c8", "#e8eef4"],hill:["#8a96a4", "#76828e"],ground:["#7a7a80", "#4a4a50"],grass:["#f0c020", "#c89a10"],edge:"#202024",
+  water:["#5a6a7a", "#2a3a4a"],line:["#1a1a20", "#e0a020"],car:["#e8732a", "#c85a18", "#3a1a08"],deco:"desert",rider:"cart"},
+ {name:"みずうみの しま",sky:["#6fc8ff", "#e0f6ff"],hill:["#8ad0a0", "#6ab888"],ground:["#8a6a40", "#5a4024"],grass:["#5cc443", "#46a834"],edge:"#3a2410",
+  water:["#2a90e0", "#1050a0"],line:["#102030", "#3a5a7a"],car:["#ffffff", "#2a90e0", "#1a3a5a"],deco:"island",rider:"sub"},
+ {name:"やまの ぼり",sky:["#88c8f5", "#f0f8ff"],hill:["#7a9ab8", "#6a8aa8"],ground:["#8a7a6a", "#5a4a3a"],grass:["#6aa84a", "#4a8830"],edge:"#2a2018",
+  water:["#5aa8d8", "#2a6aa0"],line:["#1a1a24", "#4a4a60"],car:["#3a7a3a", "#e8e8e8", "#1a3a1a"],deco:"snow",rider:"loco"},
+ {name:"おしろの にわ",sky:["#9fd8ff", "#fff8e8"],hill:["#c8d8b0", "#b0c898"],ground:["#a89070", "#6a5a40"],grass:["#7acb5a", "#5aa840"],edge:"#3a2a18",
+  water:["#4aa0d8", "#1a6aa8"],line:["#2a1a10", "#8a6a40"],car:["#c83a3a", "#f0d040", "#5a1010"],deco:"clouds",rider:"rickshaw"},
+ {name:"ほしの よる",sky:["#05081f", "#202a5a"],hill:["#141a3a", "#0e1430"],ground:["#3a3a5a", "#1a1a30"],grass:["#5a5aa0", "#3a3a80"],edge:"#08081a",
+  water:["#1a2a6a", "#080e30"],line:["#fff8c0", "#ffe070"],car:["#ffd23f", "#ffffff", "#5a4a00"],deco:"night",rider:"ufo"},
+ {name:"かざんの ふもと",sky:["#3a1a1a", "#c86a3a"],hill:["#5a2a1e", "#4a2018"],ground:["#5a4040", "#2a1a1a"],grass:["#8a6a5a", "#6a4a3a"],edge:"#140808",
+  water:["#ff9a2a", "#c8380a"],line:["#fff0d0", "#ffc070"],car:["#8a8a90", "#ffd23f", "#222"],deco:"volcano",rider:"cart"},
+ {name:"おかしの まち",sky:["#ffc6ea", "#fff4fc"],hill:["#ffe0f2", "#f8c8e4"],ground:["#9a6040", "#6a3a20"],grass:["#ffa0d0", "#ff80c0"],edge:"#3a1a0a",
+  water:["#c0f0ff", "#80d0f0"],line:["#6a2a10", "#9a5a30"],car:["#ffffff", "#ff80c0", "#9a6040"],deco:"candy",rider:"cake"},
+ {name:"くもの うえ",sky:["#9ad8ff", "#ffffff"],hill:["#ffffff", "#f0f8ff"],ground:["#e8f0f8", "#c8d8e8"],grass:["#ffffff", "#e8f0f8"],edge:"#8aa0b8",
+  water:["#d8f0ff", "#b8e0ff"],line:["#2a3a5a", "#5a7aa0"],car:["#ff8a3a", "#ffd23f", "#6a3a10"],deco:"clouds",rider:"superoji"},
+ {name:"さいごの ゆうひ",sky:["#ff6a3a", "#ffd090"],hill:["#b84a3a", "#9a3a2e"],ground:["#5a2a2a", "#2a1010"],grass:["#ff8a5a", "#e8603a"],edge:"#1a0808",
+  water:["#ffb070", "#e8803a"],line:["#1a0808", "#5a2a2a"],car:["#ffd23f", "#ff5a3a", "#5a2a00"],deco:"sunset",rider:"car"},
 ];
 
 /* ---------- 背景（bg を持つ絵柄） ---------- */
