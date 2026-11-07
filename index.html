@@ -112,9 +112,9 @@ html,body{margin:0;height:100%;background:#1b2838;overflow:hidden;touch-action:n
 </div>
 <div id="rotate">よこむきに して あそんでね</div>
 
-<script src="matter.min.js?v=119"></script>
-<script src="gen.js?v=119"></script>
-<script src="gen_table.js?v=119"></script><script src="looks.js?v=119"></script><script src="modes.js?v=119"></script><script src="stages.js?v=119"></script>
+<script src="matter.min.js?v=120"></script>
+<script src="gen.js?v=120"></script>
+<script src="gen_table.js?v=120"></script><script src="looks.js?v=120"></script><script src="modes.js?v=120"></script><script src="stages.js?v=120"></script>
 <script>
 "use strict";
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
@@ -534,7 +534,7 @@ function selLabel(p){const a0=p*PER,a1=Math.min(LEVELS.length,a0+PER);let got=0;
   $("pgLabel").textContent=`${a0+1}〜${a1}　${got}/${a1-a0}${got===a1-a0?" 🏅":""}`;
   [...$("dots").children].forEach((d,k)=>d.classList.toggle("on",k===p));}
 // 1 面ぶんの小さな絵: その面を読みこんで本物の描き方で小さく描き、タイルへ写す
-function drawThumb(i){const t=pagesEl.querySelector(`[data-i="${i}"] canvas`);if(!t)return;
+function drawThumb(i){const t=pagesEl.querySelector(`[data-i="${i}"] canvas`);if(!t||!cv.width||!cv.height)return; // 本体の絵がまだ 0 の大きさ（縦向きで開いた直後など）は、次に開いた時に描く
   quiet=true;loadLevel(i);quiet=false;const k0=K,tk=t.width/W;K=tk;render();K=k0;
   t.getContext("2d").drawImage(cv,0,0,Math.ceil(W*tk),Math.ceil(H*tk),0,0,t.width,t.height);thumbDone[i]=1;}
 function runThumbs(){clearTimeout(thumbTimer);if(!thumbQ.length)return;
