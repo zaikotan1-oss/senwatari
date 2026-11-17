@@ -146,7 +146,7 @@ const BG={
       ctx.fillStyle="#ffffff30";for(let w=0;w<4;w++){ctx.beginPath();ctx.arc(x+60+w*96,380,12,0,7);ctx.fill();}}
     ctx.strokeStyle="#0003";ctx.lineWidth=3;for(let k=0;k<6;k++){const y=310+k*28;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}}
   else{for(let x=110;x<W;x+=300){ctx.fillStyle="#1a3a8a";rr(x,150,180,50,6);ctx.fill(); // 駅名の看板
-    ctx.fillStyle="#fff";ctx.font="bold 24px sans-serif";ctx.textAlign="center";ctx.fillText(["せんわたり","つぎは かわむこう","←のりば","でぐち ↗"][(x/300|0)%4],x+90,184);ctx.textAlign="left";}}
+    ctx.fillStyle="#fff";ctx.font="bold 24px ZenMaru,sans-serif";ctx.textAlign="center";ctx.fillText(["せんわたり","つぎは かわむこう","←のりば","でぐち ↗"][(x/300|0)%4],x+90,184);ctx.textAlign="left";}}
   ctx.fillStyle="#5a5a64";for(let x=0;x<W;x+=320){ctx.fillRect(x+280,90,30,430);} // 柱
   ctx.fillStyle="#1a1a1e";ctx.fillRect(0,WATER_Y,W,H-WATER_Y); // 線路
   ctx.fillStyle="#4a3a2a";for(let x=-20;x<W;x+=36)ctx.fillRect(x,WATER_Y+46,22,16);
@@ -167,7 +167,7 @@ const BG={
   ctx.strokeStyle="#aaa";ctx.lineWidth=2;hills(470,50,.006,ph);ctx.stroke(); // 遠くの山（輪郭だけ）
   ctx.strokeStyle="#3a70d0";ctx.lineWidth=2.5; // 水は青鉛筆のなみなみ
   for(let r=0;r<4;r++){ctx.beginPath();for(let x=0;x<=W;x+=8){const y=WATER_Y+14+r*28+Math.sin(x*.05+time*2+r)*5;x?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
-  ctx.fillStyle="#3a70d0";ctx.font="bold 22px sans-serif";ctx.fillText("みず",20,H-20);
+  ctx.fillStyle="#3a70d0";ctx.font="bold 22px ZenMaru,sans-serif";ctx.fillText("みず",20,H-20);
  },
  pixel(th,ph){ // ファミコン風: 空・ブロックの雲・丸い丘・ドットの水
   const gb=th.post==="gb";
@@ -447,7 +447,7 @@ Object.assign(RIDERS,{
   ctx.fillStyle="#2a5ae0";ctx.beginPath();ctx.ellipse(-4,-18,42,13,0,0,7);ctx.fill();ctx.stroke(); // 体
   ctx.fillStyle="#3a6af0";ctx.beginPath();ctx.ellipse(4,-4,24,11,0,0,Math.PI);ctx.fill();ctx.stroke(); // 出たおなか
   ctx.fillStyle="#e8202a";ctx.beginPath();ctx.ellipse(-34,-18,12,11,0,0,7);ctx.fill();ctx.stroke(); // パンツ
-  ctx.fillStyle="#ffd23f";ctx.beginPath();ctx.arc(8,-22,8,0,7);ctx.fill();ctx.stroke();ctx.fillStyle="#e8202a";ctx.font="bold 11px sans-serif";ctx.textAlign="center";ctx.fillText("オ",8,-18);ctx.textAlign="left";
+  ctx.fillStyle="#ffd23f";ctx.beginPath();ctx.arc(8,-22,8,0,7);ctx.fill();ctx.stroke();ctx.fillStyle="#e8202a";ctx.font="bold 11px ZenMaru,sans-serif";ctx.textAlign="center";ctx.fillText("オ",8,-18);ctx.textAlign="left";
   ctx.strokeStyle="#000";ctx.lineWidth=11;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(24,-24);ctx.lineTo(56,-32);ctx.stroke();ctx.strokeStyle=SKIN;ctx.lineWidth=7;ctx.stroke(); // 前に突き出した腕
   ctx.fillStyle=SKIN;ctx.beginPath();ctx.arc(58,-32,6,0,7);ctx.fill();ctx.strokeStyle="#000";ctx.lineWidth=2;ctx.stroke();
   ojiHead(32,-38,.95,0);ctx.fillStyle="#2a5ae0";ctx.fillRect(22,-42,22,5);}, // 目だけのマスク
@@ -455,14 +455,14 @@ Object.assign(RIDERS,{
   ojiHead(38,-30,.85,-.3,true);
   ctx.fillStyle="#6a8ad0";rr(-54,-24,86,32,8);ctx.fill();ctx.strokeStyle="#223";ctx.lineWidth=2.5;ctx.stroke();
   ctx.fillStyle="#fff";for(let x=-46;x<28;x+=16)for(let y=-16;y<6;y+=12){ctx.beginPath();ctx.arc(x+(y%24?8:0),y,3,0,7);ctx.fill();}
-  ctx.fillStyle="#223";ctx.font="bold 18px sans-serif";for(let k=0;k<3;k++){const t=(time*.7+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",44+k*6+t*20,-50-t*40);}ctx.globalAlpha=1;},
+  ctx.fillStyle="#223";ctx.font="bold 18px ZenMaru,sans-serif";for(let k=0;k<3;k++){const t=(time*.7+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",44+k*6+t*20,-50-t*40);}ctx.globalAlpha=1;},
 });
 // 読みがな: "{漢字|よみ}" と書くと、漢字の上に小さく よみを のせる（かなだけだと変な言葉だけに使う）
 const RUBY=/\{([^|}]+)\|([^}]+)\}/g;
 const rbPlain=s=>String(s).replace(RUBY,"$1"),rbHTML=s=>String(s).replace(RUBY,"<ruby>$1<rt>$2</rt></ruby>"),hasRb=s=>String(s).includes("{");
 function fillRuby(s,x,y,size){const tw=ctx.measureText(rbPlain(s)).width,f=ctx.font;let cx=x-tw/2;ctx.textAlign="left";
   for(const p of String(s).split(/(\{[^|}]+\|[^}]+\})/)){if(!p)continue;const m=p.match(/^\{([^|}]+)\|([^}]+)\}$/);
-    if(m){const w=ctx.measureText(m[1]).width;ctx.fillText(m[1],cx,y);ctx.font=`bold ${Math.round(size*.5)}px sans-serif`;ctx.textAlign="center";ctx.fillText(m[2],cx+w/2,y-size*.92);ctx.font=f;ctx.textAlign="left";cx+=w;}
+    if(m){const w=ctx.measureText(m[1]).width;ctx.fillText(m[1],cx,y);ctx.font=`bold ${Math.round(size*.5)}px ZenMaru,sans-serif`;ctx.textAlign="center";ctx.fillText(m[2],cx+w/2,y-size*.92);ctx.font=f;ctx.textAlign="left";cx+=w;}
     else{ctx.fillText(p,cx,y);cx+=ctx.measureText(p).width;}}}
 // しゃべる乗り物（待ち・走る・クリア・失敗）
 const TALK={bridge:["……","ふんっ！！","こし、ぶじ！","こしがぁぁ！"],kotatsu:["でたくない…","でたくないぃ","みかん、うまし","こたつごと〜！"],
@@ -551,12 +551,12 @@ function cheerSpot(){if(L.goals&&!L.goals.includes("flag")||!L.goal){const ss=st
 function drawCheer(){if(state!=="win"||!L){cheerPos=null;return;}if(!cheerPos)cheerPos=cheerSpot();const k=Math.min(1,(time-winAt)*3),[x,y]=cheerPos,c=Math.sin(time*18)*6;
   const ch=CHEERS[Math.floor(li/5)%CHEERS.length];
   ctx.save();ctx.translate(x,y+(1-k)*80);ch.d(c);
-  const w=ch.w[li%5%ch.w.length],r=hasRb(w)?12:0;ctx.font="bold 20px sans-serif";const tw=ctx.measureText(rbPlain(w)).width+20,bx=Math.max(-x+tw/2+8,Math.min(W-x-tw/2-8,Math.max(-60,Math.min(60,(W/2-x)*.1))));
+  const w=ch.w[li%5%ch.w.length],r=hasRb(w)?12:0;ctx.font="bold 20px ZenMaru,sans-serif";const tw=ctx.measureText(rbPlain(w)).width+20,bx=Math.max(-x+tw/2+8,Math.min(W-x-tw/2-8,Math.max(-60,Math.min(60,(W/2-x)*.1))));
   ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2;rr(bx-tw/2,-128-r,tw,32+r,12);ctx.fill();ctx.stroke();ctx.fillStyle="#222";fillRuby(w,bx,-106,20);
   ctx.restore();}
 function drawTalk(c,z){const t=TALK[TH.rider];if(!t||state==="title")return;
   const k=state==="win"?2:state==="fail"?3:state==="go"?1:0,s=t[k],x=c.position.x,y=c.position.y-(TH.rider==="bridge"?120:92)*z;
-  ctx.font="bold 22px sans-serif";const w=ctx.measureText(rbPlain(s)).width+24,r=hasRb(s)?12:0;
+  ctx.font="bold 22px ZenMaru,sans-serif";const w=ctx.measureText(rbPlain(s)).width+24,r=hasRb(s)?12:0;
   ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20-r,w,36+r,14);ctx.fill();ctx.stroke();
   ctx.beginPath();ctx.moveTo(x-6,y+16);ctx.lineTo(x,y+28);ctx.lineTo(x+6,y+16);ctx.fill();
   ctx.fillStyle="#222";fillRuby(s,x,y+6,22);}
@@ -633,5 +633,5 @@ function drawBoom(){
       if(f.k==="bit"){ctx.fillStyle=f.c;ctx.fillRect(-f.w/2,-7,f.w,14);ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.strokeRect(-f.w/2,-7,f.w,14);}
       else if(f.k==="wheel"){ctx.fillStyle="#222";ctx.beginPath();ctx.arc(0,0,WR,0,7);ctx.fill();ctx.fillStyle="#ccc";ctx.beginPath();ctx.arc(0,0,9,0,7);ctx.fill();
         ctx.strokeStyle="#666";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(9,0);ctx.stroke();}
-      else if(f.k==="head"){ojiHead(0,0,1.2,0);ctx.rotate(-f.r);ctx.font="bold 22px sans-serif";ctx.fillStyle="#fff";ctx.strokeStyle="#000";ctx.lineWidth=4;ctx.strokeText("ぬわーっ",-40,-30);ctx.fillText("ぬわーっ",-40,-30);}
+      else if(f.k==="head"){ojiHead(0,0,1.2,0);ctx.rotate(-f.r);ctx.font="bold 22px ZenMaru,sans-serif";ctx.fillStyle="#fff";ctx.strokeStyle="#000";ctx.lineWidth=4;ctx.strokeText("ぬわーっ",-40,-30);ctx.fillText("ぬわーっ",-40,-30);}
       ctx.restore();}}}

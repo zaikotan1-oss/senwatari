@@ -192,11 +192,11 @@ const MODE=(()=>{
   M.draw=()=>{
     for(const o of P)DRAW[o.k]&&DRAW[o.k](o);
     if(M.has("guard")&&(state==="draw"||state==="go")){const left=Math.max(0,L.guard-(state==="go"?goT:0));
-      ctx.font="bold 40px sans-serif";ctx.textAlign="center";ctx.lineWidth=8;ctx.strokeStyle="#fff";ctx.fillStyle=left<1.5?"#ff3b3b":"#222";
+      ctx.font="bold 40px ZenMaru,sans-serif";ctx.textAlign="center";ctx.lineWidth=8;ctx.strokeStyle="#fff";ctx.fillStyle=left<1.5?"#ff3b3b":"#222";
       const s=`あと ${left.toFixed(1)} びょう まもれ！`;ctx.strokeText(s,W/2,60);ctx.fillText(s,W/2,60);ctx.textAlign="left";}
     if(L.goals.length>1&&state==="draw"){ // 条件が 2 つ以上の時は、左上に並べて見せる
       const JP={flag:"🏁 はたまで",guard:"🛡 まもれ",wake:"⏰ おこせ",bed:"🛏 ふとんへ",ball:"⚽ カゴへ",btn:"🔴 ボタン"};
-      ctx.font="bold 22px sans-serif";let y=100;for(const g of L.goals){const s=JP[g];const w=ctx.measureText(s).width+20;
+      ctx.font="bold 22px ZenMaru,sans-serif";let y=100;for(const g of L.goals){const s=JP[g];const w=ctx.measureText(s).width+20;
         ctx.fillStyle="#fffffff0";rr(18,y-24,w,32,10);ctx.fill();ctx.fillStyle="#222";ctx.fillText(s,28,y);y+=38;}}
   };
   const arrow=(x,y,dx,dy,c)=>{const a=Math.atan2(dy,dx);ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-9);ctx.lineTo(-8,9);ctx.fill();ctx.restore();};
@@ -205,13 +205,13 @@ const MODE=(()=>{
       if(o.side==="d"){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(Math.PI);ctx.translate(-o.x,-o.y);DRAW.btn({...o,side:0});ctx.restore();return;} // 天井のボタン（下から押す）
       const h=o.down?5:14;ctx.fillStyle="#555";rr(o.x-o.w/2-6,o.y-8,o.w+12,8,3);ctx.fill();
       ctx.fillStyle=o.down?"#3ac060":o.goal?"#ff9a1a":"#ff3b3b";ctx.beginPath();ctx.ellipse(o.x,o.y-8,o.w/2-4,h,0,Math.PI,0);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.stroke();
-      if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";
+      if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px ZenMaru,sans-serif";ctx.textAlign="center";
         ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText("おして ▼",o.x,o.y-34+bob);ctx.fillText("おして ▼",o.x,o.y-34+bob);ctx.textAlign="left";}},
     hit(o){const {x,y}=o,w=o.w;ctx.save();if(o.flip){ctx.translate(0,2*y);ctx.scale(1,-1);}
       const r=o.flip?0:36;ctx.fillStyle="#6b7280";ctx.beginPath();ctx.moveTo(x-w/2,y);ctx.lineTo(x+w/2,y);ctx.lineTo(x+w/2-r,y-30);ctx.lineTo(x-w/2+r,y-30);ctx.fill();ctx.fillStyle="#9aa3af";rr(x-w/2+38,y-30,w-76,6,3);ctx.fill();
       ctx.fillStyle="#ffd23f";for(let i=0;i<Math.floor((w-40)/24);i++){ctx.beginPath();ctx.moveTo(x-w/2+26+i*24,y-4);ctx.lineTo(x-w/2+36+i*24,y-18);ctx.lineTo(x-w/2+42+i*24,y-18);ctx.lineTo(x-w/2+32+i*24,y-4);ctx.fill();}
       const h=o.down?4:16;ctx.fillStyle=o.down?"#3ac060":"#ff3b3b";ctx.beginPath();ctx.ellipse(x,y-30,Math.max(12,w/2-40),h,0,Math.PI,0);ctx.fill();ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.stroke();ctx.restore();
-      if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5,ty=o.flip?y+62:y-58;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";
+      if(!o.down&&state==="draw"){const bob=Math.sin(time*5)*5,ty=o.flip?y+62:y-58;ctx.fillStyle="#ff3b3b";ctx.font="bold 20px ZenMaru,sans-serif";ctx.textAlign="center";
         const t=o.by==="car"?"くるまで あてて！":"ぶつけて！";ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.strokeText(t,x,ty+bob);ctx.fillText(t,x,ty+bob);ctx.textAlign="left";}},
     gate(o){const p=o.body.position,h=o.bot-o.top;ctx.save();ctx.translate(p.x,p.y);ctx.beginPath();ctx.rect(-15,-h/2,30,h);ctx.clip();
       for(let y=-h/2-30;y<h/2;y+=30){ctx.fillStyle=(Math.round(y/30)%2)?"#222":"#ffd23f";ctx.beginPath();ctx.moveTo(-15,y);ctx.lineTo(15,y+15);ctx.lineTo(15,y+45);ctx.lineTo(-15,y+30);ctx.fill();}
@@ -261,21 +261,21 @@ const MODE=(()=>{
     box(o){const b=o.body;ctx.save();ctx.translate(b.position.x,b.position.y);ctx.rotate(b.angle);const w=o.w||50,h=o.h||50;ctx.fillStyle="#c89050";ctx.fillRect(-w/2,-h/2,w,h);ctx.strokeStyle="#6a4420";ctx.lineWidth=3;ctx.strokeRect(-w/2,-h/2,w,h);ctx.beginPath();ctx.moveTo(-w/2,-h/2);ctx.lineTo(w/2,h/2);ctx.stroke();ctx.restore();},
     basket(o){ctx.fillStyle="#d0a060";ctx.fillRect(o.x0-6,o.y-66,12,72);ctx.fillRect(o.x1-6,o.y-66,12,72);ctx.fillRect(o.x0,o.y,o.x1-o.x0,12);
       ctx.strokeStyle="#8a6030";ctx.lineWidth=2;for(let x=o.x0;x<o.x1;x+=14){ctx.beginPath();ctx.moveTo(x,o.y-60);ctx.lineTo(x+14,o.y);ctx.stroke();}
-      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";ctx.fillText("⚽ ここへ",(o.x0+o.x1)/2,o.y-78);ctx.textAlign="left";}},
+      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px ZenMaru,sans-serif";ctx.textAlign="center";ctx.fillText("⚽ ここへ",(o.x0+o.x1)/2,o.y-78);ctx.textAlign="left";}},
     oji(o){const {x,y}=o;ctx.save();if(o.flip){ctx.translate(0,2*y);ctx.scale(1,-1);}ctx.fillStyle="#fff";rr(x+36,y-26,34,16,6);ctx.fill();
       ctx.fillStyle="#6a8ad0";rr(x-62,y-28,104,28,8);ctx.fill();ctx.strokeStyle="#223";ctx.lineWidth=2.5;ctx.stroke();
       ctx.fillStyle="#fff";for(let k=0;k<6;k++){ctx.beginPath();ctx.arc(x-52+k*17,y-14,3,0,7);ctx.fill();}
       if(o.id){ctx.fillStyle="#e8e8e8";ctx.beginPath();ctx.arc(x-80,y-16,14,0,7);ctx.fill();ctx.strokeStyle="#c00";ctx.lineWidth=3;ctx.stroke();ctx.strokeStyle="#222";ctx.beginPath();ctx.moveTo(x-80,y-16);ctx.lineTo(x-80,y-24);ctx.moveTo(x-80,y-16);ctx.lineTo(x-74,y-16);ctx.stroke();}
       const sy=o.flip?-1:1;
       if(o.woke){const j=Math.min(1,o.woke*6)*26;ojiHead(x+50,y-30-j,1,0);ctx.restore();talk(x+50,y-110*sy,o.alarm?"うるさっ！":"はっ！！");}
-      else{ojiHead(x+52,y-26,.95,-.4,true);ctx.restore();ctx.fillStyle="#223";ctx.font="bold 22px sans-serif";
+      else{ojiHead(x+52,y-26,.95,-.4,true);ctx.restore();ctx.fillStyle="#223";ctx.font="bold 22px ZenMaru,sans-serif";
         for(let k=0;k<3;k++){const t=(time*.6+k*.33)%1;ctx.globalAlpha=1-t;ctx.fillText("Z",x+64+k*8+t*24,y-(56+t*50)*sy);}ctx.globalAlpha=1;
         if(state==="draw"&&!o.quiet)talk(x+(x<W-300?200:-200),y-110*sy,"ぐぅ…（おこして）");}},
     saw(o){const pl=o.body;ctx.fillStyle="#6a5a4a";ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x-26,o.y+46);ctx.lineTo(o.x+26,o.y+46);ctx.fill();
       ctx.save();ctx.translate(pl.position.x,pl.position.y);ctx.rotate(pl.angle);ctx.fillStyle="#c8904a";ctx.fillRect(-o.len/2,-7,o.len,14);ctx.strokeStyle="#5a3a1a";ctx.lineWidth=3;ctx.strokeRect(-o.len/2,-7,o.len,14);ctx.restore();
       const [x0,x1,y]=o.bed;ctx.fillStyle="#6a8ad0";rr(x0+6,y-16,x1-x0-12,20,6);ctx.fill();ctx.fillStyle="#fff";rr(x1-44,y-26,34,14,6);ctx.fill();
       ctx.fillStyle="#8a6a4a";ctx.fillRect(x0-7,y-44,14,50);ctx.fillRect(x1-7,y-44,14,50);ctx.fillRect(x0,y,x1-x0,12);
-      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px sans-serif";ctx.textAlign="center";ctx.fillText("ここに ちゃくち",(x0+x1)/2,y-58);ctx.textAlign="left";}
+      if(state==="draw"){ctx.fillStyle="#ff3b3b";ctx.font="bold 20px ZenMaru,sans-serif";ctx.textAlign="center";ctx.fillText("ここに ちゃくち",(x0+x1)/2,y-58);ctx.textAlign="left";}
       const r=o.rider,p=r.position;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(r.angle);
       ctx.fillStyle="#fff";rr(-16,-16,32,24,6);ctx.fill();ctx.strokeStyle="#bbb";ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle="#e0d4b0";ctx.fillRect(-16,4,32,12);ctx.restore();
       if(r.parts[2])ojiHead(r.parts[2].position.x,r.parts[2].position.y,1,r.angle);
@@ -288,13 +288,13 @@ const MODE=(()=>{
       ctx.fillStyle="#3a2008";ctx.beginPath();ctx.arc(o.x,o.y+10,7,0,7);ctx.fill();
       for(const b of o.list){if(b.plugin.dead)continue;const p=b.position,f=Math.sin(time*60+b.id)*4;ctx.fillStyle="#ffffffc0";ctx.beginPath();ctx.ellipse(p.x-3,p.y-8,6,4+f*.3,-.5,0,7);ctx.ellipse(p.x+4,p.y-8,6,4-f*.3,.5,0,7);ctx.fill();
         ctx.fillStyle="#ffd23f";ctx.beginPath();ctx.ellipse(p.x,p.y,11,8,Math.atan2(b.velocity.y,b.velocity.x),0,7);ctx.fill();ctx.fillStyle="#222";ctx.fillRect(p.x-3,p.y-7,3,14);ctx.fillRect(p.x+3,p.y-7,3,14);}
-      if(state==="draw"){ctx.fillStyle="#222";ctx.font="bold 18px sans-serif";ctx.textAlign="center";ctx.fillText("ブーン…",o.x,o.y-46);ctx.textAlign="left";}},
+      if(state==="draw"){ctx.fillStyle="#222";ctx.font="bold 18px ZenMaru,sans-serif";ctx.textAlign="center";ctx.fillText("ブーン…",o.x,o.y-46);ctx.textAlign="left";}},
     cannon(o){const vy=o.vy==null?-1:o.vy,a=Math.atan2(vy,o.vx);ctx.save();ctx.translate(o.x,o.y);ctx.rotate(a);
       ctx.fillStyle="#2a2a30";rr(-40,-16,64,32,8);ctx.fill();ctx.fillStyle="#44444c";ctx.fillRect(18,-19,10,38);
       if(flashT>0){ctx.fillStyle="#ffd040";ctx.beginPath();ctx.arc(40,0,22,0,7);ctx.fill();}ctx.restore();
       ctx.fillStyle="#5a3a1a";ctx.beginPath();ctx.arc(o.x,o.y+12,16,0,7);ctx.fill();},
   };
-  function talk(x,y,s){ctx.font="bold 22px sans-serif";const w=ctx.measureText(s).width+24;x=Math.max(w/2+6,Math.min(W-w/2-6,x));
+  function talk(x,y,s){ctx.font="bold 22px ZenMaru,sans-serif";const w=ctx.measureText(s).width+24;x=Math.max(w/2+6,Math.min(W-w/2-6,x));
     ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20,w,36,14);ctx.fill();ctx.stroke();
     ctx.fillStyle="#222";ctx.textAlign="center";ctx.fillText(s,x,y+6);ctx.textAlign="left";}
   M.talk=talk;
