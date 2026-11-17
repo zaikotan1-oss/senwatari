@@ -49,9 +49,11 @@ const UI=(()=>{
         for(let k=0;k<step&&dN<dPts.length;k++){dN++;if(dN<dPts.length)moveDraw(dPts[dN]);}
         if(dN>=dPts.length){endDraw();dPts=null;}}}
     if(dT>11&&!wiping)next();}
-  function next(){clearTimeout(dTimer);if(!demo)return;dT=-99;wipe(()=>{if(demo)demoLoad();});}
+  // 面が変わる時は絵だけを消して出す（ワイプを使うと、その間に押した「あそぶ」が効かず、ロゴも隠れていた・改善ループ1）
+  function next(){clearTimeout(dTimer);if(!demo)return;dT=-99;wrapEl.classList.add("dfade");
+    setTimeout(()=>{if(demo)demoLoad();setTimeout(()=>wrapEl.classList.remove("dfade"),60);},260);}
   function demoStart(){if(TEST||!LEVELS.length)return;demo=true;wrapEl.classList.add("intitle");applySnd();demoLoad();}
-  function demoStop(){if(!demo)return;demo=false;clearTimeout(dTimer);wrapEl.classList.remove("intitle");applySnd();drawing=null;}
+  function demoStop(){if(!demo)return;demo=false;clearTimeout(dTimer);wrapEl.classList.remove("intitle","dfade");applySnd();drawing=null;}
   function demoWin(){winFx=[];const cols=["#ff5a4e","#ffd23f","#5cc443","#3fa7ff","#ff8ac8"];
     for(let k=0;k<60;k++)winFx.push({x:L.goal[0]+(Math.random()-.5)*200,y:L.goal[1]-120,vx:(Math.random()-.5)*9,vy:-4-Math.random()*8,r:Math.random()*6,c:cols[k%5]});
     clearTimeout(dTimer);dTimer=setTimeout(next,2200);}
@@ -74,5 +76,5 @@ const UI=(()=>{
   applySnd();
   if(!TEST){titleInfo();demoStart();music("title");load("a");}
   if(document.fonts&&document.fonts.load){document.fonts.load('900 20px ZenMaru');document.fonts.load('700 20px ZenMaru');}
-  return {wipe,starsFor,demoOn:()=>demo,demoStop,demoWin,toTitle,music};
+  return {wipe,starsFor,demoOn:()=>demo,_next:next,demoStop,demoWin,toTitle,music};
 })();

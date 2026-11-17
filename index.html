@@ -52,7 +52,7 @@ ruby rt{font-size:.45em;font-weight:700}
 #retryBig.show{display:inline-flex}
 #retryBig.pulse{animation:pulse .7s ease-in-out infinite alternate}
 @keyframes pulse{to{transform:scale(1.08)}}
-#hint{position:absolute;left:18px;bottom:18px;max-width:960px;color:var(--ink);font-size:20px;font-weight:700;line-height:1.5;
+#hint{position:absolute;left:18px;bottom:18px;max-width:880px;color:var(--ink);font-size:20px;font-weight:700;line-height:1.5;
   background:#ffffffe8;padding:10px 18px 10px 54px;border-radius:18px;box-shadow:0 5px 0 #0002,0 8px 16px #0002}
 #hint::before{content:"";position:absolute;left:14px;top:50%;width:28px;height:28px;margin-top:-14px;border-radius:50%;background:var(--yel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3zM9.5 18h5v1.5a1.5 1.5 0 0 1-1.5 1.5h-2a1.5 1.5 0 0 1-1.5-1.5z' fill='%235a3a00'/%3E%3C/svg%3E") center/20px no-repeat}
 #hint:empty{display:none}
@@ -80,7 +80,7 @@ ruby rt{font-size:.45em;font-weight:700}
 #resInk{font-size:18px;color:var(--sub);margin:0 0 18px}
 #resBtns{display:flex;justify-content:center;gap:8px}
 #resBtns .btn{margin:0}
-#resMenu{width:74px;padding:0!important}
+#resMenu{width:88px;padding:0!important;flex-direction:column;gap:2px}
 /* ステージえらび: 本物の面を小さく描いたタイルを 20 面ずつ。横にスワイプ */
 #selCard{padding:18px 24px 14px;width:1200px;box-sizing:border-box}
 #selHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -114,7 +114,7 @@ ruby rt{font-size:.45em;font-weight:700}
 #dots i.full{background:#ffd23f}
 #dots i.on{background:var(--red);width:26px}
 /* タイトル: うしろで本物の面がひとりでに解かれていく。手前にロゴとボタン */
-#titleOv{background:radial-gradient(ellipse at 50% 42%,#0b1a3a10 25%,#0b1a3a88 100%);flex-direction:column}
+#titleOv{background:radial-gradient(ellipse 48% 42% at 50% 52%,#0b1a3ad0,#0b1a3a90 55%,#0b1a3a30 100%);flex-direction:column}
 #logo{position:relative;text-align:center;margin-top:-20px}
 #logo h1{margin:0;font-size:128px;font-weight:900;line-height:1.1;color:#fff;letter-spacing:.02em;
   -webkit-text-stroke:16px var(--ink);paint-order:stroke fill;text-shadow:0 10px 0 var(--ink),0 18px 30px #0006;transform:rotate(-3deg)}
@@ -151,6 +151,30 @@ ruby rt{font-size:.45em;font-weight:700}
 .snd .x{display:none}.snd.nomusic .w2{display:none}.snd.off .w1,.snd.off .w2{display:none}.snd.off .x{display:inline}
 .intitle #top,.intitle #hint,.intitle #retryBig,.intitle #toast{display:none!important}
 .intitle #cv{pointer-events:none}
+/* 2026-11-17 改善ループ1: スマホ（画面を 0.75 倍より小さく縮める時）は、押す物を大きくする（指で 40px 以上） */
+.small #tools{gap:14px}
+.small #tools .btn,.small #tSnd{width:84px;height:84px;font-size:38px}
+.small #selHead #selBack{min-height:84px;font-size:26px;padding:0 24px}
+.small #pager .btn{width:84px;height:84px;font-size:40px}
+.small .card .btn{min-height:84px}
+.small #resMenu{width:88px}
+.small #dots i{pointer-events:none}
+.small #retryBig{width:270px;height:100px;font-size:38px}
+/* タイトルのデモで面が変わる時は、絵だけをふっと消して出す（ロゴは隠さない） */
+#cv{transition:opacity .25s}
+#wrap.dfade #cv{opacity:0}
+/* 幕を出している間は、うしろの上の札・ボタン・ヒントを隠す（2 回出て散らかって見えた） */
+#wrap:has(#resOv.show) :is(#top,#hint,#retryBig),#wrap:has(#selOv.show) :is(#top,#hint,#retryBig){visibility:hidden}
+#selOv{background:#10182ad0}
+#wrap:has(#selOv.show) #titleOv{visibility:hidden}
+/* かなの文は、すきまの所でだけ折り返す（「う／く せん」のように語の途中で割れていた・改善ループ2） */
+#hint,#selSub,#tTag,#resMsg,#resInk{word-break:keep-all;overflow-wrap:anywhere}
+.small #selMid{align-self:flex-start;padding-top:6px}
+/* タイトル: ロゴとボタンのうしろを暗くして、デモの絵が字とぶつからないように */
+.intitle #cv{filter:blur(2.5px) saturate(.85) brightness(.82)} /* うしろのデモは背景としてぼかす（線や車が字のまわりでごみに見えた・改善ループ3） */
+.small #selSub{font-size:19px;white-space:normal;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.small #resInk{font-size:22px}
+#resMenu small{font-size:15px;display:block;line-height:1}
 </style>
 </head>
 <body>
@@ -192,7 +216,7 @@ ruby rt{font-size:.45em;font-weight:700}
     <p id="resMsg"></p>
     <p id="resInk"></p>
     <div id="resBtns">
-      <button class="btn sub" id="resMenu" title="ステージを えらぶ"><svg viewBox="0 0 24 24"><g fill="currentColor"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></g></svg></button>
+      <button class="btn sub" id="resMenu" title="ステージを えらぶ"><svg viewBox="0 0 24 24"><g fill="currentColor"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></g></svg><small>いちらん</small></button>
       <button class="btn sub" id="resRetry"><svg viewBox="0 0 24 24"><path d="M12 4.5a7.5 7.5 0 1 0 7.3 9.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M11 .8l5 3.8-5 3.8z" fill="currentColor"/></svg> もう いっかい</button>
       <button class="btn red" id="resNext">つぎへ ▶</button>
     </div>
@@ -201,11 +225,15 @@ ruby rt{font-size:.45em;font-weight:700}
 </div>
 <div id="rotate">よこむきに して あそんでね</div>
 
-<script src="matter.min.js?v=121"></script>
-<script src="gen.js?v=121"></script>
-<script src="gen_table.js?v=121"></script><script src="looks.js?v=121"></script><script src="modes.js?v=121"></script><script src="stages.js?v=121"></script>
+<script src="matter.min.js?v=125"></script>
+<script src="gen.js?v=125"></script>
+<script src="gen_table.js?v=125"></script><script src="looks.js?v=125"></script><script src="modes.js?v=125"></script><script src="stages.js?v=125"></script>
 <script>
 "use strict";
+// 改善ループ1（2026-11-17）: 丸を 2 つ以上 1 つの道にすると、つなぎの線で三角のとがりが出ていた（雲など）。一周する丸は始点へ移ってから描く
+(()=>{const P=CanvasRenderingContext2D.prototype,el=P.ellipse,ar=P.arc;
+  P.ellipse=function(x,y,rx,ry,rot,a0,a1,ccw){if(!ccw&&a1-a0>=6.28){const c=Math.cos(rot),s=Math.sin(rot),px=rx*Math.cos(a0),py=ry*Math.sin(a0);this.moveTo(x+px*c-py*s,y+px*s+py*c);}return el.apply(this,arguments);};
+  P.arc=function(x,y,r,a0,a1,ccw){if(!ccw&&a1-a0>=6.28)this.moveTo(x+r*Math.cos(a0),y+r*Math.sin(a0));return ar.apply(this,arguments);};})();
 const {Engine,Bodies,Body,Composite,Constraint,Query,Vertices,Events}=Matter;
 const W=1280,H=720;
 const T=7;               // 線の太さ（09-30 本人「細くして」12→7。端の段差で車が登れないのも減る）
@@ -352,6 +380,7 @@ let K=1;
 function fit(){
   const s=Math.min(innerWidth/W,innerHeight/H);
   wrap.style.transform=`scale(${s})`;
+  wrap.classList.toggle("small",s<.75);
   wrap.style.left=((innerWidth-W*s)/2)+"px";wrap.style.top=((innerHeight-H*s)/2)+"px";
   K=Math.min(3,s*(devicePixelRatio||1));
   cv.width=Math.round(W*K);cv.height=Math.round(H*K);
@@ -821,11 +850,12 @@ function render(){
     ctx.restore();ctx.strokeStyle="#ff3b3b";ctx.lineWidth=3;ctx.setLineDash([12,8]);ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);}
   // 地面
   for(const b of statics){const poly=b.plugin.poly;if(!poly)continue;
-    ctx.beginPath();poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();
+    // 地面の形は Path2D に持つ（模様が道を描きかえると、縁取りが最後の模様の点に付いて黒い点が出ていた・改善ループ2）
+    const gp=new Path2D();poly.forEach(([x,y],i)=>i?gp.lineTo(x,y):gp.moveTo(x,y));gp.closePath();ctx.beginPath();
     const top=Math.min(...poly.map(p=>p[1]));
     g=ctx.createLinearGradient(0,top,0,top+300);g.addColorStop(0,TH.ground[0]);g.addColorStop(1,TH.ground[1]);
-    ctx.fillStyle=g;ctx.fill();
-    ctx.save();ctx.clip();ctx.fillStyle="#00000018";
+    ctx.fillStyle=g;ctx.fill(gp);
+    ctx.save();ctx.clip(gp);ctx.fillStyle="#00000018";
     if(!TH.noStripe)for(let y=top+40;y<H;y+=46){ctx.fillRect(-100,y,W+200,8);}
     if(TH.gpat)GPAT[TH.gpat](top);
     if(TH.deco==="moon"){ctx.fillStyle="#00000022";for(let k=0;k<6;k++){ctx.beginPath();ctx.ellipse((k*211+top)%W,top+60+(k*67)%200,26,9,0,0,7);ctx.fill();}}
@@ -834,8 +864,8 @@ function render(){
       if(TH.deco==="candy"){ctx.fillStyle="#ffffff";for(let x=-100;x<W+100;x+=26){ctx.beginPath();ctx.arc(x,top+19,6,0,Math.PI);ctx.fill();}}}
     ctx.restore();
     if(TH.glow){ctx.shadowColor=TH.glow;ctx.shadowBlur=14;}
-    ctx.strokeStyle=TH.edge;ctx.lineWidth=TH.edgeW||3;ctx.stroke();ctx.shadowBlur=0;
-    if(TH.rough){ctx.save();ctx.translate(2,-1.5);ctx.globalAlpha=.5;ctx.lineWidth=1.5;ctx.stroke();ctx.restore();}}
+    ctx.strokeStyle=TH.edge;ctx.lineWidth=TH.edgeW||3;ctx.stroke(gp);ctx.shadowBlur=0;
+    if(TH.rough){ctx.save();ctx.translate(2,-1.5);ctx.globalAlpha=.5;ctx.lineWidth=1.5;ctx.stroke(gp);ctx.restore();}}
   MODE.draw();
   // ゴールの旗
   const [gx,gy]=L.goal;if(MODE.flag()){
@@ -1010,6 +1040,6 @@ if(location.hash==="#test"){
   };
 }
 </script>
-<script src="ui.js?v=121"></script>
+<script src="ui.js?v=125"></script>
 </body>
 </html>

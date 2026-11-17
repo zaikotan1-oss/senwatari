@@ -245,7 +245,7 @@ const BG={
   for(let k=0;k<24;k++){ctx.rotate(Math.PI/12);ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(1400,-40);ctx.lineTo(1400,40);ctx.fill();}ctx.restore();
   ctx.fillStyle="#1e6ae033";for(let y=10;y<WATER_Y;y+=22)for(let x=(y/22%2)*11;x<W;x+=22){ctx.beginPath();ctx.arc(x,y,3+y/200,0,7);ctx.fill();} // 網点
   const words=["POW!","ZOOM!","BAM!","VROOM!","WHAM!"],w=words[li%5];
-  ctx.save();ctx.translate(210,130);ctx.rotate(-.12);ctx.fillStyle="#ffe040";ctx.strokeStyle="#000";ctx.lineWidth=5;ctx.beginPath();
+  ctx.save();ctx.translate(300,195);ctx.scale(.75,.75);ctx.rotate(-.12);ctx.fillStyle="#ffe040";ctx.strokeStyle="#000";ctx.lineWidth=5;ctx.beginPath();
   for(let k=0;k<16;k++){const a=k/16*6.28,r=k%2?70:120;ctx.lineTo(Math.cos(a)*r*1.4,Math.sin(a)*r*.8);}ctx.closePath();ctx.fill();ctx.stroke();
   ctx.font="900 54px Impact,sans-serif";ctx.textAlign="center";ctx.fillStyle="#ff3b3b";ctx.strokeText(w,0,18);ctx.fillText(w,0,18);ctx.textAlign="left";ctx.restore();
   ctx.fillStyle=th.water[0];ctx.fillRect(0,WATER_Y,W,H-WATER_Y);ctx.fillStyle="#ffffff66";
@@ -548,13 +548,13 @@ let cheerPos=null;
 function cheerSpot(){if(L.goals&&!L.goals.includes("flag")||!L.goal){const ss=statics.filter(b=>!b.isSensor);
     for(const x of [W-90,W-200,90,200,W/2]){for(let y=150;y<H-20;y+=4)if(Query.point(ss,{x,y}).length){if(!Query.point(ss,{x,y:y-100}).length)return [x,y];break;}}}
   return [L.goal[0]-70*DIR,L.goal[1]];}
-function drawCheer(){if(state!=="win"||!L){cheerPos=null;return;}if(!cheerPos)cheerPos=cheerSpot();const k=Math.min(1,(time-winAt)*3),[x,y]=cheerPos,c=Math.sin(time*18)*6;
+function drawCheer(){if(state!=="win"||!L||wrap.classList.contains("intitle")){cheerPos=null;return;}if(!cheerPos)cheerPos=cheerSpot();const k=Math.min(1,(time-winAt)*3),[x,y]=cheerPos,c=Math.sin(time*18)*6;
   const ch=CHEERS[Math.floor(li/5)%CHEERS.length];
   ctx.save();ctx.translate(x,y+(1-k)*80);ch.d(c);
   const w=ch.w[li%5%ch.w.length],r=hasRb(w)?12:0;ctx.font="bold 20px ZenMaru,sans-serif";const tw=ctx.measureText(rbPlain(w)).width+20,bx=Math.max(-x+tw/2+8,Math.min(W-x-tw/2-8,Math.max(-60,Math.min(60,(W/2-x)*.1))));
   ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2;rr(bx-tw/2,-128-r,tw,32+r,12);ctx.fill();ctx.stroke();ctx.fillStyle="#222";fillRuby(w,bx,-106,20);
   ctx.restore();}
-function drawTalk(c,z){const t=TALK[TH.rider];if(!t||state==="title")return;
+function drawTalk(c,z){const t=TALK[TH.rider];if(!t||state==="title"||wrap.classList.contains("intitle"))return;
   const k=state==="win"?2:state==="fail"?3:state==="go"?1:0,s=t[k],x=c.position.x,y=c.position.y-(TH.rider==="bridge"?120:92)*z;
   ctx.font="bold 22px ZenMaru,sans-serif";const w=ctx.measureText(rbPlain(s)).width+24,r=hasRb(s)?12:0;
   ctx.fillStyle="#fffffff0";ctx.strokeStyle="#333";ctx.lineWidth=2.5;rr(x-w/2,y-20-r,w,36+r,14);ctx.fill();ctx.stroke();
@@ -628,7 +628,7 @@ function drawBoom(){
       const g=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,r);g.addColorStop(0,`rgba(255,255,200,${a})`);g.addColorStop(.4,`rgba(255,170,30,${a})`);g.addColorStop(1,`rgba(220,40,0,0)`);
       ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,r,0,7);ctx.fill();}
     else if(f.k==="spark"){ctx.fillStyle=f.t<.3?"#fff6a0":"#ff8a20";ctx.fillRect(f.x-5,f.y-5,10,10);}
-    else if(f.k==="smoke"){ctx.fillStyle=`rgba(60,60,60,${Math.max(0,.55-f.t*.25)})`;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}
+    else if(f.k==="smoke"){{const a=Math.max(0,.42-f.t*.2),g=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r);g.addColorStop(0,`rgba(225,228,235,${a})`);g.addColorStop(.7,`rgba(200,205,215,${a*.6})`);g.addColorStop(1,'rgba(200,205,215,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}}
     else{ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.r);
       if(f.k==="bit"){ctx.fillStyle=f.c;ctx.fillRect(-f.w/2,-7,f.w,14);ctx.strokeStyle="#0006";ctx.lineWidth=2;ctx.strokeRect(-f.w/2,-7,f.w,14);}
       else if(f.k==="wheel"){ctx.fillStyle="#222";ctx.beginPath();ctx.arc(0,0,WR,0,7);ctx.fill();ctx.fillStyle="#ccc";ctx.beginPath();ctx.arc(0,0,9,0,7);ctx.fill();

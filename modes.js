@@ -191,6 +191,7 @@ const MODE=(()=>{
   // ---------- 描画 ----------
   M.draw=()=>{
     for(const o of P)DRAW[o.k]&&DRAW[o.k](o);
+    if(wrap.classList.contains("intitle"))return; // タイトルのデモでは、面の上の字（あと○びょう・条件の札）を出さない
     if(M.has("guard")&&(state==="draw"||state==="go")){const left=Math.max(0,L.guard-(state==="go"?goT:0));
       ctx.font="bold 40px ZenMaru,sans-serif";ctx.textAlign="center";ctx.lineWidth=8;ctx.strokeStyle="#fff";ctx.fillStyle=left<1.5?"#ff3b3b":"#222";
       const s=`あと ${left.toFixed(1)} びょう まもれ！`;ctx.strokeText(s,W/2,60);ctx.fillText(s,W/2,60);ctx.textAlign="left";}
