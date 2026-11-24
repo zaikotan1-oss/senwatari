@@ -18,3 +18,7 @@ _n_names2.json
 tools/fontsrc/
 tools/shots.py
 eval/
+tools/gen_run.py
+tools/add_themes.py
+tools/plan600.py
+tools/append600.py

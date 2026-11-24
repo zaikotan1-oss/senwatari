@@ -36,7 +36,7 @@ const UI=(()=>{
     applySnd();music(snd.bgm?(demo||$("titleOv").classList.contains("show")?"title":playTrack()):null);}
   $("sndBtn").onclick=cycleSnd;$("tSnd").onclick=cycleSnd;
   // ---------- タイトルのデモ: 答えの線をゆっくり描いて、車が走るのを見せる ----------
-  const DEMO=[0,2,7,12,40,121,124,128,146,160,205,222,230,268,290].filter(i=>i<LEVELS.length&&LEVELS[i].sol);
+  const DEMO=[0,2,7,12,40,121,124,128,146,160,205,222,230,268,290,330,371,412,455,498,540,583].filter(i=>i<LEVELS.length&&LEVELS[i].sol);
   let demo=false,dk=Math.floor(Math.random()*DEMO.length),dT=0,dPts=null,dN=0,dTimer=0;
   function demoLoad(){const i=DEMO[dk%DEMO.length];dk++;quiet=true;loadLevel(i);quiet=false;
     // 答えの線を細かい点にする
